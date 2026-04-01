@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// LEAD_ANALYST | ANALYST_TEAM_LEAD | MAIN_TEAM_LEAD | SALES_EXECUTIVE | SUPERADMIN
+/// (SQLite: stored as plain string)
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  /// Supabase Auth user id (`auth.users.id`). Login and passwords are managed by Supabase.
+  authUserId String? @unique
+  /// Legacy field; unused when `authUserId` is set (Supabase holds the password).
+  passwordHash String?
+  /// Set when Analyst Team Lead creates this user; for display on Members page only.
+  provisioningPassword String?
+  name         String
+  image        String?
+  role         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  managerId String?
+  manager   User?   @relation("AnalystReports", fields: [managerId], references: [id])
+  analysts  User[]  @relation("AnalystReports")
+
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  /// Analyst cohort name: set on ANALYST_TEAM_LEAD (team they lead) and on LEAD_ANALYST (their sub-team label).
+  analystTeamName String?
+
+  leadsCreated      Lead[] @relation("LeadCreatedBy")
+  leadsRoutedTo     Lead[] @relation("LeadMainTeamLead")
+  leadsAssignedExec Lead[] @relation("LeadSalesExec")
+  teamAsMainLead    Team?  @relation("TeamMainLead")
+
+  notifications Notification[]
+
+  leadHandoffActions LeadHandoffLog[] @relation("LeadHandoffActor")
+  salesExecTeamMoves SalesExecTeamTransfer[] @relation("SalesExecTeamTransfers")
+  mtlExecTransfers   SalesExecTeamTransfer[] @relation("MtlExecTransfers")
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  recipientId String
+  recipient   User     @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  kind        String
+  leadId      String?
+  title       String
+  body        String?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([recipientId, read])
+  @@index([recipientId, createdAt])
+}
+
+model Team {
+  id             String   @id @default(cuid())
+  name           String
+  mainTeamLeadId String   @unique
+  mainTeamLead   User     @relation("TeamMainLead", fields: [mainTeamLeadId], references: [id], onDelete: Cascade)
+  members        User[]
+  leads          Lead[]
+  whatsappLines  TeamWhatsApp[]
+  transfersOut   SalesExecTeamTransfer[] @relation("TeamTransfersOut")
+  transfersIn    SalesExecTeamTransfer[] @relation("TeamTransfersIn")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+/// Business WhatsApp lines for a sales team (multiple allowed).
+model TeamWhatsApp {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  /// Store E.164 or local format; shown and opened via wa.me with digits only.
+  phone     String
+  label     String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([teamId])
+}
+
+model Lead {
+  id String @id @default(cuid())
+
+  /// Full name of the prospect
+  leadName String @default("")
+
+  phone     String?
+  leadEmail String?
+
+  /// Optional; auto-filled from phone on create when possible. Used in reports.
+  country String?
+  city    String?
+
+  /// Channel (Meta, Website, etc.)
+  source String
+  notes  String?
+
+  /// Sales executive: reason / context when closing lost (required on new lost closes)
+  lostNotes String?
+
+  /// QUALIFIED | NOT_QUALIFIED | IRRELEVANT
+  qualificationStatus String
+
+  /// 0–100, optional
+  leadScore Int?
+
+  /// PRE_SALES | WITH_TEAM_LEAD | WITH_EXECUTIVE | CLOSED_WON | CLOSED_LOST
+  salesStage String @default("PRE_SALES")
+
+  createdById String
+  createdBy   User   @relation("LeadCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+
+  assignedMainTeamLeadId String?
+  assignedMainTeamLead   User?   @relation("LeadMainTeamLead", fields: [assignedMainTeamLeadId], references: [id], onDelete: SetNull)
+
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  assignedSalesExecId String?
+  assignedSalesExec   User?   @relation("LeadSalesExec", fields: [assignedSalesExecId], references: [id], onDelete: SetNull)
+
+  execAssignedAt DateTime?
+  execDeadlineAt DateTime?
+  closedAt       DateTime?
+
+  internalReassignCount Int @default(0)
+
+  handoffLogs LeadHandoffLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Audit trail for lead routing (analyst → MTL → SE, closes). Best-effort for events after this table exists.
+model LeadHandoffLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  /// LEAD_CREATED | ROUTED_TO_MAIN_TEAM | ASSIGNED_TO_EXECUTIVE | CLOSED_WON | CLOSED_LOST
+  action    String
+  actorId   String?
+  actor     User?    @relation("LeadHandoffActor", fields: [actorId], references: [id], onDelete: SetNull)
+  detail    String?
+
+  @@index([leadId, createdAt])
+}
+
+/// Sales executive moved between teams by a Main Team Lead (superadmin can view full history).
+model SalesExecTeamTransfer {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  salesExecId     String
+  salesExec       User     @relation("SalesExecTeamTransfers", fields: [salesExecId], references: [id], onDelete: Cascade)
+  fromTeamId      String?
+  fromTeam        Team?    @relation("TeamTransfersOut", fields: [fromTeamId], references: [id], onDelete: SetNull)
+  toTeamId        String
+  toTeam          Team     @relation("TeamTransfersIn", fields: [toTeamId], references: [id], onDelete: Cascade)
+  transferredById String
+  transferredBy   User     @relation("MtlExecTransfers", fields: [transferredById], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([salesExecId])
+}

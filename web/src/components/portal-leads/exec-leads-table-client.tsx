@@ -1,0 +1,149 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
+import { ExecLostNotesEditor } from "@/components/exec/exec-lost-notes-editor";
+import { UpdateOutcomeForm } from "@/components/exec/update-outcome-form";
+import { PortalLeadSearchLiveField } from "@/components/portal-lead-search-live-field";
+import { SalesStage } from "@/lib/constants";
+import { filterLeadsByNameOrPhone } from "@/lib/lead-client-search";
+import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
+
+export type ExecLeadRow = {
+  id: string;
+  leadName: string;
+  phone: string | null;
+  leadEmail: string | null;
+  source: string;
+  notes: string | null;
+  lostNotes: string | null;
+  leadScore: number | null;
+  salesStage: string;
+  execDeadlineAt: string | null;
+  createdBy: { name: string };
+};
+
+export function ExecLeadsTableClient({
+  leads,
+  initialQ,
+}: {
+  leads: ExecLeadRow[];
+  initialQ: string | null;
+}) {
+  const [query, setQuery] = useState(initialQ ?? "");
+  useDebouncedLeadSearchUrl(query);
+
+  const filtered = useMemo(
+    () => filterLeadsByNameOrPhone(leads, query),
+    [leads, query],
+  );
+
+  const hasQuery = query.trim().length > 0;
+
+  return (
+    <>
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
+          Find a client
+        </p>
+        <PortalLeadSearchLiveField value={query} onChange={setQuery} />
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-white/5 bg-lf-surface">
+        <table className="min-w-full text-left text-sm">
+          <thead className="border-b border-white/5 text-xs uppercase tracking-wide text-lf-subtle">
+            <tr>
+              <th className="px-4 py-3 font-semibold">Name</th>
+              <th className="px-4 py-3 font-semibold">Phone</th>
+              <th className="px-4 py-3 font-semibold">Email</th>
+              <th className="px-4 py-3 font-semibold">Source</th>
+              <th className="px-4 py-3 font-semibold">Analyst</th>
+              <th className="px-4 py-3 font-semibold">Score</th>
+              <th className="px-4 py-3 font-semibold">Deadline</th>
+              <th className="px-4 py-3 font-semibold">Stage</th>
+              <th className="px-4 py-3 font-semibold">Analyst notes</th>
+              <th className="px-4 py-3 font-semibold">Lost-deal notes</th>
+              <th className="px-4 py-3 font-semibold">Update</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {leads.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={11}
+                  className="px-4 py-10 text-center text-lf-subtle"
+                >
+                  No leads in this range.
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={11}
+                  className="px-4 py-10 text-center text-lf-subtle"
+                >
+                  {hasQuery
+                    ? "No leads match this name or phone in the current filters."
+                    : "No leads in this range."}
+                </td>
+              </tr>
+            ) : (
+              filtered.map((lead) => {
+                const active = lead.salesStage === SalesStage.WITH_EXECUTIVE;
+                const isLost = lead.salesStage === SalesStage.CLOSED_LOST;
+                return (
+                  <tr key={lead.id} className="align-top bg-lf-bg/40">
+                    <td className="px-4 py-3 font-medium text-white">
+                      {lead.leadName || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-lf-muted">
+                      {lead.phone || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-lf-muted">
+                      {lead.leadEmail || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-lf-text-secondary">{lead.source}</td>
+                    <td className="px-4 py-3 text-lf-muted">
+                      {lead.createdBy.name}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-lf-accent">
+                      {lead.leadScore ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-lf-subtle">
+                      {lead.execDeadlineAt
+                        ? new Date(lead.execDeadlineAt).toLocaleString()
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-lf-muted">
+                      {lead.salesStage.replaceAll("_", " ")}
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <AnalystNotesReadonly notes={lead.notes} />
+                    </td>
+                    <td className="px-4 py-3 text-xs text-lf-text-secondary">
+                      {isLost ? (
+                        <ExecLostNotesEditor
+                          leadId={lead.id}
+                          initialNotes={lead.lostNotes}
+                        />
+                      ) : (
+                        <span className="text-lf-subtle">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {active ? (
+                        <UpdateOutcomeForm leadId={lead.id} />
+                      ) : (
+                        <span className="text-xs text-lf-subtle">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}

@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* LeadFlow — deep violet base + cyan accent + violet links */
+@theme {
+  --color-lf-bg: #0a0618;
+  --color-lf-surface: #15102a;
+  --color-lf-header: #0b0718;
+  --color-lf-elevated: #1a1632;
+  --color-lf-accent: #06b6d4;
+  --color-lf-accent-hover: #22d3ee;
+  --color-lf-accent-deep: #0891b2;
+  --color-lf-link: #a78bfa;
+  --color-lf-link-bright: #c4b5fd;
+  --color-lf-muted: #94a3b8;
+  --color-lf-subtle: #64748b;
+  --color-lf-text: #f1f5f9;
+  --color-lf-text-secondary: #cbd5e1;
+  --color-lf-success: #34d399;
+  --color-lf-danger: #f87171;
+  --color-lf-warning: #fbbf24;
+}
