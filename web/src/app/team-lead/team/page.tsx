@@ -55,7 +55,7 @@ export default async function TeamLeadSalesTeamPage() {
     <div className="mx-auto max-w-4xl space-y-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-lf-text md:text-3xl">
             Sales team
           </h1>
           <p className="mt-1 text-sm text-lf-muted">
@@ -68,8 +68,8 @@ export default async function TeamLeadSalesTeamPage() {
         </div>
       </header>
 
-      <section className="rounded-2xl border border-white/5 bg-lf-surface p-5">
-        <h2 className="text-base font-semibold text-white">
+      <section className="rounded-2xl border border-slate-100 bg-lf-surface p-5">
+        <h2 className="text-base font-semibold text-lf-text">
           Sales executives ({execs.length})
         </h2>
         <p className="mt-1 text-sm text-lf-muted">
@@ -80,7 +80,7 @@ export default async function TeamLeadSalesTeamPage() {
         </p>
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-white/5 text-xs uppercase tracking-wide text-lf-subtle">
+            <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-lf-subtle">
               <tr>
                 <th className="px-3 py-2 font-semibold">Name</th>
                 <th className="px-3 py-2 font-semibold">Email</th>
@@ -88,7 +88,7 @@ export default async function TeamLeadSalesTeamPage() {
                 <th className="px-3 py-2 font-semibold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               {execs.length === 0 ? (
                 <tr>
                   <td
@@ -102,7 +102,7 @@ export default async function TeamLeadSalesTeamPage() {
               ) : (
                 execs.map((e) => (
                   <tr key={e.id}>
-                    <td className="px-3 py-3 font-medium text-white">
+                    <td className="px-3 py-3 font-medium text-lf-text">
                       {e.name}
                     </td>
                     <td className="px-3 py-3 text-lf-muted">{e.email}</td>

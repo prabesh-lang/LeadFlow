@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 
-/** Three-stage pipeline: cyan → violet flow (matches app theme). */
+const INDIGO = "#4f46e5";
+const INDIGO_DEEP = "#4338ca";
+
+/** Pipeline mark — indigo accent (matches design tokens). */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg
@@ -15,7 +18,7 @@ export function LogoMark({ className }: { className?: string }) {
         y1="20"
         x2="15"
         y2="20"
-        stroke="#22d3ee"
+        stroke={INDIGO}
         strokeWidth="2.5"
         strokeLinecap="round"
         opacity="0.95"
@@ -25,14 +28,21 @@ export function LogoMark({ className }: { className?: string }) {
         y1="20"
         x2="26"
         y2="20"
-        stroke="#a78bfa"
+        stroke={INDIGO}
         strokeWidth="2.5"
         strokeLinecap="round"
-        opacity="0.95"
+        opacity="0.85"
       />
-      <circle cx="10" cy="20" r="4" fill="#22d3ee" />
-      <circle cx="20" cy="20" r="5" fill="#06b6d4" />
-      <circle cx="30" cy="20" r="4" fill="#a78bfa" />
+      <circle cx="10" cy="20" r="4" fill={INDIGO} />
+      <circle
+        cx="20"
+        cy="20"
+        r="5"
+        fill="#ffffff"
+        stroke={INDIGO_DEEP}
+        strokeWidth="1"
+      />
+      <circle cx="30" cy="20" r="4" fill={INDIGO} />
     </svg>
   );
 }

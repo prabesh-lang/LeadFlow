@@ -1,21 +1,26 @@
 @import "tailwindcss";
 
-/* LeadFlow — deep violet base + cyan accent + violet links */
+/*
+ * LeadFlow — neutral slate canvas + indigo accent (modern SaaS CRM).
+ * Calm backgrounds, white cards, one accent for CTAs and focus.
+ */
 @theme {
-  --color-lf-bg: #0a0618;
-  --color-lf-surface: #15102a;
-  --color-lf-header: #0b0718;
-  --color-lf-elevated: #1a1632;
-  --color-lf-accent: #06b6d4;
-  --color-lf-accent-hover: #22d3ee;
-  --color-lf-accent-deep: #0891b2;
-  --color-lf-link: #a78bfa;
-  --color-lf-link-bright: #c4b5fd;
-  --color-lf-muted: #94a3b8;
-  --color-lf-subtle: #64748b;
-  --color-lf-text: #f1f5f9;
-  --color-lf-text-secondary: #cbd5e1;
-  --color-lf-success: #34d399;
-  --color-lf-danger: #f87171;
-  --color-lf-warning: #fbbf24;
+  --color-lf-bg: #f8fafc;
+  --color-lf-header: #ffffff;
+  --color-lf-surface: #ffffff;
+  --color-lf-elevated: #f1f5f9;
+  --color-lf-accent: #4f46e5;
+  --color-lf-accent-hover: #4338ca;
+  --color-lf-accent-deep: #3730a3;
+  --color-lf-on-accent: #ffffff;
+  --color-lf-link: #4f46e5;
+  --color-lf-link-bright: #6366f1;
+  --color-lf-muted: #64748b;
+  --color-lf-subtle: #94a3b8;
+  --color-lf-text: #0f172a;
+  --color-lf-text-secondary: #334155;
+  --color-lf-success: #059669;
+  --color-lf-danger: #dc2626;
+  --color-lf-warning: #d97706;
+  --color-lf-control-off: #e2e8f0;
 }

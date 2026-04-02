@@ -60,18 +60,18 @@ export function AtlAllLeadsTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/5 bg-lf-surface">
+      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-lf-surface">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1040px] text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 bg-lf-bg/50 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-slate-100 bg-lf-bg/50 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Analyst</th>
                 <th className="px-4 py-3 font-medium">Phone</th>
@@ -87,7 +87,7 @@ export function AtlAllLeadsTableClient({
                 <th className="px-4 py-3 font-medium">Route SE</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               {leads.length === 0 ? (
                 <tr>
                   <td
@@ -132,7 +132,7 @@ export function AtlAllLeadsTableClient({
                         {teamLabel ? (
                           <p>
                             <span className="text-lf-subtle">Team </span>
-                            <span className="font-medium text-white">
+                            <span className="font-medium text-lf-text">
                               {teamLabel}
                             </span>
                           </p>
@@ -140,7 +140,7 @@ export function AtlAllLeadsTableClient({
                         {tlName ? (
                           <p>
                             <span className="text-lf-subtle">TL </span>
-                            <span className="font-medium text-white">
+                            <span className="font-medium text-lf-text">
                               {tlName}
                             </span>
                           </p>
@@ -149,14 +149,14 @@ export function AtlAllLeadsTableClient({
                     ) : null;
                   return (
                     <tr key={l.id} className="text-lf-muted">
-                      <td className="px-4 py-3 font-semibold text-white">
+                      <td className="px-4 py-3 font-semibold text-lf-text">
                         {l.leadName || "—"}
                       </td>
                       <td className="px-4 py-3">{l.createdBy.name}</td>
                       <td className="px-4 py-3">{l.phone || "—"}</td>
                       <td className="px-4 py-3">{l.leadEmail || "—"}</td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex rounded-full bg-white/5 px-2 py-0.5 text-xs text-lf-text-secondary">
+                        <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs text-lf-text-secondary">
                           {sourcePillText(l.source)}
                         </span>
                       </td>
@@ -209,7 +209,7 @@ export function AtlAllLeadsTableClient({
                       </td>
                       <td className="px-4 py-3 align-top text-xs text-lf-text-secondary">
                         {l.assignedSalesExec ? (
-                          <span className="font-medium text-white">
+                          <span className="font-medium text-lf-text">
                             {l.assignedSalesExec.name}
                           </span>
                         ) : (

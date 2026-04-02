@@ -47,23 +47,23 @@ export function AnalystPipelineTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-white/5 bg-lf-surface">
-        <div className="border-b border-white/5 px-5 py-4">
-          <h2 className="text-base font-semibold text-white">
+      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-lf-surface">
+        <div className="border-b border-slate-100 px-5 py-4">
+          <h2 className="text-base font-semibold text-lf-text">
             All qualified leads — pipeline view
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[880px] text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="px-5 py-3 font-medium">Lead</th>
                 <th className="px-5 py-3 font-medium">Source</th>
                 <th className="px-5 py-3 font-medium">Your notes</th>
@@ -72,7 +72,7 @@ export function AnalystPipelineTableClient({
                 <th className="px-5 py-3 font-medium">Qualified on</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               {qualified.length === 0 ? (
                 <tr>
                   <td
@@ -106,11 +106,11 @@ export function AnalystPipelineTableClient({
                   const s = l.leadScore;
                   return (
                     <tr key={l.id} className="text-lf-muted">
-                      <td className="px-5 py-3 font-semibold text-white">
+                      <td className="px-5 py-3 font-semibold text-lf-text">
                         {l.leadName || "—"}
                       </td>
                       <td className="px-5 py-3">
-                        <span className="inline-flex rounded-full bg-white/5 px-2.5 py-0.5 text-xs text-lf-text-secondary">
+                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-lf-text-secondary">
                           {sourcePillText(l.source)}
                         </span>
                       </td>
@@ -127,7 +127,7 @@ export function AnalystPipelineTableClient({
                               }}
                             />
                           </div>
-                          <span className="tabular-nums text-white">
+                          <span className="tabular-nums text-lf-text">
                             {s ?? "—"}
                           </span>
                         </div>

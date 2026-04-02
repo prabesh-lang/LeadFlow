@@ -77,7 +77,7 @@ function PasswordRevealCell({ plain }: { plain: string | null }) {
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
-        className="shrink-0 rounded-md p-1.5 text-lf-subtle transition hover:bg-white/5 hover:text-lf-muted"
+        className="shrink-0 rounded-md p-1.5 text-lf-subtle transition hover:bg-slate-100 hover:text-lf-muted"
         aria-label={visible ? "Hide password" : "Show password"}
         aria-pressed={visible}
       >
@@ -118,20 +118,20 @@ function Modal({
     >
       <div
         ref={panelRef}
-        className="relative w-full max-w-md rounded-2xl border border-white/10 bg-lf-surface p-6 shadow-2xl"
+        className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-lf-surface p-6 shadow-2xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <h2
             id="atl-modal-title"
-            className="text-lg font-semibold text-white"
+            className="text-lg font-semibold text-lf-text"
           >
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-lf-subtle hover:bg-white/5 hover:text-white"
+            className="rounded-lg p-1.5 text-lf-subtle hover:bg-slate-100 hover:text-lf-text"
             aria-label="Close"
           >
             <svg
@@ -181,7 +181,7 @@ function AddMemberMenu({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="inline-flex items-center gap-2 rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-950/30 hover:bg-lf-accent-hover"
+        className="inline-flex items-center gap-2 rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-lf-on-accent shadow-lg shadow-slate-300/30 hover:bg-lf-accent-hover"
       >
         Add member
         <svg
@@ -201,13 +201,13 @@ function AddMemberMenu({
       </button>
       {open ? (
         <div
-          className="absolute right-0 z-50 mt-2 min-w-[220px] overflow-hidden rounded-xl border border-white/10 bg-lf-bg py-1 shadow-xl"
+          className="absolute right-0 z-50 mt-2 min-w-[220px] overflow-hidden rounded-xl border border-slate-200 bg-lf-bg py-1 shadow-xl"
           role="menu"
         >
           <button
             type="button"
             role="menuitem"
-            className="flex w-full px-4 py-3 text-left text-sm text-lf-text hover:bg-white/5"
+            className="flex w-full px-4 py-3 text-left text-sm text-lf-text hover:bg-slate-100"
             onClick={() => {
               onPick("analyst");
               setOpen(false);
@@ -218,7 +218,7 @@ function AddMemberMenu({
           <button
             type="button"
             role="menuitem"
-            className="flex w-full px-4 py-3 text-left text-sm text-lf-text hover:bg-white/5"
+            className="flex w-full px-4 py-3 text-left text-sm text-lf-text hover:bg-slate-100"
             onClick={() => {
               onPick("mtl");
               setOpen(false);
@@ -249,7 +249,7 @@ export function AtlTeamMembersClient({
     <div className="space-y-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-lf-text md:text-3xl">
             Members
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-lf-muted">
@@ -281,14 +281,14 @@ export function AtlTeamMembersClient({
       </header>
 
       <div>
-        <h2 className="mb-3 text-lg font-semibold text-white">Member details</h2>
-        <div className="flex gap-1 border-b border-white/10">
+        <h2 className="mb-3 text-lg font-semibold text-lf-text">Member details</h2>
+        <div className="flex gap-1 border-b border-slate-200">
           <button
             type="button"
             onClick={() => setTab("analyst")}
             className={`relative px-4 py-3 text-sm font-medium transition ${
               tab === "analyst"
-                ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-violet-500"
+                ? "text-lf-text after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-lf-link"
                 : "text-lf-subtle hover:text-lf-muted"
             }`}
           >
@@ -302,7 +302,7 @@ export function AtlTeamMembersClient({
             onClick={() => setTab("mtl")}
             className={`relative px-4 py-3 text-sm font-medium transition ${
               tab === "mtl"
-                ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-violet-500"
+                ? "text-lf-text after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-lf-link"
                 : "text-lf-subtle hover:text-lf-muted"
             }`}
           >
@@ -313,12 +313,12 @@ export function AtlTeamMembersClient({
           </button>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/5 bg-lf-surface">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100 bg-lf-surface">
           {tab === "analyst" ? (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-white/5 bg-lf-bg/50 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+                  <tr className="border-b border-slate-100 bg-lf-bg/50 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                     <th className="px-4 py-3 font-medium">Team</th>
                     <th className="px-4 py-3 font-medium">Name</th>
                     <th className="px-4 py-3 font-medium">Email</th>
@@ -326,7 +326,7 @@ export function AtlTeamMembersClient({
                     <th className="px-4 py-3 font-medium">Role</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-slate-100">
                   {analysts.length === 0 ? (
                     <tr>
                       <td
@@ -344,7 +344,7 @@ export function AtlTeamMembersClient({
                         <td className="px-4 py-3 font-medium text-lf-text-secondary">
                           {a.analystTeamName ?? "—"}
                         </td>
-                        <td className="px-4 py-3 font-medium text-white">
+                        <td className="px-4 py-3 font-medium text-lf-text">
                           {a.name}
                         </td>
                         <td className="px-4 py-3">{a.email}</td>
@@ -366,7 +366,7 @@ export function AtlTeamMembersClient({
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-white/5 bg-lf-bg/50 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+                  <tr className="border-b border-slate-100 bg-lf-bg/50 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                     <th className="px-4 py-3 font-medium">Team</th>
                     <th className="px-4 py-3 font-medium">WhatsApp</th>
                     <th className="px-4 py-3 font-medium">Main team lead</th>
@@ -374,7 +374,7 @@ export function AtlTeamMembersClient({
                     <th className="px-4 py-3 font-medium">Password</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-slate-100">
                   {teams.length === 0 ? (
                     <tr>
                       <td
@@ -389,7 +389,7 @@ export function AtlTeamMembersClient({
                   ) : (
                     teams.map((t) => (
                       <tr key={t.id} className="text-lf-muted">
-                        <td className="px-4 py-3 font-medium text-white">
+                        <td className="px-4 py-3 font-medium text-lf-text">
                           {t.name}
                         </td>
                         <td className="px-4 py-3 align-top text-xs">
@@ -408,7 +408,7 @@ export function AtlTeamMembersClient({
                                     href={whatsappChatUrl(w.phone)}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="font-medium text-violet-400 hover:text-violet-300 hover:underline"
+                                    className="font-medium text-lf-link hover:text-lf-link-bright hover:underline"
                                   >
                                     {w.phone}
                                   </a>

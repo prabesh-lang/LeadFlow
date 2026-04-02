@@ -27,11 +27,11 @@ export function SuperadminAppShell({
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-lf-bg text-lf-text">
-      <header className="border-b border-white/10 bg-lf-header px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-lf-header/95 px-4 py-3 shadow-sm shadow-slate-200/40 backdrop-blur-sm sm:px-6">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3">
           <Link
             href="/superadmin/dashboard"
-            className="flex items-center gap-2 text-sm font-semibold text-white"
+            className="flex items-center gap-2 text-sm font-semibold text-lf-text"
           >
             <LogoMark className="h-9 w-9" />
             <span>LeadFlow · Superadmin</span>
@@ -44,7 +44,7 @@ export function SuperadminAppShell({
             <form action={logoutAction}>
               <button
                 type="submit"
-                className={`rounded-lg px-3 py-1.5 text-lf-text-secondary hover:bg-white/5 ${navFocusRing()}`}
+                className={`rounded-lg px-3 py-1.5 text-lf-text-secondary hover:bg-slate-100 ${navFocusRing()}`}
               >
                 Sign out
               </button>
@@ -53,13 +53,13 @@ export function SuperadminAppShell({
         </div>
       </header>
       <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-52 shrink-0 border-r border-white/10 bg-lf-header py-6 pl-4 pr-2 md:block">
+        <aside className="hidden w-52 shrink-0 border-r border-slate-200 bg-lf-header py-6 pl-4 pr-2 md:block">
           <nav className="space-y-1 text-sm">
             {NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block rounded-lg px-3 py-2 text-lf-muted hover:bg-white/5 hover:text-white ${navFocusRing()}`}
+                className={`block rounded-lg px-3 py-2 text-lf-muted hover:bg-slate-100 hover:text-lf-text ${navFocusRing()}`}
               >
                 {item.label}
               </Link>

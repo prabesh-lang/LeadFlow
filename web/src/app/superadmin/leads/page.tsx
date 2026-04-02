@@ -33,13 +33,13 @@ function QualSummaryCard({
       ? "border-lf-success/35 bg-lf-success/[0.07]"
       : accent === "neutral"
         ? "border-lf-warning/35 bg-lf-warning/[0.07]"
-        : "border-white/10 bg-lf-bg/80";
+        : "border-slate-200 bg-lf-bg/80";
   return (
     <div className={`rounded-xl border px-5 py-4 ${ring}`}>
       <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
         {title}
       </p>
-      <p className="mt-2 text-3xl font-semibold tabular-nums text-white">
+      <p className="mt-2 text-3xl font-semibold tabular-nums text-lf-text">
         {count}
       </p>
     </div>
@@ -89,7 +89,7 @@ export default async function SuperadminLeadsPage({
   return (
     <div className="space-y-12">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white">
+        <h1 className="text-2xl font-semibold tracking-tight text-lf-text">
           Leads
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-lf-muted">
@@ -103,7 +103,7 @@ export default async function SuperadminLeadsPage({
 
       <Suspense
         fallback={
-          <div className="h-40 animate-pulse rounded-xl border border-white/10 bg-lf-surface/90" />
+          <div className="h-40 animate-pulse rounded-xl border border-slate-200 bg-lf-surface/90" />
         }
       >
         <SuperadminLeadsFiltersBar
@@ -139,15 +139,15 @@ export default async function SuperadminLeadsPage({
       ) : (
         analystGroups.map(({ analyst, leads }) => (
           <section key={analyst.id} className="space-y-4">
-            <div className="border-b border-white/10 pb-2">
-              <h2 className="text-lg font-semibold text-white">{analyst.name}</h2>
+            <div className="border-b border-slate-200 pb-2">
+              <h2 className="text-lg font-semibold text-lf-text">{analyst.name}</h2>
               <p className="text-xs text-lf-subtle">{analyst.email}</p>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
               {leads.map((lead) => (
                 <div
                   key={lead.id}
-                  className="rounded-xl border border-white/10 bg-lf-surface/90 p-5"
+                  className="rounded-xl border border-slate-200 bg-lf-surface/90 p-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
@@ -166,7 +166,7 @@ export default async function SuperadminLeadsPage({
                           : lead.qualificationStatus ===
                               QualificationStatus.NOT_QUALIFIED
                             ? "bg-lf-warning/15 text-lf-warning"
-                            : "bg-white/10 text-lf-text-secondary"
+                            : "bg-slate-100 text-lf-text-secondary"
                       }`}
                     >
                       {lead.qualificationStatus.replace(/_/g, " ")}
@@ -200,7 +200,7 @@ export default async function SuperadminLeadsPage({
                     </div>
                   </dl>
 
-                  <div className="mt-4 border-t border-white/10 pt-4">
+                  <div className="mt-4 border-t border-slate-200 pt-4">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-lf-subtle">
                       Journey
                     </p>
@@ -213,7 +213,7 @@ export default async function SuperadminLeadsPage({
                         {lead.handoffLogs.map((h) => (
                           <li
                             key={h.id}
-                            className="relative border-l border-white/10 pl-4 text-xs"
+                            className="relative border-l border-slate-200 pl-4 text-xs"
                           >
                             <span className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-lf-muted" />
                             <p className="text-lf-subtle">

@@ -16,7 +16,7 @@ export default function SettingsForm({
   return (
     <form
       action={action}
-      className="mx-auto flex max-w-lg flex-col gap-4 rounded-xl border border-white/10 bg-lf-surface/90 p-6"
+      className="mx-auto flex max-w-lg flex-col gap-4 rounded-xl border border-slate-200 bg-lf-surface/90 p-6"
     >
       <h2 className="text-lg font-medium text-lf-text">Profile & security</h2>
       <label className="text-xs text-lf-subtle">
@@ -25,7 +25,7 @@ export default function SettingsForm({
           name="name"
           required
           defaultValue={defaultName}
-          className="mt-1 w-full rounded-md border border-white/10 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
+          className="mt-1 w-full rounded-md border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
         />
       </label>
       <label className="text-xs text-lf-subtle">
@@ -37,7 +37,7 @@ export default function SettingsForm({
           className="mt-1 w-full text-sm text-lf-muted file:mr-3 file:rounded-md file:border-0 file:bg-lf-elevated file:px-3 file:py-2 file:text-lf-text-secondary"
         />
       </label>
-      <div className="border-t border-white/10 pt-4">
+      <div className="border-t border-slate-200 pt-4">
         <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
           Change password
         </p>
@@ -47,7 +47,7 @@ export default function SettingsForm({
             name="currentPassword"
             type="password"
             autoComplete="current-password"
-            className="mt-1 w-full rounded-md border border-white/10 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
+            className="mt-1 w-full rounded-md border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
           />
         </label>
         <label className="mt-2 block text-xs text-lf-subtle">
@@ -56,12 +56,12 @@ export default function SettingsForm({
             name="newPassword"
             type="password"
             autoComplete="new-password"
-            className="mt-1 w-full rounded-md border border-white/10 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
+            className="mt-1 w-full rounded-md border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
           />
         </label>
       </div>
       {state?.error ? (
-        <p className="text-sm text-red-400">{state.error}</p>
+        <p className="text-sm text-lf-danger">{state.error}</p>
       ) : null}
       {state?.ok ? (
         <p className="text-sm text-lf-success">Profile updated.</p>
@@ -69,7 +69,7 @@ export default function SettingsForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-lf-accent px-3 py-2 text-sm font-medium text-white hover:bg-lf-accent-hover disabled:opacity-50"
+        className="rounded-md bg-lf-accent px-3 py-2 text-sm font-medium text-lf-on-accent hover:bg-lf-accent-hover disabled:opacity-50"
       >
         {pending ? "Saving…" : "Save changes"}
       </button>

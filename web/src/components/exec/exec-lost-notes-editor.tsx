@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { updateExecLostNotes } from "@/app/actions/exec";
 
 const textareaClass =
-  "w-full min-h-[4.5rem] resize-y rounded-lg border border-white/10 bg-lf-bg px-2.5 py-2 text-xs leading-relaxed text-lf-text placeholder:text-lf-subtle outline-none ring-cyan-500/30 focus:ring-2";
+  "w-full min-h-[4.5rem] resize-y rounded-lg border border-slate-200 bg-lf-bg px-2.5 py-2 text-xs leading-relaxed text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/35 focus:ring-2";
 
 export function ExecLostNotesEditor({
   leadId,
@@ -33,7 +33,7 @@ export function ExecLostNotesEditor({
         className={textareaClass}
       />
       {state?.error ? (
-        <p className="text-[11px] text-red-400">{state.error}</p>
+        <p className="text-[11px] text-lf-danger">{state.error}</p>
       ) : null}
       {state?.ok ? (
         <p className="text-[11px] text-lf-success">Saved.</p>
@@ -41,7 +41,7 @@ export function ExecLostNotesEditor({
       <button
         type="submit"
         disabled={pending}
-        className="w-fit rounded-lg bg-lf-accent px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-lf-accent-hover disabled:opacity-50"
+        className="w-fit rounded-lg bg-lf-accent px-2.5 py-1 text-[11px] font-semibold text-lf-on-accent hover:bg-lf-accent-hover disabled:opacity-50"
       >
         {pending ? "Saving…" : "Update notes"}
       </button>

@@ -29,7 +29,7 @@ function HistogramBlock({
 
   if (rows.length === 0 || rows.every((r) => r.count === 0)) {
     return (
-      <div className="rounded-xl border border-white/10 bg-lf-surface/90 p-6">
+      <div className="rounded-xl border border-slate-200 bg-lf-surface/90 p-6">
         <h3 className="text-sm font-semibold text-lf-text-secondary">{title}</h3>
         <p className="mt-1 text-xs text-lf-subtle">{subtitle}</p>
         <p className="mt-6 text-sm text-lf-subtle">No data for this chart.</p>
@@ -38,12 +38,12 @@ function HistogramBlock({
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-lf-surface/90 p-6">
+    <div className="rounded-xl border border-slate-200 bg-lf-surface/90 p-6">
       <h3 className="text-sm font-semibold text-lf-text-secondary">{title}</h3>
       <p className="mt-1 text-xs text-lf-subtle">{subtitle}</p>
       <div className="mt-6 overflow-x-auto pb-1">
         <div
-          className="flex min-h-[220px] min-w-[min(100%,520px)] items-end gap-2 border-b border-white/20 px-1 pt-2"
+          className="flex min-h-[220px] min-w-[min(100%,520px)] items-end gap-2 border-b border-slate-200 px-1 pt-2"
           role="img"
           aria-label={title}
         >
@@ -107,13 +107,13 @@ export function SuperadminReportHistograms({
           title="Lead score distribution"
           subtitle="Bins by score (0–100). “No score” when not set."
           rows={scoreHistogram}
-          barClass="bg-gradient-to-t from-cyan-950/95 to-lf-accent/75"
+          barClass="bg-gradient-to-t from-slate-600/90 to-lf-accent/75"
         />
         <HistogramBlock
           title="Leads created by month"
           subtitle="Count of leads by calendar month (created date)."
           rows={createdByMonth}
-          barClass="bg-gradient-to-t from-sky-950/95 to-cyan-400/70"
+          barClass="bg-gradient-to-t from-slate-600/90 to-lf-accent-hover/65"
           formatLabel={formatMonthYm}
         />
       </div>
@@ -122,7 +122,7 @@ export function SuperadminReportHistograms({
         title="Top countries (lead volume)"
         subtitle="Top 16 countries by lead count (same geography rules as the table below)."
         rows={countryHistogram}
-        barClass="bg-gradient-to-t from-violet-950/95 to-lf-link/70"
+        barClass="bg-gradient-to-t from-slate-600/90 to-lf-link/70"
       />
     </div>
   );

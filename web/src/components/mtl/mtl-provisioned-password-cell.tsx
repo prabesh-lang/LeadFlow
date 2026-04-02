@@ -50,7 +50,7 @@ export function MtlProvisionedPasswordCell({ plain }: { plain: string | null }) 
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
-        className="shrink-0 rounded-md p-1.5 text-lf-subtle transition hover:bg-white/5 hover:text-lf-muted"
+        className="shrink-0 rounded-md p-1.5 text-lf-subtle transition hover:bg-slate-100 hover:text-lf-muted"
         aria-label={visible ? "Hide password" : "Show password"}
         aria-pressed={visible}
       >

@@ -37,7 +37,7 @@ function CopyCredentialsPanel({
   }
 
   return (
-    <div className="rounded-lg border border-white/10 bg-lf-bg/80 p-4">
+    <div className="rounded-lg border border-slate-200 bg-lf-bg/80 p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-lf-link">
         {title}
       </p>
@@ -51,7 +51,7 @@ function CopyCredentialsPanel({
             className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3"
           >
             <dt className="shrink-0 text-lf-subtle">{r.label}</dt>
-            <dd className="break-all font-mono text-xs text-white sm:text-right">
+            <dd className="break-all font-mono text-xs text-lf-text sm:text-right">
               {r.value}
             </dd>
           </div>
@@ -61,7 +61,7 @@ function CopyCredentialsPanel({
         <button
           type="button"
           onClick={() => copy(copyAllText)}
-          className="rounded-lg bg-lf-accent px-3 py-2 text-xs font-semibold text-white hover:bg-lf-accent-hover"
+          className="rounded-lg bg-lf-accent px-3 py-2 text-xs font-semibold text-lf-on-accent hover:bg-lf-accent-hover"
         >
           {copied === "all" ? "Copied" : copyAllLabel}
         </button>
@@ -72,7 +72,7 @@ function CopyCredentialsPanel({
               key={r.label}
               type="button"
               onClick={() => copy(r.value)}
-              className="rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-xs font-medium text-lf-muted hover:bg-white/5 hover:text-white"
+              className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-xs font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text"
             >
               Copy {r.label.toLowerCase()}
             </button>
@@ -86,9 +86,9 @@ function CopyCredentialsPanel({
 const fieldBox =
   "box-border h-[36px] w-[400px] max-w-full rounded-lg border px-3 text-sm";
 
-const inputClass = `${fieldBox} border-white/10 bg-lf-bg py-0 leading-[36px] text-white outline-none ring-cyan-500/30 placeholder:text-lf-subtle focus:ring-2`;
+const inputClass = `${fieldBox} border-slate-200 bg-lf-bg py-0 leading-[36px] text-lf-text outline-none ring-lf-accent/35 placeholder:text-lf-subtle focus:ring-2`;
 
-const teamFieldClass = `${fieldBox} flex items-center border-white/15 bg-lf-elevated font-medium text-lf-text`;
+const teamFieldClass = `${fieldBox} flex items-center border-slate-200 bg-lf-elevated font-medium text-lf-text`;
 
 const labelClass = "mb-1.5 block text-xs font-medium text-lf-subtle";
 
@@ -126,13 +126,13 @@ export default function AddExecForm({
   const shell =
     variant === "modal"
       ? "space-y-0"
-      : "rounded-2xl border border-white/5 bg-lf-surface p-5";
+      : "rounded-2xl border border-slate-100 bg-lf-surface p-5";
 
   return (
     <div className={shell}>
       <h2
         id={variant === "modal" ? "mtl-add-exec-heading" : undefined}
-        className={`text-base font-semibold text-white ${variant === "modal" ? "pr-10" : ""}`}
+        className={`text-base font-semibold text-lf-text ${variant === "modal" ? "pr-10" : ""}`}
       >
         Add sales executive
       </h2>
@@ -200,7 +200,7 @@ export default function AddExecForm({
           />
         </div>
         {state && "error" in state && state.error ? (
-          <p className="text-sm text-red-400">{state.error}</p>
+          <p className="text-sm text-lf-danger">{state.error}</p>
         ) : null}
         {!teamName ? (
           <p className="text-sm text-lf-warning">
@@ -210,7 +210,7 @@ export default function AddExecForm({
         <button
           type="submit"
           disabled={pending || !teamName}
-          className="box-border h-[36px] w-[400px] max-w-full rounded-lg bg-lf-accent text-sm font-semibold text-white hover:bg-lf-accent-hover disabled:opacity-50"
+          className="box-border h-[36px] w-[400px] max-w-full rounded-lg bg-lf-accent text-sm font-semibold text-lf-on-accent hover:bg-lf-accent-hover disabled:opacity-50"
         >
           {pending ? "Creating…" : "Create executive"}
         </button>
@@ -236,7 +236,7 @@ export default function AddExecForm({
             onClick={() => {
               setFormKey((k) => k + 1);
             }}
-            className="text-sm font-medium text-lf-muted hover:text-white"
+            className="text-sm font-medium text-lf-muted hover:text-lf-text"
           >
             Add another
           </button>

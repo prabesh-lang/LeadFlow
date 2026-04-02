@@ -52,13 +52,13 @@ function Modal({
       }}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-lf-surface p-6 shadow-2xl"
+        className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-lf-surface p-6 shadow-2xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-lf-subtle hover:bg-white/5 hover:text-white"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-lf-subtle hover:bg-slate-100 hover:text-lf-text"
           aria-label="Close"
         >
           <svg
@@ -78,7 +78,7 @@ function Modal({
         </button>
         <h2
           id="mtl-transfer-title"
-          className="pr-10 text-lg font-semibold text-white"
+          className="pr-10 text-lg font-semibold text-lf-text"
         >
           {title}
         </h2>
@@ -130,7 +130,7 @@ function TransferExecForm({
           <select
             name="targetTeamId"
             required
-            className="mt-1 w-full rounded-lg border border-white/10 bg-lf-bg px-3 py-2.5 text-sm text-white outline-none ring-cyan-500/30 focus:ring-2"
+            className="mt-1 w-full rounded-lg border border-slate-200 bg-lf-bg px-3 py-2.5 text-sm text-lf-text outline-none ring-lf-accent/35 focus:ring-2"
             defaultValue=""
           >
             <option value="" disabled>
@@ -144,20 +144,20 @@ function TransferExecForm({
           </select>
         </label>
         {state?.error ? (
-          <p className="text-sm text-red-400">{state.error}</p>
+          <p className="text-sm text-lf-danger">{state.error}</p>
         ) : null}
         <div className="flex flex-wrap gap-2 pt-2">
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-lf-accent-hover disabled:opacity-50"
+            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-lf-on-accent hover:bg-lf-accent-hover disabled:opacity-50"
           >
             {pending ? "Transferring…" : "Confirm transfer"}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-white/10 px-4 py-2.5 text-sm font-medium text-lf-muted hover:bg-white/5 hover:text-white"
+            className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text"
           >
             Cancel
           </button>
@@ -199,7 +199,7 @@ export function MtlTransferExecButton({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="mt-6 rounded-lg border border-white/10 px-4 py-2 text-sm font-medium text-lf-muted hover:bg-white/5 hover:text-white"
+              className="mt-6 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text"
             >
               Close
             </button>
@@ -228,7 +228,7 @@ export function MtlTransferExecButton({
             ? "No other teams available"
             : "Transfer to another sales team"
         }
-        className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-lf-muted hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text disabled:cursor-not-allowed disabled:opacity-40"
       >
         Transfer
       </button>

@@ -6,7 +6,7 @@ export default function AnalystLeadsImportPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-lf-text md:text-3xl">
             Import leads from Excel
           </h1>
           <p className="mt-1 text-sm text-lf-muted">

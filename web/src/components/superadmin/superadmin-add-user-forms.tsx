@@ -5,7 +5,7 @@ import { superadminCreateUserFormAction } from "@/app/actions/superadmin";
 import { UserRole } from "@/lib/constants";
 
 const inputClass =
-  "min-h-10 w-full min-w-[140px] rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2";
+  "min-h-10 w-full min-w-[140px] rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2";
 
 export function SuperadminAddUserForms({
   atlas,
@@ -28,14 +28,14 @@ export function SuperadminAddUserForms({
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
-      <div className="rounded-xl border border-white/10 bg-lf-surface/90 p-6">
+      <div className="rounded-xl border border-slate-200 bg-lf-surface/90 p-6">
         <h3 className="text-sm font-semibold text-lf-text-secondary">
           Add Analyst Team Lead
         </h3>
         <form action={atlAction} className="mt-4 space-y-4">
           <input type="hidden" name="role" value={UserRole.ANALYST_TEAM_LEAD} />
           {atlState?.error ? (
-            <p className="text-sm text-red-400" role="alert">
+            <p className="text-sm text-lf-danger" role="alert">
               {atlState.error}
             </p>
           ) : null}
@@ -77,18 +77,18 @@ export function SuperadminAddUserForms({
           <button
             type="submit"
             disabled={atlPending}
-            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-lf-accent-hover disabled:opacity-60"
+            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-lf-on-accent hover:bg-lf-accent-hover disabled:opacity-60"
           >
             {atlPending ? "Creating…" : "Create"}
           </button>
         </form>
       </div>
-      <div className="rounded-xl border border-white/10 bg-lf-surface/90 p-6">
+      <div className="rounded-xl border border-slate-200 bg-lf-surface/90 p-6">
         <h3 className="text-sm font-semibold text-lf-text-secondary">Add Lead Analyst</h3>
         <form action={laAction} className="mt-4 space-y-4">
           <input type="hidden" name="role" value={UserRole.LEAD_ANALYST} />
           {laState?.error ? (
-            <p className="text-sm text-red-400" role="alert">
+            <p className="text-sm text-lf-danger" role="alert">
               {laState.error}
             </p>
           ) : null}
@@ -145,7 +145,7 @@ export function SuperadminAddUserForms({
           <button
             type="submit"
             disabled={laPending}
-            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-lf-accent-hover disabled:opacity-60"
+            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-lf-on-accent hover:bg-lf-accent-hover disabled:opacity-60"
           >
             {laPending ? "Creating…" : "Create"}
           </button>

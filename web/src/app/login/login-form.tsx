@@ -15,7 +15,7 @@ export default function LoginForm() {
           type="email"
           required
           autoComplete="username"
-          className="mt-2 min-h-11 w-full rounded-xl border border-white/10 bg-lf-bg px-3 py-2.5 text-lf-text outline-none transition placeholder:text-lf-subtle focus:border-lf-accent/50 focus:ring-2 focus:ring-lf-accent/25"
+          className="mt-2 min-h-11 w-full rounded-xl border border-slate-200 bg-lf-elevated px-3 py-2.5 text-lf-text outline-none transition placeholder:text-lf-subtle focus:border-lf-accent/50 focus:ring-2 focus:ring-lf-accent/25"
         />
       </label>
       <label className="block text-sm font-medium text-lf-text-secondary">
@@ -25,18 +25,18 @@ export default function LoginForm() {
           type="password"
           required
           autoComplete="current-password"
-          className="mt-2 min-h-11 w-full rounded-xl border border-white/10 bg-lf-bg px-3 py-2.5 text-lf-text outline-none transition placeholder:text-lf-subtle focus:border-lf-accent/50 focus:ring-2 focus:ring-lf-accent/25"
+          className="mt-2 min-h-11 w-full rounded-xl border border-slate-200 bg-lf-elevated px-3 py-2.5 text-lf-text outline-none transition placeholder:text-lf-subtle focus:border-lf-accent/50 focus:ring-2 focus:ring-lf-accent/25"
         />
       </label>
       {state?.error ? (
-        <p className="text-sm text-red-400" role="alert">
+        <p className="text-sm text-lf-danger" role="alert">
           {state.error}
         </p>
       ) : null}
       <button
         type="submit"
         disabled={pending}
-        className="min-h-11 rounded-xl bg-lf-accent px-4 py-2.5 font-semibold text-white shadow-lg shadow-cyan-950/40 transition hover:bg-lf-accent-hover disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-lf-surface active:scale-[0.99]"
+        className="min-h-11 rounded-xl bg-lf-accent px-4 py-2.5 font-semibold text-lf-on-accent shadow-lg shadow-indigo-900/20 transition hover:bg-lf-accent-hover disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-on-accent focus-visible:ring-offset-2 focus-visible:ring-offset-lf-accent active:scale-[0.99]"
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>

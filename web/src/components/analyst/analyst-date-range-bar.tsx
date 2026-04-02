@@ -57,7 +57,7 @@ function CustomRangeForm({
           type="date"
           value={customFrom}
           onChange={(e) => setCustomFrom(e.target.value)}
-          className="mt-1.5 block min-h-10 w-full min-w-[10rem] rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white outline-none ring-lf-accent/30 focus:border-lf-accent/50 focus:ring-2 [color-scheme:dark]"
+          className="mt-1.5 block min-h-10 w-full min-w-[10rem] rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:border-lf-accent/50 focus:ring-2 [color-scheme:light]"
         />
       </label>
       <label className="text-xs font-medium text-lf-muted">
@@ -66,13 +66,13 @@ function CustomRangeForm({
           type="date"
           value={customTo}
           onChange={(e) => setCustomTo(e.target.value)}
-          className="mt-1.5 block min-h-10 w-full min-w-[10rem] rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white outline-none ring-lf-accent/30 focus:border-lf-accent/50 focus:ring-2 [color-scheme:dark]"
+          className="mt-1.5 block min-h-10 w-full min-w-[10rem] rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:border-lf-accent/50 focus:ring-2 [color-scheme:light]"
         />
       </label>
       <button
         type="submit"
         disabled={!customFrom || !customTo}
-        className="min-h-10 rounded-lg bg-lf-accent px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-lf-accent-hover disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-lf-surface"
+        className="min-h-10 rounded-lg bg-lf-accent px-4 text-xs font-semibold text-lf-on-accent shadow-sm transition hover:bg-lf-accent-hover disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-on-accent focus-visible:ring-offset-2 focus-visible:ring-offset-lf-accent"
       >
         Apply
       </button>
@@ -155,10 +155,10 @@ export default function AnalystDateRangeBar() {
       key={id}
       type="button"
       onClick={() => applyPreset(id)}
-      className={`min-h-9 rounded-lg px-3 py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-lf-surface ${
+      className={`min-h-9 rounded-lg px-3 py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
         presetActive === id
-          ? "bg-lf-accent text-white shadow-sm shadow-cyan-950/30"
-          : "bg-lf-bg text-lf-muted ring-1 ring-white/10 hover:bg-white/5 hover:text-white"
+          ? "bg-lf-accent text-lf-on-accent shadow-sm shadow-slate-300/30 focus-visible:ring-lf-on-accent focus-visible:ring-offset-lf-accent"
+          : "bg-lf-bg text-lf-muted ring-1 ring-slate-200/80 hover:bg-slate-100 hover:text-lf-text focus-visible:ring-slate-300/50 focus-visible:ring-offset-lf-surface"
       }`}
     >
       {label}
@@ -166,7 +166,7 @@ export default function AnalystDateRangeBar() {
   );
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+    <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-3">
           <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
@@ -195,7 +195,7 @@ export default function AnalystDateRangeBar() {
             {presetBtn("year", "This year")}
           </div>
         </div>
-        <div className="rounded-xl border border-white/5 bg-lf-bg/80 p-3 sm:p-4">
+        <div className="rounded-xl border border-slate-100 bg-lf-bg/80 p-3 sm:p-4">
           <p className="mb-3 text-xs font-medium text-lf-subtle">
             Or pick exact dates
           </p>
@@ -208,7 +208,7 @@ export default function AnalystDateRangeBar() {
         </div>
       </div>
       {(fromUrl || toUrl) && (
-        <p className="mt-4 border-t border-white/5 pt-4 text-xs text-lf-subtle">
+        <p className="mt-4 border-t border-slate-100 pt-4 text-xs text-lf-subtle">
           Showing leads whose{" "}
           <span className="text-lf-muted">created date</span> is between{" "}
           <span className="font-medium text-lf-text-secondary">

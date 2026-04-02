@@ -17,7 +17,7 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-white/5 bg-lf-surface p-5 shadow-sm ${className}`}
+      className={`rounded-2xl border border-slate-100 bg-lf-surface p-5 shadow-sm ${className}`}
     >
       {children}
     </div>
@@ -27,8 +27,8 @@ function Card({
 const STAT_TOP: Record<"a" | "b" | "c" | "d", string> = {
   a: "border-t-lf-accent",
   b: "border-t-lf-link",
-  c: "border-t-cyan-400",
-  d: "border-t-violet-400",
+  c: "border-t-lf-accent",
+  d: "border-t-lf-link",
 };
 
 function StatCard({
@@ -48,7 +48,7 @@ function StatCard({
       <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
         {title}
       </p>
-      <p className="mt-2 text-3xl font-bold tabular-nums text-white">{value}</p>
+      <p className="mt-2 text-3xl font-bold tabular-nums text-lf-text">{value}</p>
       <p className="mt-1 text-xs text-lf-muted">{sub}</p>
     </Card>
   );
@@ -119,7 +119,7 @@ export function UnifiedPortalReportSections({
       </section>
 
       <Card>
-        <h2 className="text-base font-semibold text-white">Insights</h2>
+        <h2 className="text-base font-semibold text-lf-text">Insights</h2>
         <p className="mt-1 text-sm text-lf-muted">
           Qualification and routing for leads in this period
         </p>
@@ -141,7 +141,7 @@ export function UnifiedPortalReportSections({
                       <span className="font-medium text-lf-text-secondary">
                         {label}
                       </span>
-                      <span className="tabular-nums text-white">
+                      <span className="tabular-nums text-lf-text">
                         {count}{" "}
                         <span className="text-lf-subtle">({pct}%)</span>
                       </span>
@@ -176,7 +176,7 @@ export function UnifiedPortalReportSections({
                       <span className="font-medium text-lf-text-secondary">
                         {label}
                       </span>
-                      <span className="tabular-nums text-white">{count}</span>
+                      <span className="tabular-nums text-lf-text">{count}</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-lf-bg">
                       <div
@@ -199,19 +199,19 @@ export function UnifiedPortalReportSections({
 
       {atlPassed ? (
         <Card>
-          <h2 className="text-base font-semibold text-white">
+          <h2 className="text-base font-semibold text-lf-text">
             Qualified leads passed to sales
           </h2>
           <p className="mt-1 text-sm text-lf-muted">
             Qualified leads that have left internal routing (handed to a main
             team onward)
           </p>
-          <div className="mt-6 flex flex-wrap items-end gap-6 border-b border-white/5 pb-6">
+          <div className="mt-6 flex flex-wrap items-end gap-6 border-b border-slate-100 pb-6">
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
                 Passed
               </p>
-              <p className="mt-1 text-4xl font-bold tabular-nums text-white">
+              <p className="mt-1 text-4xl font-bold tabular-nums text-lf-text">
                 {atlPassed.qualifiedPassed}
               </p>
               <p className="mt-1 text-xs text-lf-subtle">
@@ -244,10 +244,10 @@ export function UnifiedPortalReportSections({
               ).map(([label, val]) => (
                 <div
                   key={label}
-                  className="rounded-xl border border-white/5 bg-lf-bg px-4 py-3"
+                  className="rounded-xl border border-slate-100 bg-lf-bg px-4 py-3"
                 >
                   <p className="text-xs text-lf-subtle">{label}</p>
-                  <p className="mt-1 text-xl font-bold tabular-nums text-white">
+                  <p className="mt-1 text-xl font-bold tabular-nums text-lf-text">
                     {val}
                   </p>
                 </div>
@@ -260,7 +260,7 @@ export function UnifiedPortalReportSections({
       <div className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <div className="mb-4 flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold text-white">
+            <h2 className="text-base font-semibold text-lf-text">
               {recentLeadsTitle}
             </h2>
             <Link
@@ -273,14 +273,14 @@ export function UnifiedPortalReportSections({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-white/5 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+                <tr className="border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                   <th className="pb-3 pr-4 font-medium">Lead</th>
                   <th className="pb-3 pr-4 font-medium">Creator</th>
                   <th className="pb-3 pr-4 font-medium">Source</th>
                   <th className="pb-3 font-medium">Stage</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-100">
                 {recent.length === 0 ? (
                   <tr>
                     <td
@@ -293,14 +293,14 @@ export function UnifiedPortalReportSections({
                 ) : (
                   recent.map((l) => (
                     <tr key={l.id} className="text-lf-muted">
-                      <td className="py-3 pr-4 font-semibold text-white">
+                      <td className="py-3 pr-4 font-semibold text-lf-text">
                         {l.leadName || "—"}
                       </td>
                       <td className="py-3 pr-4 text-lf-text-secondary">
                         {l.createdByName}
                       </td>
                       <td className="py-3 pr-4">
-                        <span className="inline-flex rounded-full bg-white/5 px-2.5 py-0.5 text-xs font-medium text-lf-text-secondary">
+                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-lf-text-secondary">
                           {sourcePillText(l.source)}
                         </span>
                       </td>
@@ -319,7 +319,7 @@ export function UnifiedPortalReportSections({
         </Card>
 
         <Card className="lg:col-span-2">
-          <h2 className="mb-4 text-base font-semibold text-white">
+          <h2 className="mb-4 text-base font-semibold text-lf-text">
             Leads by source
           </h2>
           <ul className="space-y-4">
@@ -332,7 +332,7 @@ export function UnifiedPortalReportSections({
                     <span className="truncate pr-2 font-medium text-lf-text-secondary">
                       {sourcePillText(label)}
                     </span>
-                    <span className="shrink-0 tabular-nums text-white">
+                    <span className="shrink-0 tabular-nums text-lf-text">
                       {count}
                     </span>
                   </div>
@@ -357,7 +357,7 @@ export function UnifiedPortalReportSections({
 
       {scoreBuckets.length > 0 ? (
         <Card>
-          <h2 className="mb-4 text-base font-semibold text-white">
+          <h2 className="mb-4 text-base font-semibold text-lf-text">
             Lead score distribution
           </h2>
           <ul className="space-y-3">
@@ -367,7 +367,7 @@ export function UnifiedPortalReportSections({
                 className="flex justify-between text-sm text-lf-muted"
               >
                 <span className="text-lf-text-secondary">{label}</span>
-                <span className="tabular-nums text-white">{count}</span>
+                <span className="tabular-nums text-lf-text">{count}</span>
               </li>
             ))}
           </ul>
@@ -375,7 +375,7 @@ export function UnifiedPortalReportSections({
       ) : null}
 
       <Card>
-        <h2 className="mb-4 text-base font-semibold text-white">
+        <h2 className="mb-4 text-base font-semibold text-lf-text">
           Qualified pipeline detail
         </h2>
         <p className="mt-1 text-sm text-lf-muted">
@@ -385,7 +385,7 @@ export function UnifiedPortalReportSections({
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="pb-3 pr-4 font-medium">Lead</th>
                 <th className="pb-3 pr-4 font-medium">Creator</th>
                 <th className="pb-3 pr-4 font-medium">Qualified on</th>
@@ -393,7 +393,7 @@ export function UnifiedPortalReportSections({
                 <th className="pb-3 font-medium">Note</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               {pipelineQualified.length === 0 ? (
                 <tr>
                   <td
@@ -411,7 +411,7 @@ export function UnifiedPortalReportSections({
                   );
                   return (
                     <tr key={l.id}>
-                      <td className="py-3 pr-4 font-semibold text-white">
+                      <td className="py-3 pr-4 font-semibold text-lf-text">
                         {l.leadName || "—"}
                       </td>
                       <td className="py-3 pr-4 text-lf-text-secondary">
@@ -444,7 +444,7 @@ export function UnifiedPortalReportSections({
       </Card>
 
       <Card>
-        <h2 className="mb-4 text-base font-semibold text-white">
+        <h2 className="mb-4 text-base font-semibold text-lf-text">
           Full lead snapshot
         </h2>
         <p className="mt-1 text-sm text-lf-muted">
@@ -453,7 +453,7 @@ export function UnifiedPortalReportSections({
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
-              <tr className="border-b border-white/5 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="pb-3 pr-4 font-medium">Lead</th>
                 <th className="pb-3 pr-4 font-medium">Created by</th>
                 <th className="pb-3 pr-4 font-medium">Source</th>
@@ -461,7 +461,7 @@ export function UnifiedPortalReportSections({
                 <th className="pb-3 font-medium">Assigned rep</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               {allLeads.length === 0 ? (
                 <tr>
                   <td
@@ -474,7 +474,7 @@ export function UnifiedPortalReportSections({
               ) : (
                 allLeads.map((l) => (
                   <tr key={l.id} className="text-lf-muted">
-                    <td className="py-2.5 pr-4 font-medium text-white">
+                    <td className="py-2.5 pr-4 font-medium text-lf-text">
                       {l.leadName ?? "—"}
                     </td>
                     <td className="py-2.5 pr-4">{l.createdByName}</td>

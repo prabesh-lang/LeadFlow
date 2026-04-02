@@ -15,7 +15,7 @@ export function AnalyticsCountryQualList({ rows }: { rows: CountryQualRow[] }) {
 
   return (
     <>
-      <ul className="mb-4 flex flex-wrap gap-x-4 gap-y-1 border-b border-white/5 pb-3 text-[10px] text-lf-muted">
+      <ul className="mb-4 flex flex-wrap gap-x-4 gap-y-1 border-b border-slate-100 pb-3 text-[10px] text-lf-muted">
         <li className="flex items-center gap-1.5">
           <span className="h-2 w-2 shrink-0 rounded-sm bg-lf-success" />
           Qualified
@@ -44,7 +44,7 @@ export function AnalyticsCountryQualList({ rows }: { rows: CountryQualRow[] }) {
                   <span className="min-w-0 truncate font-medium text-lf-text-secondary">
                     {label}
                   </span>
-                  <span className="shrink-0 tabular-nums text-white">
+                  <span className="shrink-0 tabular-nums text-lf-text">
                     {total}
                   </span>
                 </div>
@@ -83,7 +83,7 @@ export function AnalyticsCountryQualList({ rows }: { rows: CountryQualRow[] }) {
       </ul>
 
       {hasMore ? (
-        <div className="mt-4 flex justify-center border-t border-white/5 pt-4">
+        <div className="mt-4 flex justify-center border-t border-slate-100 pt-4">
           <button
             type="button"
             onClick={() => setExpanded((e) => !e)}

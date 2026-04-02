@@ -20,11 +20,11 @@ function StatCard({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-lf-surface/90 px-5 py-4">
+    <div className="rounded-xl border border-slate-200 bg-lf-surface/90 px-5 py-4">
       <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
         {label}
       </p>
-      <p className="mt-2 text-2xl font-semibold tabular-nums text-white">
+      <p className="mt-2 text-2xl font-semibold tabular-nums text-lf-text">
         {value}
       </p>
       {hint ? (
@@ -60,7 +60,7 @@ export default async function SuperadminDashboardPage() {
   return (
     <div className="space-y-12">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white">
+        <h1 className="text-2xl font-semibold tracking-tight text-lf-text">
           Dashboard
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-lf-muted">
@@ -89,15 +89,15 @@ export default async function SuperadminDashboardPage() {
           <p className="mt-1 text-xs text-lf-subtle">
             Count of leads with a team assignment (current state).
           </p>
-          <div className="mt-4 overflow-x-auto rounded-xl border border-white/10">
+          <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
             <table className="w-full min-w-[280px] text-left text-sm">
-              <thead className="border-b border-white/10 bg-lf-bg/90 text-xs uppercase text-lf-subtle">
+              <thead className="border-b border-slate-200 bg-lf-bg/90 text-xs uppercase text-lf-subtle">
                 <tr>
                   <th className="px-4 py-3 font-medium">Team</th>
                   <th className="px-4 py-3 font-medium">Leads</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody className="divide-y divide-slate-200">
                 {metrics.leadsByTeam.length === 0 ? (
                   <tr>
                     <td
@@ -129,15 +129,15 @@ export default async function SuperadminDashboardPage() {
             Count of leads currently assigned to each rep (or historically
             holding assignment).
           </p>
-          <div className="mt-4 overflow-x-auto rounded-xl border border-white/10">
+          <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
             <table className="w-full min-w-[280px] text-left text-sm">
-              <thead className="border-b border-white/10 bg-lf-bg/90 text-xs uppercase text-lf-subtle">
+              <thead className="border-b border-slate-200 bg-lf-bg/90 text-xs uppercase text-lf-subtle">
                 <tr>
                   <th className="px-4 py-3 font-medium">Sales executive</th>
                   <th className="px-4 py-3 font-medium">Leads</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody className="divide-y divide-slate-200">
                 {metrics.leadsBySalesExec.length === 0 ? (
                   <tr>
                     <td
@@ -166,13 +166,13 @@ export default async function SuperadminDashboardPage() {
       </div>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-white">Lead transfer log</h2>
+        <h2 className="text-lg font-semibold text-lf-text">Lead transfer log</h2>
         <p className="text-sm text-lf-subtle">
           Recent routing and close events (newest first).
         </p>
-        <div className="overflow-x-auto rounded-xl border border-white/10">
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
           <table className="w-full min-w-[800px] text-left text-sm">
-            <thead className="border-b border-white/10 bg-lf-bg/90 text-xs uppercase tracking-wide text-lf-subtle">
+            <thead className="border-b border-slate-200 bg-lf-bg/90 text-xs uppercase tracking-wide text-lf-subtle">
               <tr>
                 <th className="px-4 py-3 font-medium">When</th>
                 <th className="px-4 py-3 font-medium">Lead</th>
@@ -181,7 +181,7 @@ export default async function SuperadminDashboardPage() {
                 <th className="px-4 py-3 font-medium">Detail</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/10">
+            <tbody className="divide-y divide-slate-200">
               {handoffs.length === 0 ? (
                 <tr>
                   <td
@@ -229,15 +229,15 @@ export default async function SuperadminDashboardPage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-white">
+        <h2 className="text-lg font-semibold text-lf-text">
           Sales executive team transfers
         </h2>
         <p className="text-sm text-lf-subtle">
           When a main team lead moves a rep to another team.
         </p>
-        <div className="overflow-x-auto rounded-xl border border-white/10">
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-b border-white/10 bg-lf-bg/90 text-xs uppercase tracking-wide text-lf-subtle">
+            <thead className="border-b border-slate-200 bg-lf-bg/90 text-xs uppercase tracking-wide text-lf-subtle">
               <tr>
                 <th className="px-4 py-3 font-medium">When</th>
                 <th className="px-4 py-3 font-medium">Sales executive</th>
@@ -246,7 +246,7 @@ export default async function SuperadminDashboardPage() {
                 <th className="px-4 py-3 font-medium">Transferred by (MTL)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/10">
+            <tbody className="divide-y divide-slate-200">
               {seTransfers.length === 0 ? (
                 <tr>
                   <td

@@ -40,14 +40,14 @@ export function PortalLeadSearchLiveField({ value, onChange }: Props) {
           placeholder="Search by name or phone…"
           autoComplete="off"
           enterKeyHint="search"
-          className="min-h-11 w-full rounded-xl border border-white/10 bg-lf-bg py-2.5 pl-10 pr-3 text-sm text-white placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:border-lf-accent/40 focus:ring-2"
+          className="min-h-11 w-full rounded-xl border border-slate-200 bg-lf-bg py-2.5 pl-10 pr-3 text-sm text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:border-lf-accent/40 focus:ring-2"
         />
       </div>
       {value.trim() ? (
         <button
           type="button"
           onClick={() => onChange("")}
-          className="min-h-11 shrink-0 rounded-xl border border-white/15 px-4 text-sm font-medium text-lf-muted transition hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+          className="min-h-11 shrink-0 rounded-xl border border-slate-200 px-4 text-sm font-medium text-lf-muted transition hover:bg-slate-100 hover:text-lf-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
         >
           Clear
         </button>

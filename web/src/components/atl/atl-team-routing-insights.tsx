@@ -13,7 +13,7 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-white/5 bg-lf-surface p-5 shadow-sm ${className}`}
+      className={`rounded-2xl border border-slate-100 bg-lf-surface p-5 shadow-sm ${className}`}
     >
       {children}
     </div>
@@ -37,14 +37,14 @@ function StatCard({
       : accent === "green"
         ? "border-t-lf-link"
         : accent === "violet"
-          ? "border-t-cyan-400"
+          ? "border-t-lf-accent"
           : "border-t-lf-danger";
   return (
     <Card className={`border-t-4 ${border}`}>
       <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
         {title}
       </p>
-      <p className="mt-2 text-2xl font-bold tabular-nums text-white md:text-3xl">
+      <p className="mt-2 text-2xl font-bold tabular-nums text-lf-text md:text-3xl">
         {value}
       </p>
       <p className="mt-1 text-xs text-lf-muted">{sub}</p>
@@ -101,7 +101,7 @@ export async function AtlTeamRoutingInsights({
       </section>
 
       <Card>
-        <h3 className="text-base font-semibold text-white">
+        <h3 className="text-base font-semibold text-lf-text">
           Breakdown by status &amp; stage
         </h3>
         <div className="mt-6 grid gap-8 lg:grid-cols-2">
@@ -122,7 +122,7 @@ export async function AtlTeamRoutingInsights({
                       <span className="font-medium text-lf-text-secondary">
                         {label}
                       </span>
-                      <span className="tabular-nums text-white">
+                      <span className="tabular-nums text-lf-text">
                         {count}{" "}
                         <span className="text-lf-subtle">({pct}%)</span>
                       </span>
@@ -157,11 +157,11 @@ export async function AtlTeamRoutingInsights({
                       <span className="font-medium text-lf-text-secondary">
                         {analystFacingSalesLabel(stage)}
                       </span>
-                      <span className="tabular-nums text-white">{count}</span>
+                      <span className="tabular-nums text-lf-text">{count}</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-lf-bg">
                       <div
-                        className="h-full rounded-full bg-violet-500"
+                        className="h-full rounded-full bg-lf-link"
                         style={{
                           width: `${Math.max(
                             4,
@@ -179,18 +179,18 @@ export async function AtlTeamRoutingInsights({
       </Card>
 
       <Card>
-        <h3 className="text-base font-semibold text-white">
+        <h3 className="text-base font-semibold text-lf-text">
           Qualified leads passed to sales
         </h3>
         <p className="mt-1 text-sm text-lf-muted">
           Qualified leads that have left internal routing
         </p>
-        <div className="mt-6 flex flex-wrap items-end gap-6 border-b border-white/5 pb-6">
+        <div className="mt-6 flex flex-wrap items-end gap-6 border-b border-slate-100 pb-6">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
               Passed
             </p>
-            <p className="mt-1 text-4xl font-bold tabular-nums text-white">
+            <p className="mt-1 text-4xl font-bold tabular-nums text-lf-text">
               {ins.qualifiedPassedCount}
             </p>
             <p className="mt-1 text-xs text-lf-subtle">
@@ -223,10 +223,10 @@ export async function AtlTeamRoutingInsights({
             ).map(([label, val]) => (
               <div
                 key={label}
-                className="rounded-xl border border-white/5 bg-lf-bg px-4 py-3"
+                className="rounded-xl border border-slate-100 bg-lf-bg px-4 py-3"
               >
                 <p className="text-xs text-lf-subtle">{label}</p>
-                <p className="mt-1 text-xl font-bold tabular-nums text-white">
+                <p className="mt-1 text-xl font-bold tabular-nums text-lf-text">
                   {val}
                 </p>
               </div>
@@ -236,7 +236,7 @@ export async function AtlTeamRoutingInsights({
       </Card>
 
       <Card>
-        <h3 className="mb-4 text-base font-semibold text-white">
+        <h3 className="mb-4 text-base font-semibold text-lf-text">
           Leads by source (all time)
         </h3>
         <ul className="space-y-4">
@@ -249,13 +249,13 @@ export async function AtlTeamRoutingInsights({
                   <span className="truncate pr-2 font-medium text-lf-text-secondary">
                     {sourcePillText(label)}
                   </span>
-                  <span className="shrink-0 tabular-nums text-white">
+                  <span className="shrink-0 tabular-nums text-lf-text">
                     {count}
                   </span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-lf-bg">
                   <div
-                    className="h-full rounded-full bg-violet-500"
+                    className="h-full rounded-full bg-lf-link"
                     style={{
                       width: `${Math.max(8, (count / ins.maxSource) * 100)}%`,
                     }}

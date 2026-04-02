@@ -15,9 +15,9 @@ export function LeadsByCountryQualCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-white/5 bg-lf-surface p-5 shadow-sm ${className}`}
+      className={`rounded-2xl border border-slate-100 bg-lf-surface p-5 shadow-sm ${className}`}
     >
-      <h2 className="mb-1 text-base font-semibold text-white">
+      <h2 className="mb-1 text-base font-semibold text-lf-text">
         Leads by country
       </h2>
       <p className="mb-3 text-xs text-lf-subtle">{subtitle}</p>

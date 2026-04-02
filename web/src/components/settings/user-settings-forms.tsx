@@ -123,7 +123,7 @@ export function UserSettingsForms({
   return (
     <div className="mx-auto max-w-4xl">
       <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight text-lf-text md:text-3xl">
           Settings
         </h1>
         {teamName != null && teamName !== "" ? (
@@ -150,7 +150,7 @@ export function UserSettingsForms({
               className={`rounded-lg px-3 py-2 text-left text-sm font-medium transition lg:w-full ${
                 tab === id
                   ? "bg-lf-accent/15 text-lf-link"
-                  : "text-lf-muted hover:bg-white/5 hover:text-white"
+                  : "text-lf-muted hover:bg-slate-100 hover:text-lf-text"
               }`}
             >
               {label}
@@ -160,8 +160,8 @@ export function UserSettingsForms({
 
         <div className="min-w-0 flex-1">
           {tab === "profile" ? (
-            <div className="rounded-2xl border border-white/5 bg-lf-surface p-6">
-              <h2 className="text-lg font-semibold text-white">Profile</h2>
+            <div className="rounded-2xl border border-slate-100 bg-lf-surface p-6">
+              <h2 className="text-lg font-semibold text-lf-text">Profile</h2>
               <p className="mt-1 text-sm text-lf-subtle">
                 Display name and profile photo
               </p>
@@ -173,7 +173,7 @@ export function UserSettingsForms({
                     width={64}
                     height={64}
                     unoptimized
-                    className="h-16 w-16 rounded-full object-cover ring-1 ring-white/10"
+                    className="h-16 w-16 rounded-full object-cover ring-1 ring-slate-200/80"
                   />
                   <p className="text-xs text-lf-subtle">
                     Current photo (updates in the header after you save).
@@ -191,7 +191,7 @@ export function UserSettingsForms({
                     name="name"
                     required
                     defaultValue={defaultName}
-                    className="mt-1 w-full rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-white outline-none ring-lf-accent/30 focus:ring-2"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
                   />
                 </label>
                 <label className="block text-sm text-lf-muted">
@@ -204,7 +204,7 @@ export function UserSettingsForms({
                   />
                 </label>
                 {profileState?.error ? (
-                  <p className="text-sm text-red-400">{profileState.error}</p>
+                  <p className="text-sm text-lf-danger">{profileState.error}</p>
                 ) : null}
                 {profileState?.ok ? (
                   <p className="text-sm text-lf-success">Profile updated.</p>
@@ -212,7 +212,7 @@ export function UserSettingsForms({
                 <button
                   type="submit"
                   disabled={profilePending}
-                  className="rounded-lg bg-lf-accent px-4 py-2 text-sm font-semibold text-white hover:bg-lf-accent-deep disabled:opacity-50"
+                  className="rounded-lg bg-lf-accent px-4 py-2 text-sm font-semibold text-lf-on-accent hover:bg-lf-accent-deep disabled:opacity-50"
                 >
                   {profilePending ? "Saving…" : "Save profile"}
                 </button>
@@ -221,8 +221,8 @@ export function UserSettingsForms({
           ) : null}
 
           {tab === "password" ? (
-            <div className="rounded-2xl border border-white/5 bg-lf-surface p-6">
-              <h2 className="text-lg font-semibold text-white">Password</h2>
+            <div className="rounded-2xl border border-slate-100 bg-lf-surface p-6">
+              <h2 className="text-lg font-semibold text-lf-text">Password</h2>
               <p className="mt-1 text-sm text-lf-subtle">
                 Change your sign-in password
               </p>
@@ -237,7 +237,7 @@ export function UserSettingsForms({
                     type="password"
                     required
                     autoComplete="current-password"
-                    className="mt-1 w-full rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-white outline-none ring-lf-accent/30 focus:ring-2"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
                   />
                 </label>
                 <label className="block text-sm text-lf-muted">
@@ -248,11 +248,11 @@ export function UserSettingsForms({
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className="mt-1 w-full rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-white outline-none ring-lf-accent/30 focus:ring-2"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
                   />
                 </label>
                 {passState?.error ? (
-                  <p className="text-sm text-red-400">{passState.error}</p>
+                  <p className="text-sm text-lf-danger">{passState.error}</p>
                 ) : null}
                 {passState?.ok ? (
                   <p className="text-sm text-lf-success">Password updated.</p>
@@ -260,7 +260,7 @@ export function UserSettingsForms({
                 <button
                   type="submit"
                   disabled={passPending}
-                  className="rounded-lg bg-lf-accent px-4 py-2 text-sm font-semibold text-white hover:bg-lf-accent-deep disabled:opacity-50"
+                  className="rounded-lg bg-lf-accent px-4 py-2 text-sm font-semibold text-lf-on-accent hover:bg-lf-accent-deep disabled:opacity-50"
                 >
                   {passPending ? "Updating…" : "Update password"}
                 </button>
@@ -269,14 +269,14 @@ export function UserSettingsForms({
           ) : null}
 
           {tab === "notifications" ? (
-            <div className="rounded-2xl border border-white/5 bg-lf-surface p-6">
-              <h2 className="text-lg font-semibold text-white">
+            <div className="rounded-2xl border border-slate-100 bg-lf-surface p-6">
+              <h2 className="text-lg font-semibold text-lf-text">
                 Notification preferences
               </h2>
               <p className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 Lead alerts
               </p>
-              <ul className="mt-4 divide-y divide-white/5">
+              <ul className="mt-4 divide-y divide-slate-100">
                 {(
                   [
                     [
@@ -310,7 +310,7 @@ export function UserSettingsForms({
                     className="flex items-start justify-between gap-4 py-4 first:pt-0"
                   >
                     <div>
-                      <p className="font-medium text-white">{title}</p>
+                      <p className="font-medium text-lf-text">{title}</p>
                       <p className="mt-1 text-sm text-lf-subtle">{desc}</p>
                     </div>
                     <button
@@ -319,7 +319,7 @@ export function UserSettingsForms({
                       aria-checked={on}
                       onClick={() => setOn(!on)}
                       className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                        on ? "bg-lf-accent" : "bg-slate-600"
+                        on ? "bg-lf-accent" : "bg-lf-control-off"
                       }`}
                     >
                       <span
@@ -334,7 +334,7 @@ export function UserSettingsForms({
               <div className="mt-6 flex justify-end">
                 <button
                   type="button"
-                  className="rounded-lg bg-lf-accent px-5 py-2 text-sm font-semibold text-white hover:bg-lf-accent-deep"
+                  className="rounded-lg bg-lf-accent px-5 py-2 text-sm font-semibold text-lf-on-accent hover:bg-lf-accent-deep"
                 >
                   Save preferences
                 </button>

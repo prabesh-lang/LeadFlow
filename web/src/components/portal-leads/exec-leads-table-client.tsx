@@ -42,16 +42,16 @@ export function ExecLeadsTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-white/5 bg-lf-surface">
+      <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-lf-surface">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-white/5 text-xs uppercase tracking-wide text-lf-subtle">
+          <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-lf-subtle">
             <tr>
               <th className="px-4 py-3 font-semibold">Name</th>
               <th className="px-4 py-3 font-semibold">Phone</th>
@@ -66,7 +66,7 @@ export function ExecLeadsTableClient({
               <th className="px-4 py-3 font-semibold">Update</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-slate-100">
             {leads.length === 0 ? (
               <tr>
                 <td
@@ -93,7 +93,7 @@ export function ExecLeadsTableClient({
                 const isLost = lead.salesStage === SalesStage.CLOSED_LOST;
                 return (
                   <tr key={lead.id} className="align-top bg-lf-bg/40">
-                    <td className="px-4 py-3 font-medium text-white">
+                    <td className="px-4 py-3 font-medium text-lf-text">
                       {lead.leadName || "—"}
                     </td>
                     <td className="px-4 py-3 text-lf-muted">

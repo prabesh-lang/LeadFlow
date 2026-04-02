@@ -53,7 +53,7 @@ function FieldLabel({
   return (
     <span className="mb-1 flex items-center gap-1 text-xs font-medium text-lf-muted">
       {children}
-      {req ? <span className="text-red-400">*</span> : null}
+      {req ? <span className="text-lf-danger">*</span> : null}
     </span>
   );
 }
@@ -100,12 +100,12 @@ function AddLeadModalInner({
         aria-label="Close overlay"
         onClick={onClose}
       />
-      <div className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-lf-surface shadow-2xl shadow-black/50">
-        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-white/10 bg-lf-surface/95 px-6 py-4 backdrop-blur-md">
+      <div className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-lf-surface shadow-2xl shadow-slate-400/35">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-200 bg-lf-surface/95 px-6 py-4 backdrop-blur-md">
           <div>
             <h2
               id="add-lead-title"
-              className="text-lg font-semibold text-white"
+              className="text-lg font-semibold text-lf-text"
             >
               Add new lead
             </h2>
@@ -116,7 +116,7 @@ function AddLeadModalInner({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-lf-muted hover:bg-white/5 hover:text-white"
+            className="rounded-lg p-1 text-lf-muted hover:bg-slate-100 hover:text-lf-text"
             aria-label="Close"
           >
             <svg
@@ -150,7 +150,7 @@ function AddLeadModalInner({
                   name="leadName"
                   required
                   placeholder="e.g. Rajesh Sharma"
-                  className="rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
+                  className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
                 />
               </label>
               <label className="flex flex-col sm:col-span-2">
@@ -160,7 +160,7 @@ function AddLeadModalInner({
               <div className="flex flex-col sm:col-span-2">
                 <FieldLabel>Country</FieldLabel>
                 <div
-                  className="min-h-11 rounded-lg border border-white/10 bg-lf-bg/90 px-3 py-2.5 text-sm text-lf-text-secondary"
+                  className="min-h-11 rounded-lg border border-slate-200 bg-lf-bg/90 px-3 py-2.5 text-sm text-lf-text-secondary"
                   aria-live="polite"
                 >
                   {countryLabel ?? "—"}
@@ -175,7 +175,7 @@ function AddLeadModalInner({
                 <input
                   name="city"
                   placeholder="e.g. Mumbai"
-                  className="rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
+                  className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
                 />
                 <span className="mt-1 text-[11px] text-lf-subtle">
                   Shown in analytics and exports only — not on the lead list.
@@ -187,7 +187,7 @@ function AddLeadModalInner({
                   name="leadEmail"
                   type="email"
                   placeholder="email@company.com"
-                  className="rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
+                  className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
                 />
               </label>
               <label className="flex flex-col">
@@ -197,7 +197,7 @@ function AddLeadModalInner({
                   required
                   value={leadSource}
                   onChange={(e) => setLeadSource(e.target.value)}
-                  className="rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white outline-none ring-lf-accent/30 focus:ring-2"
+                  className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
                 >
                   {LEAD_SOURCE_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -214,7 +214,7 @@ function AddLeadModalInner({
                 <input
                   name="sourceOther"
                   placeholder="Where did this lead come from?"
-                  className="rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
+                  className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
                 />
               </label>
             ) : (
@@ -250,10 +250,10 @@ function AddLeadModalInner({
                     key={v}
                     type="button"
                     onClick={() => setQual(v)}
-                    className={`flex min-h-[2.75rem] items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 ${
+                    className={`flex min-h-[2.75rem] items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-accent/50 ${
                       active
                         ? "border-lf-success/80 bg-lf-success/10 text-lf-success"
-                        : "border-white/10 bg-lf-bg text-lf-subtle hover:border-white/20 hover:text-lf-muted"
+                        : "border-slate-200 bg-lf-bg text-lf-subtle hover:border-slate-200 hover:text-lf-muted"
                     }`}
                   >
                     {label}
@@ -266,7 +266,7 @@ function AddLeadModalInner({
           <div className="mt-6">
             <div className="flex items-center justify-between gap-4">
               <FieldLabel>Lead Score (0–100)</FieldLabel>
-              <span className="text-sm font-semibold tabular-nums text-white">
+              <span className="text-sm font-semibold tabular-nums text-lf-text">
                 {score}
               </span>
             </div>
@@ -287,7 +287,7 @@ function AddLeadModalInner({
               type="date"
               name="leadAddedDate"
               max={maxDateToday}
-              className="rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white outline-none ring-lf-accent/30 focus:ring-2 [color-scheme:dark]"
+              className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2 [color-scheme:light]"
             />
           </label>
 
@@ -297,28 +297,28 @@ function AddLeadModalInner({
               name="notes"
               rows={4}
               placeholder="Context, source details, follow-ups…"
-              className="mt-1 rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
+              className="mt-1 rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
             />
           </label>
 
           {state?.error ? (
-            <p className="mt-4 text-sm text-red-400" role="alert">
+            <p className="mt-4 text-sm text-lf-danger" role="alert">
               {state.error}
             </p>
           ) : null}
 
-          <div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-6 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-white/15 px-5 py-2.5 text-sm font-medium text-lf-text-secondary transition hover:bg-white/5"
+              className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-lf-text-secondary transition hover:bg-slate-100"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="rounded-xl bg-lf-accent px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-950/25 transition hover:bg-lf-accent-deep disabled:opacity-50"
+              className="rounded-xl bg-lf-accent px-6 py-2.5 text-sm font-semibold text-lf-on-accent shadow-lg shadow-slate-300/25 transition hover:bg-lf-accent-deep disabled:opacity-50"
             >
               {pending ? "Saving…" : "Save lead"}
             </button>
@@ -373,7 +373,7 @@ export function AnalystHeaderAddButton() {
     <button
       type="button"
       onClick={trigger}
-      className="w-full rounded-xl bg-lf-accent px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-950/35 transition hover:bg-lf-accent-deep sm:w-auto"
+      className="w-full rounded-xl bg-lf-accent px-5 py-3 text-sm font-semibold text-lf-on-accent shadow-lg shadow-slate-300/30 transition hover:bg-lf-accent-deep sm:w-auto"
     >
       + Add lead
     </button>

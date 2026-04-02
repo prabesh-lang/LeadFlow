@@ -6,7 +6,7 @@ import { assignLeadToExecutive } from "@/app/actions/mtl";
 type ExecOption = { id: string; name: string };
 
 const selectClass =
-  "w-full max-w-[11rem] rounded-lg border border-white/10 bg-lf-bg px-2 py-1.5 text-xs text-white outline-none ring-cyan-500/30 focus:ring-2";
+  "w-full max-w-[11rem] rounded-lg border border-slate-200 bg-lf-bg px-2 py-1.5 text-xs text-lf-text outline-none ring-lf-accent/35 focus:ring-2";
 
 export function AssignToExecForm({
   leadId,
@@ -41,7 +41,7 @@ export function AssignToExecForm({
         ))}
       </select>
       {state?.error ? (
-        <p className="text-xs text-red-400">{state.error}</p>
+        <p className="text-xs text-lf-danger">{state.error}</p>
       ) : null}
       {state?.ok ? (
         <p className="text-xs text-lf-success">Updated.</p>
@@ -49,7 +49,7 @@ export function AssignToExecForm({
       <button
         type="submit"
         disabled={pending}
-        className="w-fit rounded-lg bg-lf-accent px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-lf-accent-hover disabled:opacity-50"
+        className="w-fit rounded-lg bg-lf-accent px-2.5 py-1.5 text-xs font-semibold text-lf-on-accent hover:bg-lf-accent-hover disabled:opacity-50"
       >
         {pending ? "…" : currentExecId ? "Reassign" : "Assign"}
       </button>

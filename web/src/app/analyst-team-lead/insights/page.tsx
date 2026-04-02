@@ -17,7 +17,7 @@ export default async function AnalystTeamLeadInsightsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight text-lf-text md:text-3xl">
           Insights
         </h1>
         <p className="mt-1 text-sm text-lf-muted">

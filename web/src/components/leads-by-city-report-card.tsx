@@ -6,8 +6,8 @@ export function LeadsByCityReportCard({
   rows: CityCountRow[];
 }) {
   return (
-    <div className="rounded-2xl border border-white/5 bg-lf-surface p-5 shadow-sm">
-      <h2 className="mb-1 text-base font-semibold text-white">
+    <div className="rounded-2xl border border-slate-100 bg-lf-surface p-5 shadow-sm">
+      <h2 className="mb-1 text-base font-semibold text-lf-text">
         Leads by city
       </h2>
       <p className="mb-4 text-xs text-lf-subtle">
@@ -21,10 +21,10 @@ export function LeadsByCityReportCard({
           {rows.slice(0, 20).map((r) => (
             <li
               key={r.label}
-              className="flex items-center justify-between gap-3 border-b border-white/5 pb-2 last:border-0"
+              className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2 last:border-0"
             >
               <span className="min-w-0 truncate text-lf-text-secondary">{r.label}</span>
-              <span className="shrink-0 tabular-nums text-white">{r.count}</span>
+              <span className="shrink-0 tabular-nums text-lf-text">{r.count}</span>
             </li>
           ))}
         </ul>

@@ -78,7 +78,7 @@ export default async function AnalystTeamLeadDashboard({
     <div className="mx-auto max-w-6xl space-y-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-lf-text md:text-3xl">
             Dashboard
           </h1>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-lf-muted">
@@ -92,7 +92,7 @@ export default async function AnalystTeamLeadDashboard({
           <DashboardReportExport payload={vm.exportPayload} />
           <Link
             href="/analyst-team-lead/team"
-            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-950/30 hover:bg-lf-accent-hover"
+            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-lf-on-accent shadow-lg shadow-slate-300/30 hover:bg-lf-accent-hover"
           >
             Members
           </Link>

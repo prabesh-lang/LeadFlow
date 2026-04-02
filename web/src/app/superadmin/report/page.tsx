@@ -20,11 +20,11 @@ function RatioCard({
   sub?: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-lf-surface/90 px-4 py-4">
+    <div className="rounded-xl border border-slate-200 bg-lf-surface/90 px-4 py-4">
       <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
         {label}
       </p>
-      <p className="mt-2 text-xl font-semibold tabular-nums text-white">
+      <p className="mt-2 text-xl font-semibold tabular-nums text-lf-text">
         {value}
       </p>
       {sub ? <p className="mt-1 text-xs text-lf-subtle">{sub}</p> : null}
@@ -69,7 +69,7 @@ export default async function SuperadminReportPage() {
     <div className="space-y-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">
+          <h1 className="text-2xl font-semibold tracking-tight text-lf-text">
             Report
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-lf-muted">
@@ -136,7 +136,7 @@ export default async function SuperadminReportPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-lf-bg/90 p-6">
+      <div className="rounded-2xl border border-slate-200 bg-lf-bg/90 p-6">
         <h2 className="text-sm font-semibold text-lf-text-secondary">
           Unified portal dashboard (same as other roles)
         </h2>

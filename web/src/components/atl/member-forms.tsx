@@ -29,10 +29,10 @@ type MtlResult =
 function formClassName(variant: "page" | "modal") {
   return variant === "modal"
     ? "flex h-fit w-full flex-col gap-3"
-    : "flex h-fit w-full flex-col gap-3 rounded-2xl border border-white/5 bg-lf-surface p-5";
+    : "flex h-fit w-full flex-col gap-3 rounded-2xl border border-slate-100 bg-lf-surface p-5";
 }
 const inputClass =
-  "rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-white outline-none ring-lf-accent/30 placeholder:text-lf-subtle focus:ring-2";
+  "rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 placeholder:text-lf-subtle focus:ring-2";
 
 function CopyCredentialsPanel({
   title,
@@ -58,7 +58,7 @@ function CopyCredentialsPanel({
   }
 
   return (
-    <div className="rounded-lg border border-white/10 bg-lf-bg/80 p-4">
+    <div className="rounded-lg border border-slate-200 bg-lf-bg/80 p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-lf-link">
         {title}
       </p>
@@ -69,7 +69,7 @@ function CopyCredentialsPanel({
         {rows.map((r) => (
           <div key={r.label} className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
             <dt className="shrink-0 text-lf-subtle">{r.label}</dt>
-            <dd className="break-all font-mono text-xs text-white sm:text-right">
+            <dd className="break-all font-mono text-xs text-lf-text sm:text-right">
               {r.value}
             </dd>
           </div>
@@ -79,7 +79,7 @@ function CopyCredentialsPanel({
         <button
           type="button"
           onClick={() => copy(copyAllText)}
-          className="rounded-lg bg-lf-accent px-3 py-2 text-xs font-semibold text-white hover:bg-lf-accent-hover"
+          className="rounded-lg bg-lf-accent px-3 py-2 text-xs font-semibold text-lf-on-accent hover:bg-lf-accent-hover"
         >
           {copied === "all" ? "Copied" : copyAllLabel}
         </button>
@@ -90,7 +90,7 @@ function CopyCredentialsPanel({
               key={r.label}
               type="button"
               onClick={() => copy(r.value)}
-              className="rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-xs font-medium text-lf-muted hover:bg-white/5 hover:text-white"
+              className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-xs font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text"
             >
               Copy {r.label.toLowerCase()}
             </button>
@@ -137,7 +137,7 @@ export function AddAnalystForm({
   return (
     <form key={variant === "page" ? formKey : "modal"} action={action} className={formClassName(variant)}>
       {variant === "page" ? (
-        <h3 className="text-sm font-semibold text-white">Add lead analyst</h3>
+        <h3 className="text-sm font-semibold text-lf-text">Add lead analyst</h3>
       ) : null}
       <input
         name="analystTeamName"
@@ -172,7 +172,7 @@ export function AddAnalystForm({
         minLength={8}
       />
       {state && "error" in state ? (
-        <p className="text-sm text-red-400">{state.error}</p>
+        <p className="text-sm text-lf-danger">{state.error}</p>
       ) : null}
       {success ? (
         <CopyCredentialsPanel
@@ -190,7 +190,7 @@ export function AddAnalystForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-lf-accent px-3 py-2.5 text-sm font-semibold text-white hover:bg-lf-accent-hover disabled:opacity-50"
+        className="rounded-lg bg-lf-accent px-3 py-2.5 text-sm font-semibold text-lf-on-accent hover:bg-lf-accent-hover disabled:opacity-50"
       >
         {pending ? "Saving…" : "Create analyst"}
       </button>
@@ -235,7 +235,7 @@ export function AddMainTeamForm({
   return (
     <form key={variant === "page" ? formKey : "modal"} action={action} className={formClassName(variant)}>
       {variant === "page" ? (
-        <h3 className="text-sm font-semibold text-white">
+        <h3 className="text-sm font-semibold text-lf-text">
           Add main team &amp; team lead
         </h3>
       ) : null}
@@ -271,7 +271,7 @@ export function AddMainTeamForm({
         minLength={8}
       />
       {state && "error" in state ? (
-        <p className="text-sm text-red-400">{state.error}</p>
+        <p className="text-sm text-lf-danger">{state.error}</p>
       ) : null}
       {success ? (
         <CopyCredentialsPanel
@@ -289,7 +289,7 @@ export function AddMainTeamForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-lf-accent px-3 py-2.5 text-sm font-semibold text-white hover:bg-lf-accent-hover disabled:opacity-50"
+        className="rounded-lg bg-lf-accent px-3 py-2.5 text-sm font-semibold text-lf-on-accent hover:bg-lf-accent-hover disabled:opacity-50"
       >
         {pending ? "Saving…" : "Create team & lead"}
       </button>

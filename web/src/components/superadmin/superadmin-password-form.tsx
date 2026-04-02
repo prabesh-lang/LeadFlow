@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { superadminSetPasswordFormAction } from "@/app/actions/superadmin";
 
 const inputClass =
-  "min-h-10 w-full min-w-[140px] max-w-[200px] rounded-lg border border-white/10 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2";
+  "min-h-10 w-full min-w-[140px] max-w-[200px] rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2";
 
 export function SuperadminPasswordForm({ userId }: { userId: string }) {
   const [state, action, pending] = useActionState(
@@ -16,7 +16,7 @@ export function SuperadminPasswordForm({ userId }: { userId: string }) {
     <form action={action} className="space-y-2">
       <input type="hidden" name="userId" value={userId} />
       {state?.error ? (
-        <p className="text-xs text-red-400" role="alert">
+        <p className="text-xs text-lf-danger" role="alert">
           {state.error}
         </p>
       ) : null}
@@ -32,7 +32,7 @@ export function SuperadminPasswordForm({ userId }: { userId: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-xs font-medium text-lf-text-secondary hover:bg-white/5 disabled:opacity-60"
+          className="shrink-0 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-lf-text-secondary hover:bg-slate-100 disabled:opacity-60"
         >
           {pending ? "…" : "Set"}
         </button>
