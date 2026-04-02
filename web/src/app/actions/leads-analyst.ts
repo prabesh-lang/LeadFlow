@@ -63,6 +63,14 @@ export async function createLeadAnalyst(formData: FormData) {
   const leadEmail = leadEmailRaw || null;
   const leadSource = String(formData.get("leadSource") ?? "").trim();
   const sourceOther = String(formData.get("sourceOther") ?? "").trim() || null;
+  let sourceWebsiteName =
+    String(formData.get("sourceWebsiteName") ?? "").trim() || null;
+  let sourceMetaProfileName =
+    String(formData.get("sourceMetaProfileName") ?? "").trim() || null;
+  if (leadSource !== "WEBSITE" && leadSource !== "DOWNLOADS") {
+    sourceWebsiteName = null;
+  }
+  if (leadSource !== "META_WHATSAPP") sourceMetaProfileName = null;
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const qualificationStatus = String(
     formData.get("qualificationStatus") ?? "",
@@ -112,7 +120,10 @@ export async function createLeadAnalyst(formData: FormData) {
     createdAt = parsed;
   }
 
-  const source = resolveLeadSourceLabel(leadSource, sourceOther);
+  const source = resolveLeadSourceLabel(leadSource, sourceOther, {
+    websiteName: sourceWebsiteName,
+    metaProfileName: sourceMetaProfileName,
+  });
   const country = countryNameFromPhone(phone);
 
   const lead = await prisma.lead.create({
@@ -123,6 +134,8 @@ export async function createLeadAnalyst(formData: FormData) {
       country,
       city,
       source,
+      sourceWebsiteName,
+      sourceMetaProfileName,
       notes,
       qualificationStatus,
       leadScore,

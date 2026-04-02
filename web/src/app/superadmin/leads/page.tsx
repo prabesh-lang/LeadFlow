@@ -13,6 +13,7 @@ import {
   superadminHandoffLabels,
   superadminRoleLabel,
 } from "@/lib/superadmin-ui";
+import { LeadSourceDisplay } from "@/components/lead-source-display";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
@@ -174,6 +175,12 @@ export default async function SuperadminLeadsPage({
                   </div>
 
                   <dl className="mt-4 space-y-2 text-xs text-lf-muted">
+                    <div className="flex justify-between gap-4">
+                      <dt>Source</dt>
+                      <dd className="max-w-[min(100%,14rem)] text-right text-lf-text-secondary">
+                        <LeadSourceDisplay source={lead.source} />
+                      </dd>
+                    </div>
                     <div className="flex justify-between gap-4">
                       <dt>Stage</dt>
                       <dd className="text-right text-lf-text-secondary">

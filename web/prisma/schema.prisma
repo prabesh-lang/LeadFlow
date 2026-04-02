@@ -103,8 +103,12 @@ model Lead {
   country String?
   city    String?
 
-  /// Channel (Meta, Website, etc.)
+  /// Channel (Meta, Website, etc.) — human-readable label, may include channel detail suffix
   source String
+  /// When source is Website / Forms / Chat — optional site or brand name
+  sourceWebsiteName String?
+  /// When source is Meta Ads / WhatsApp — optional Facebook profile or page name
+  sourceMetaProfileName String?
   notes  String?
 
   /// Sales executive: reason / context when closing lost (required on new lost closes)

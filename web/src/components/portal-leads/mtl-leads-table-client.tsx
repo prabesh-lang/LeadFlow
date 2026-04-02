@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
 import ExecLostNotesReadonly from "@/components/exec-lost-notes-readonly";
 import { AssignToExecForm } from "@/components/mtl/assign-to-exec-form";
+import { LeadSourceDisplay } from "@/components/lead-source-display";
 import { PortalLeadSearchLiveField } from "@/components/portal-lead-search-live-field";
 import { SalesStage } from "@/lib/constants";
 import { filterLeadsByNameOrPhone } from "@/lib/lead-client-search";
@@ -108,7 +109,9 @@ export function MtlLeadsTableClient({
                     <td className="px-4 py-3 text-lf-muted">
                       {lead.leadEmail || "—"}
                     </td>
-                    <td className="px-4 py-3 text-lf-text-secondary">{lead.source}</td>
+                    <td className="px-4 py-3 text-lf-text-secondary">
+                      <LeadSourceDisplay source={lead.source} />
+                    </td>
                     <td className="px-4 py-3 text-lf-muted">
                       {lead.createdBy.name}
                     </td>

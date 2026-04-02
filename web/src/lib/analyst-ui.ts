@@ -2,6 +2,7 @@ import {
   QualificationStatus,
   SalesStage,
 } from "@/lib/constants";
+import { formatLeadSourceDisplay } from "@/lib/lead-sources";
 
 export function initialsFromName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -10,14 +11,9 @@ export function initialsFromName(name: string) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-/** Short label for source pill (first segment or truncated). */
+/** Full source label for pills and exports (includes website / Meta detail). */
 export function sourcePillText(source: string): string {
-  const s = source.trim();
-  if (!s) return "—";
-  const beforeEnDash = s.split("—")[0]?.trim() ?? s;
-  const beforeSlash = beforeEnDash.split("/")[0]?.trim() ?? beforeEnDash;
-  if (beforeSlash.length <= 16) return beforeSlash;
-  return `${beforeSlash.slice(0, 14)}…`;
+  return formatLeadSourceDisplay(source);
 }
 
 export function scoreBarColor(score: number | null): string {

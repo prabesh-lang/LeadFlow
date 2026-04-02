@@ -7,7 +7,8 @@ import ExecLostNotesReadonly from "@/components/exec-lost-notes-readonly";
 import { PortalLeadSearchLiveField } from "@/components/portal-lead-search-live-field";
 import { filterLeadsByNameOrPhone } from "@/lib/lead-client-search";
 import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
-import { formatAnalystDate, sourcePillText } from "@/lib/analyst-ui";
+import { LeadSourcePill } from "@/components/lead-source-display";
+import { formatAnalystDate } from "@/lib/analyst-ui";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
 
 export type AnalystAllLeadsRow = {
@@ -105,9 +106,7 @@ export function AnalystAllLeadsTableClient({
                     <td className="px-4 py-3">{l.phone || "—"}</td>
                     <td className="px-4 py-3">{l.leadEmail || "—"}</td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs text-lf-text-secondary">
-                        {sourcePillText(l.source)}
-                      </span>
+                      <LeadSourcePill source={l.source} />
                     </td>
                     <td className="px-4 py-3 align-middle">
                       <AnalystQualificationSelect

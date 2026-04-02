@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { atlLeadWhere } from "@/lib/atl-leads";
 import { computeAtlInsights } from "@/lib/atl-insights";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
-import { sourcePillText } from "@/lib/analyst-ui";
+import { formatLeadSourceDisplay } from "@/lib/lead-sources";
 
 function Card({
   children,
@@ -246,8 +246,11 @@ export async function AtlTeamRoutingInsights({
             ins.sourceEntries.slice(0, 8).map(([label, count]) => (
               <li key={label}>
                 <div className="mb-1 flex justify-between text-xs text-lf-muted">
-                  <span className="truncate pr-2 font-medium text-lf-text-secondary">
-                    {sourcePillText(label)}
+                  <span
+                    className="truncate pr-2 font-medium text-lf-text-secondary"
+                    title={label}
+                  >
+                    {formatLeadSourceDisplay(label)}
                   </span>
                   <span className="shrink-0 tabular-nums text-lf-text">
                     {count}

@@ -208,6 +208,47 @@ function AddLeadModalInner({
               </label>
             </div>
 
+            {leadSource === "WEBSITE" || leadSource === "DOWNLOADS" ? (
+              <label className="mt-4 flex flex-col">
+                <FieldLabel>Website name</FieldLabel>
+                <input
+                  name="sourceWebsiteName"
+                  autoComplete="off"
+                  placeholder={
+                    leadSource === "DOWNLOADS"
+                      ? "e.g. landing page or domain for the download"
+                      : "e.g. company.com or product landing page"
+                  }
+                  className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
+                />
+                <span className="mt-1 text-[11px] text-lf-subtle">
+                  {leadSource === "DOWNLOADS"
+                    ? "Optional. Shown on reports and lead lists with the Downloads source."
+                    : "Optional. Shown on reports and lead lists with the Website source."}
+                </span>
+              </label>
+            ) : (
+              <input type="hidden" name="sourceWebsiteName" value="" />
+            )}
+
+            {leadSource === "META_WHATSAPP" ? (
+              <label className="mt-4 flex flex-col">
+                <FieldLabel>Facebook profile name</FieldLabel>
+                <input
+                  name="sourceMetaProfileName"
+                  autoComplete="off"
+                  placeholder="e.g. Page name or profile /username"
+                  className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/30 focus:ring-2"
+                />
+                <span className="mt-1 text-[11px] text-lf-subtle">
+                  Optional. Which Meta / Facebook profile or page generated this
+                  lead.
+                </span>
+              </label>
+            ) : (
+              <input type="hidden" name="sourceMetaProfileName" value="" />
+            )}
+
             {leadSource === "OTHER" ? (
               <label className="mt-4 flex flex-col">
                 <FieldLabel>Describe source</FieldLabel>

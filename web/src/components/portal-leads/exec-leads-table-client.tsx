@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { LeadSourceDisplay } from "@/components/lead-source-display";
 import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
 import { ExecLostNotesEditor } from "@/components/exec/exec-lost-notes-editor";
 import { UpdateOutcomeForm } from "@/components/exec/update-outcome-form";
@@ -102,7 +103,9 @@ export function ExecLeadsTableClient({
                     <td className="px-4 py-3 text-lf-muted">
                       {lead.leadEmail || "—"}
                     </td>
-                    <td className="px-4 py-3 text-lf-text-secondary">{lead.source}</td>
+                    <td className="px-4 py-3 text-lf-text-secondary">
+                      <LeadSourceDisplay source={lead.source} />
+                    </td>
                     <td className="px-4 py-3 text-lf-muted">
                       {lead.createdBy.name}
                     </td>

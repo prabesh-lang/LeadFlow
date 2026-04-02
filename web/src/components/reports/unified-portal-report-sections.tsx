@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { LeadsByCityReportCard } from "@/components/leads-by-city-report-card";
 import { LeadsByCountryQualCard } from "@/components/leads-by-country-qual-card";
+import { LeadSourcePill } from "@/components/lead-source-display";
 import {
   formatAnalystDate,
   pipelineNoteForLead,
   pipelinePillForLead,
-  sourcePillText,
 } from "@/lib/analyst-ui";
 import type { UnifiedDashboardViewModel } from "@/lib/unified-dashboard-report";
 function Card({
@@ -300,9 +300,7 @@ export function UnifiedPortalReportSections({
                         {l.createdByName}
                       </td>
                       <td className="py-3 pr-4">
-                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-lf-text-secondary">
-                          {sourcePillText(l.source)}
-                        </span>
+                        <LeadSourcePill source={l.source} />
                       </td>
                       <td className="py-3 text-xs text-lf-muted">
                         {pipelinePillForLead(
@@ -329,8 +327,11 @@ export function UnifiedPortalReportSections({
               sourceEntries.slice(0, 8).map(([label, count]) => (
                 <li key={label}>
                   <div className="mb-1 flex justify-between text-xs text-lf-muted">
-                    <span className="truncate pr-2 font-medium text-lf-text-secondary">
-                      {sourcePillText(label)}
+                    <span
+                      className="max-w-[min(100%,20rem)] truncate pr-2 font-medium text-lf-text-secondary"
+                      title={label}
+                    >
+                      {label}
                     </span>
                     <span className="shrink-0 tabular-nums text-lf-text">
                       {count}
@@ -479,7 +480,7 @@ export function UnifiedPortalReportSections({
                     </td>
                     <td className="py-2.5 pr-4">{l.createdByName}</td>
                     <td className="py-2.5 pr-4 text-xs">
-                      {sourcePillText(l.source)}
+                      <LeadSourcePill source={l.source} />
                     </td>
                     <td className="py-2.5 pr-4 text-xs">
                       {pipelinePillForLead(

@@ -98,6 +98,8 @@ model Lead {
   city    String?
 
   source String
+  sourceWebsiteName String?
+  sourceMetaProfileName String?
   notes  String?
 
   lostNotes String?

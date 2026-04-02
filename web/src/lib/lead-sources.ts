@@ -27,15 +27,36 @@ const LABEL_BY_VALUE: Record<LeadSourceValue, string> = {
   OTHER: "Other",
 };
 
+export type LeadSourceChannelDetail = {
+  websiteName?: string | null;
+  metaProfileName?: string | null;
+};
+
+/** Builds the stored `source` display string (preset label + optional channel detail). */
 export function resolveLeadSourceLabel(
   value: string,
   otherDetail: string | null,
+  channel?: LeadSourceChannelDetail | null,
 ): string {
   if (value === "OTHER" && otherDetail && otherDetail.trim()) {
     return `Other — ${otherDetail.trim()}`;
   }
   if (value in LABEL_BY_VALUE) {
-    return LABEL_BY_VALUE[value as LeadSourceValue];
+    let label = LABEL_BY_VALUE[value as LeadSourceValue];
+    const web = channel?.websiteName?.trim();
+    const meta = channel?.metaProfileName?.trim();
+    if ((value === "WEBSITE" || value === "DOWNLOADS") && web) {
+      label += ` — ${web}`;
+    }
+    if (value === "META_WHATSAPP" && meta) {
+      label += ` — Facebook: ${meta}`;
+    }
+    return label;
   }
   return value || "—";
+}
+
+/** Full stored source string for tables and exports (includes website / Meta detail). */
+export function formatLeadSourceDisplay(source: string): string {
+  return source.trim() || "—";
 }

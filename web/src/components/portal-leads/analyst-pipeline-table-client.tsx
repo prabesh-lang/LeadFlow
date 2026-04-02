@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
+import { LeadSourcePill } from "@/components/lead-source-display";
 import { PortalLeadSearchLiveField } from "@/components/portal-lead-search-live-field";
 import {
   formatAnalystDate,
   pipelinePillForLead,
   scoreBarColor,
-  sourcePillText,
 } from "@/lib/analyst-ui";
 import { filterLeadsByNameOrPhone } from "@/lib/lead-client-search";
 import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
@@ -110,9 +110,7 @@ export function AnalystPipelineTableClient({
                         {l.leadName || "—"}
                       </td>
                       <td className="px-5 py-3">
-                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-lf-text-secondary">
-                          {sourcePillText(l.source)}
-                        </span>
+                        <LeadSourcePill source={l.source} />
                       </td>
                       <td className="px-5 py-3 align-top">
                         <AnalystNotesReadonly notes={l.notes} />
