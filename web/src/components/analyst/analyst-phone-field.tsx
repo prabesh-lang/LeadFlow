@@ -18,7 +18,7 @@ export function AnalystPhoneField({
       required
       value={value}
       onChange={onChange}
-      className="[&_input]:min-h-11 [&_input]:w-full [&_input]:rounded-lg [&_input]:border [&_input]:border-slate-200 [&_input]:bg-lf-bg [&_input]:px-3 [&_input]:py-2 [&_input]:text-sm [&_input]:text-lf-text"
+      className="[&_input]:min-h-11 [&_input]:w-full [&_input]:rounded-lg [&_input]:border [&_input]:border-lf-border [&_input]:bg-lf-bg [&_input]:px-3 [&_input]:py-2 [&_input]:text-sm [&_input]:text-lf-text"
     />
   );
 }

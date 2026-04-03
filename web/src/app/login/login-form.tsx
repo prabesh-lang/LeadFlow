@@ -15,7 +15,7 @@ export default function LoginForm() {
           type="email"
           required
           autoComplete="username"
-          className="mt-2 min-h-11 w-full rounded-xl border border-slate-200 bg-lf-elevated px-3 py-2.5 text-lf-text outline-none transition placeholder:text-lf-subtle focus:border-lf-accent/50 focus:ring-2 focus:ring-lf-accent/25"
+          className="mt-2 min-h-11 w-full rounded-full border border-lf-border bg-lf-elevated px-4 py-2.5 text-lf-text outline-none transition placeholder:text-lf-subtle focus:border-lf-brand/50 focus:ring-2 focus:ring-lf-brand/25"
         />
       </label>
       <label className="block text-sm font-medium text-lf-text-secondary">
@@ -25,7 +25,7 @@ export default function LoginForm() {
           type="password"
           required
           autoComplete="current-password"
-          className="mt-2 min-h-11 w-full rounded-xl border border-slate-200 bg-lf-elevated px-3 py-2.5 text-lf-text outline-none transition placeholder:text-lf-subtle focus:border-lf-accent/50 focus:ring-2 focus:ring-lf-accent/25"
+          className="mt-2 min-h-11 w-full rounded-full border border-lf-border bg-lf-elevated px-4 py-2.5 text-lf-text outline-none transition placeholder:text-lf-subtle focus:border-lf-brand/50 focus:ring-2 focus:ring-lf-brand/25"
         />
       </label>
       {state?.error ? (
@@ -36,7 +36,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="min-h-11 rounded-xl bg-lf-accent px-4 py-2.5 font-semibold text-lf-on-accent shadow-lg shadow-indigo-900/20 transition hover:bg-lf-accent-hover disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-on-accent focus-visible:ring-offset-2 focus-visible:ring-offset-lf-accent active:scale-[0.99]"
+        className="min-h-11 rounded-full bg-lf-accent px-6 py-2.5 text-sm font-bold uppercase tracking-wide text-lf-on-accent shadow-lg shadow-[#c62828]/35 transition hover:bg-lf-accent-hover disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-lf-accent active:scale-[0.99]"
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>

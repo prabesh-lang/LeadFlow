@@ -40,9 +40,9 @@ export default async function SuperadminAddUserPage() {
 
       <SuperadminAddUserForms atlas={atlas} />
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <div className="overflow-x-auto rounded-xl border border-lf-border">
         <table className="w-full min-w-[960px] text-left text-sm">
-          <thead className="border-b border-slate-200 bg-lf-bg/90 text-xs uppercase tracking-wide text-lf-subtle">
+          <thead className="border-b border-lf-border bg-lf-bg/90 text-xs uppercase tracking-wide text-lf-subtle">
             <tr>
               <th className="px-4 py-3 font-medium">Email</th>
               <th className="px-4 py-3 font-medium">Name</th>
@@ -53,7 +53,7 @@ export default async function SuperadminAddUserPage() {
               <th className="px-4 py-3 font-medium"> </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-lf-divide">
             {users.map((u) => (
               <tr key={u.id} className="align-top">
                 <td className="px-4 py-3 font-mono text-xs text-lf-text-secondary">

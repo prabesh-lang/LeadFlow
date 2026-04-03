@@ -52,13 +52,13 @@ function Modal({
       }}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-lf-surface p-6 shadow-2xl"
+        className="relative w-full max-w-lg rounded-2xl border border-lf-border bg-lf-surface p-6 shadow-2xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-lf-subtle hover:bg-slate-100 hover:text-lf-text"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-lf-subtle hover:bg-lf-bg/50 hover:text-lf-text"
           aria-label="Close"
         >
           <svg
@@ -130,7 +130,7 @@ function TransferExecForm({
           <select
             name="targetTeamId"
             required
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-lf-bg px-3 py-2.5 text-sm text-lf-text outline-none ring-lf-accent/35 focus:ring-2"
+            className="mt-1 w-full rounded-lg border border-lf-border bg-lf-bg px-3 py-2.5 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
             defaultValue=""
           >
             <option value="" disabled>
@@ -157,7 +157,7 @@ function TransferExecForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text"
+            className="rounded-lg border border-lf-border px-4 py-2.5 text-sm font-medium text-lf-muted hover:bg-lf-bg/50 hover:text-lf-text"
           >
             Cancel
           </button>
@@ -199,7 +199,7 @@ export function MtlTransferExecButton({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="mt-6 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text"
+              className="mt-6 rounded-lg border border-lf-border px-4 py-2 text-sm font-medium text-lf-muted hover:bg-lf-bg/50 hover:text-lf-text"
             >
               Close
             </button>
@@ -228,7 +228,7 @@ export function MtlTransferExecButton({
             ? "No other teams available"
             : "Transfer to another sales team"
         }
-        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-lg border border-lf-border px-3 py-1.5 text-xs font-medium text-lf-muted hover:bg-lf-bg/50 hover:text-lf-text disabled:cursor-not-allowed disabled:opacity-40"
       >
         Transfer
       </button>

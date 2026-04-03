@@ -5,7 +5,7 @@ export default function AnalystDateRangeBarSuspense() {
   return (
     <Suspense
       fallback={
-        <div className="h-12 animate-pulse rounded-xl border border-slate-100 bg-lf-surface" />
+        <div className="h-12 animate-pulse rounded-xl border border-lf-border bg-lf-surface" />
       }
     >
       <AnalystDateRangeBar />

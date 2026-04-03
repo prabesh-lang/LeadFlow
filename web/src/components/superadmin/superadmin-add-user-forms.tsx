@@ -5,7 +5,7 @@ import { superadminCreateUserFormAction } from "@/app/actions/superadmin";
 import { UserRole } from "@/lib/constants";
 
 const inputClass =
-  "min-h-10 w-full min-w-[140px] rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2";
+  "min-h-10 w-full min-w-[140px] rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2";
 
 export function SuperadminAddUserForms({
   atlas,
@@ -28,7 +28,7 @@ export function SuperadminAddUserForms({
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
-      <div className="rounded-xl border border-slate-200 bg-lf-surface/90 p-6">
+      <div className="rounded-xl border border-lf-border bg-lf-surface/90 p-6">
         <h3 className="text-sm font-semibold text-lf-text-secondary">
           Add Analyst Team Lead
         </h3>
@@ -83,7 +83,7 @@ export function SuperadminAddUserForms({
           </button>
         </form>
       </div>
-      <div className="rounded-xl border border-slate-200 bg-lf-surface/90 p-6">
+      <div className="rounded-xl border border-lf-border bg-lf-surface/90 p-6">
         <h3 className="text-sm font-semibold text-lf-text-secondary">Add Lead Analyst</h3>
         <form action={laAction} className="mt-4 space-y-4">
           <input type="hidden" name="role" value={UserRole.LEAD_ANALYST} />

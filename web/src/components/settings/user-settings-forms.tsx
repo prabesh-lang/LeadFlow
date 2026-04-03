@@ -150,7 +150,7 @@ export function UserSettingsForms({
               className={`rounded-lg px-3 py-2 text-left text-sm font-medium transition lg:w-full ${
                 tab === id
                   ? "bg-lf-accent/15 text-lf-link"
-                  : "text-lf-muted hover:bg-slate-100 hover:text-lf-text"
+                  : "text-lf-muted hover:bg-lf-bg/50 hover:text-lf-text"
               }`}
             >
               {label}
@@ -160,7 +160,7 @@ export function UserSettingsForms({
 
         <div className="min-w-0 flex-1">
           {tab === "profile" ? (
-            <div className="rounded-2xl border border-slate-100 bg-lf-surface p-6">
+            <div className="rounded-2xl border border-lf-border bg-lf-surface p-6">
               <h2 className="text-lg font-semibold text-lf-text">Profile</h2>
               <p className="mt-1 text-sm text-lf-subtle">
                 Display name and profile photo
@@ -173,7 +173,7 @@ export function UserSettingsForms({
                     width={64}
                     height={64}
                     unoptimized
-                    className="h-16 w-16 rounded-full object-cover ring-1 ring-slate-200/80"
+                    className="h-16 w-16 rounded-full object-cover ring-1 ring-lf-border"
                   />
                   <p className="text-xs text-lf-subtle">
                     Current photo (updates in the header after you save).
@@ -191,7 +191,7 @@ export function UserSettingsForms({
                     name="name"
                     required
                     defaultValue={defaultName}
-                    className="mt-1 w-full rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
+                    className="mt-1 w-full rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
                   />
                 </label>
                 <label className="block text-sm text-lf-muted">
@@ -221,7 +221,7 @@ export function UserSettingsForms({
           ) : null}
 
           {tab === "password" ? (
-            <div className="rounded-2xl border border-slate-100 bg-lf-surface p-6">
+            <div className="rounded-2xl border border-lf-border bg-lf-surface p-6">
               <h2 className="text-lg font-semibold text-lf-text">Password</h2>
               <p className="mt-1 text-sm text-lf-subtle">
                 Change your sign-in password
@@ -237,7 +237,7 @@ export function UserSettingsForms({
                     type="password"
                     required
                     autoComplete="current-password"
-                    className="mt-1 w-full rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
+                    className="mt-1 w-full rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
                   />
                 </label>
                 <label className="block text-sm text-lf-muted">
@@ -248,7 +248,7 @@ export function UserSettingsForms({
                     required
                     minLength={8}
                     autoComplete="new-password"
-                    className="mt-1 w-full rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
+                    className="mt-1 w-full rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
                   />
                 </label>
                 {passState?.error ? (
@@ -269,14 +269,14 @@ export function UserSettingsForms({
           ) : null}
 
           {tab === "notifications" ? (
-            <div className="rounded-2xl border border-slate-100 bg-lf-surface p-6">
+            <div className="rounded-2xl border border-lf-border bg-lf-surface p-6">
               <h2 className="text-lg font-semibold text-lf-text">
                 Notification preferences
               </h2>
               <p className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 Lead alerts
               </p>
-              <ul className="mt-4 divide-y divide-slate-100">
+              <ul className="mt-4 divide-y divide-lf-divide">
                 {(
                   [
                     [

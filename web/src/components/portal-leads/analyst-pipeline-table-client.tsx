@@ -47,15 +47,15 @@ export function AnalystPipelineTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-lf-surface">
-        <div className="border-b border-slate-100 px-5 py-4">
+      <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface">
+        <div className="border-b border-lf-border px-5 py-4">
           <h2 className="text-base font-semibold text-lf-text">
             All qualified leads — pipeline view
           </h2>
@@ -63,7 +63,7 @@ export function AnalystPipelineTableClient({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[880px] text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-lf-border text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="px-5 py-3 font-medium">Lead</th>
                 <th className="px-5 py-3 font-medium">Source</th>
                 <th className="px-5 py-3 font-medium">Your notes</th>
@@ -72,7 +72,7 @@ export function AnalystPipelineTableClient({
                 <th className="px-5 py-3 font-medium">Qualified on</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-lf-divide">
               {qualified.length === 0 ? (
                 <tr>
                   <td

@@ -17,7 +17,7 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-slate-100 bg-lf-surface p-5 shadow-sm ${className}`}
+      className={`rounded-2xl border border-lf-border bg-lf-surface p-5 shadow-sm shadow-black/8 ${className}`}
     >
       {children}
     </div>
@@ -206,7 +206,7 @@ export function UnifiedPortalReportSections({
             Qualified leads that have left internal routing (handed to a main
             team onward)
           </p>
-          <div className="mt-6 flex flex-wrap items-end gap-6 border-b border-slate-100 pb-6">
+          <div className="mt-6 flex flex-wrap items-end gap-6 border-b border-lf-border pb-6">
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
                 Passed
@@ -244,7 +244,7 @@ export function UnifiedPortalReportSections({
               ).map(([label, val]) => (
                 <div
                   key={label}
-                  className="rounded-xl border border-slate-100 bg-lf-bg px-4 py-3"
+                  className="rounded-xl border border-lf-border bg-lf-bg px-4 py-3"
                 >
                   <p className="text-xs text-lf-subtle">{label}</p>
                   <p className="mt-1 text-xl font-bold tabular-nums text-lf-text">
@@ -273,14 +273,14 @@ export function UnifiedPortalReportSections({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+                <tr className="border-b border-lf-border text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                   <th className="pb-3 pr-4 font-medium">Lead</th>
                   <th className="pb-3 pr-4 font-medium">Creator</th>
                   <th className="pb-3 pr-4 font-medium">Source</th>
                   <th className="pb-3 font-medium">Stage</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-lf-divide">
                 {recent.length === 0 ? (
                   <tr>
                     <td
@@ -386,7 +386,7 @@ export function UnifiedPortalReportSections({
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-lf-border text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="pb-3 pr-4 font-medium">Lead</th>
                 <th className="pb-3 pr-4 font-medium">Creator</th>
                 <th className="pb-3 pr-4 font-medium">Qualified on</th>
@@ -394,7 +394,7 @@ export function UnifiedPortalReportSections({
                 <th className="pb-3 font-medium">Note</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-lf-divide">
               {pipelineQualified.length === 0 ? (
                 <tr>
                   <td
@@ -454,7 +454,7 @@ export function UnifiedPortalReportSections({
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-lf-border text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="pb-3 pr-4 font-medium">Lead</th>
                 <th className="pb-3 pr-4 font-medium">Created by</th>
                 <th className="pb-3 pr-4 font-medium">Source</th>
@@ -462,7 +462,7 @@ export function UnifiedPortalReportSections({
                 <th className="pb-3 font-medium">Assigned rep</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-lf-divide">
               {allLeads.length === 0 ? (
                 <tr>
                   <td

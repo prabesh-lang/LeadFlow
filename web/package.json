@@ -6,8 +6,9 @@
     "dev": "next dev -H localhost --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
+    "validate:schema": "prisma validate",
     "postinstall": "prisma generate && node scripts/ensure-xlsx-for-turbopack.mjs",
     "db:push": "prisma db push",
     "db:generate": "prisma generate"

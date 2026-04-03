@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { updateExecLostNotes } from "@/app/actions/exec";
 
 const textareaClass =
-  "w-full min-h-[4.5rem] resize-y rounded-lg border border-slate-200 bg-lf-bg px-2.5 py-2 text-xs leading-relaxed text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/35 focus:ring-2";
+  "w-full min-h-[4.5rem] resize-y rounded-lg border border-lf-border bg-lf-bg px-2.5 py-2 text-xs leading-relaxed text-lf-text placeholder:text-lf-subtle outline-none ring-lf-brand/35 focus:ring-2";
 
 export function ExecLostNotesEditor({
   leadId,

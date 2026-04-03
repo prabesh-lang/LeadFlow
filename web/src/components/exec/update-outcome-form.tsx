@@ -5,10 +5,10 @@ import { updateLeadSalesOutcome } from "@/app/actions/exec";
 import { SalesStage } from "@/lib/constants";
 
 const selectClass =
-  "w-full max-w-[11rem] rounded-lg border border-slate-200 bg-lf-bg px-2 py-1.5 text-xs text-lf-text outline-none ring-lf-accent/35 focus:ring-2";
+  "w-full max-w-[11rem] rounded-lg border border-lf-border bg-lf-bg px-2 py-1.5 text-xs text-lf-text outline-none ring-lf-brand/35 focus:ring-2";
 
 const textareaClass =
-  "w-full min-h-[4.5rem] resize-y rounded-lg border border-slate-200 bg-lf-bg px-2.5 py-2 text-xs leading-relaxed text-lf-text placeholder:text-lf-subtle outline-none ring-lf-accent/35 focus:ring-2";
+  "w-full min-h-[4.5rem] resize-y rounded-lg border border-lf-border bg-lf-bg px-2.5 py-2 text-xs leading-relaxed text-lf-text placeholder:text-lf-subtle outline-none ring-lf-brand/35 focus:ring-2";
 
 export function UpdateOutcomeForm({ leadId }: { leadId: string }) {
   const [outcome, setOutcome] = useState("");

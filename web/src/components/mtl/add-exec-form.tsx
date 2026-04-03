@@ -37,7 +37,7 @@ function CopyCredentialsPanel({
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-lf-bg/80 p-4">
+    <div className="rounded-lg border border-lf-border bg-lf-bg/80 p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-lf-link">
         {title}
       </p>
@@ -72,7 +72,7 @@ function CopyCredentialsPanel({
               key={r.label}
               type="button"
               onClick={() => copy(r.value)}
-              className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-xs font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text"
+              className="rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-xs font-medium text-lf-muted hover:bg-lf-bg/50 hover:text-lf-text"
             >
               Copy {r.label.toLowerCase()}
             </button>
@@ -86,9 +86,9 @@ function CopyCredentialsPanel({
 const fieldBox =
   "box-border h-[36px] w-[400px] max-w-full rounded-lg border px-3 text-sm";
 
-const inputClass = `${fieldBox} border-slate-200 bg-lf-bg py-0 leading-[36px] text-lf-text outline-none ring-lf-accent/35 placeholder:text-lf-subtle focus:ring-2`;
+const inputClass = `${fieldBox} border-lf-border bg-lf-bg py-0 leading-[36px] text-lf-text outline-none ring-lf-brand/35 placeholder:text-lf-subtle focus:ring-2`;
 
-const teamFieldClass = `${fieldBox} flex items-center border-slate-200 bg-lf-elevated font-medium text-lf-text`;
+const teamFieldClass = `${fieldBox} flex items-center border-lf-border bg-lf-elevated font-medium text-lf-text`;
 
 const labelClass = "mb-1.5 block text-xs font-medium text-lf-subtle";
 
@@ -126,7 +126,7 @@ export default function AddExecForm({
   const shell =
     variant === "modal"
       ? "space-y-0"
-      : "rounded-2xl border border-slate-100 bg-lf-surface p-5";
+      : "rounded-2xl border border-lf-border bg-lf-surface p-5";
 
   return (
     <div className={shell}>

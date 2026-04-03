@@ -65,7 +65,7 @@ export function AnalystExcelImportClient() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl border border-slate-200 bg-lf-surface p-5 shadow-sm shadow-slate-200/40">
+      <section className="rounded-2xl border border-lf-border bg-lf-surface p-5 shadow-sm shadow-black/8">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-lf-subtle">
           Expected columns
         </h2>
@@ -74,10 +74,10 @@ export function AnalystExcelImportClient() {
           download or the table below). Values match the{" "}
           <strong className="text-lf-text">Add new lead</strong> form.
         </p>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-lf-border">
           <table className="w-full min-w-[720px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-lf-bg text-xs text-lf-muted">
+              <tr className="border-b border-lf-border bg-lf-bg text-xs text-lf-muted">
                 <th className="px-3 py-2 font-medium">Column (Excel row 1)</th>
                 <th className="px-3 py-2 font-medium">Required</th>
                 <th className="px-3 py-2 font-medium">Notes</th>
@@ -87,7 +87,7 @@ export function AnalystExcelImportClient() {
               {ANALYST_IMPORT_COLUMN_META.map((col) => (
                 <tr
                   key={col.key}
-                  className="border-b border-slate-100 last:border-0"
+                  className="border-b border-lf-border last:border-0"
                 >
                   <td className="px-3 py-2.5 font-mono text-xs text-lf-link">
                     {col.key}
@@ -114,14 +114,14 @@ export function AnalystExcelImportClient() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-lf-surface p-5 shadow-sm shadow-slate-200/40">
+      <section className="rounded-2xl border border-lf-border bg-lf-surface p-5 shadow-sm shadow-black/8">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-lf-subtle">
           Sample row (same as form)
         </h2>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-lf-border">
           <table className="w-full min-w-[640px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-lf-bg text-xs text-lf-muted">
+              <tr className="border-b border-lf-border bg-lf-bg text-xs text-lf-muted">
                 {ANALYST_IMPORT_COLUMN_META.map((c) => (
                   <th key={c.key} className="px-3 py-2 font-medium">
                     {c.label}
@@ -171,7 +171,7 @@ export function AnalystExcelImportClient() {
         </p>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-lf-surface p-5 shadow-sm shadow-slate-200/40">
+      <section className="rounded-2xl border border-lf-border bg-lf-surface p-5 shadow-sm shadow-black/8">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-lf-subtle">
           Upload
         </h2>
@@ -182,7 +182,7 @@ export function AnalystExcelImportClient() {
           <button
             type="button"
             onClick={downloadSampleTemplate}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-lf-text-secondary transition hover:bg-slate-100"
+            className="rounded-xl border border-lf-border px-4 py-2.5 text-sm font-medium text-lf-text-secondary transition hover:bg-lf-bg/50"
           >
             Download sample Excel
           </button>
@@ -205,7 +205,7 @@ export function AnalystExcelImportClient() {
           <button
             type="submit"
             disabled={pending}
-            className="rounded-xl bg-lf-accent px-6 py-2.5 text-sm font-semibold text-lf-on-accent shadow-lg shadow-slate-300/25 transition hover:bg-lf-accent-deep disabled:opacity-50"
+            className="rounded-xl bg-lf-accent px-6 py-2.5 text-sm font-semibold text-lf-on-accent shadow-lg shadow-[#c62828]/30 transition hover:bg-lf-accent-deep disabled:opacity-50"
           >
             {pending ? "Importing…" : "Import leads"}
           </button>

@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { QualificationStatus, SalesStage, UserRole } from "@/lib/constants";
+import { leadCreatedAtRange } from "@/lib/analyst-date-range";
 import { resolveLeadCity, resolveLeadCountry } from "@/lib/phone-location";
 
 const ACTIVE_ROLES = [
@@ -111,8 +112,16 @@ const SCORE_HIST_ORDER = [
   "No score",
 ] as const;
 
-export async function getSuperadminReportAggregates() {
+export async function getSuperadminReportAggregates(opts?: {
+  from?: string | null;
+  to?: string | null;
+}) {
+  const range = leadCreatedAtRange(
+    opts?.from ?? undefined,
+    opts?.to ?? undefined,
+  );
   const leads = await prisma.lead.findMany({
+    where: range ? { createdAt: range } : {},
     include: {
       createdBy: { select: { name: true } },
       assignedSalesExec: { select: { name: true } },

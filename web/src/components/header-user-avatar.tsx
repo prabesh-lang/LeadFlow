@@ -18,13 +18,13 @@ export function HeaderUserAvatar({
         width={32}
         height={32}
         unoptimized
-        className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-slate-200/80"
+        className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-lf-border"
       />
     );
   }
   return (
     <div
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-lf-control-off text-[10px] font-semibold uppercase text-lf-text ring-1 ring-slate-200/80"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-lf-control-off text-[10px] font-semibold uppercase text-lf-text ring-1 ring-lf-border"
       aria-hidden
     >
       {initials}

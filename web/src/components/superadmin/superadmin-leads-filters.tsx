@@ -85,7 +85,7 @@ export function SuperadminLeadsFiltersBar({
   }, [dateBasis]);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-lf-surface/90 p-4 sm:p-5">
+    <div className="rounded-xl border border-lf-border bg-lf-surface/90 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-lf-subtle">
@@ -104,7 +104,7 @@ export function SuperadminLeadsFiltersBar({
           <button
             type="button"
             onClick={reset}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-medium text-lf-text-secondary hover:bg-slate-100"
+            className="rounded-lg border border-lf-border px-4 py-2 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
           >
             Reset
           </button>
@@ -118,7 +118,7 @@ export function SuperadminLeadsFiltersBar({
             type="date"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            className="mt-1.5 block w-full min-h-10 rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2 [color-scheme:light]"
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2 [color-scheme:light]"
           />
         </label>
         <label className="block text-xs font-medium text-lf-subtle">
@@ -127,7 +127,7 @@ export function SuperadminLeadsFiltersBar({
             type="date"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="mt-1.5 block w-full min-h-10 rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2 [color-scheme:light]"
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2 [color-scheme:light]"
           />
         </label>
         <label className="block text-xs font-medium text-lf-subtle">
@@ -137,7 +137,7 @@ export function SuperadminLeadsFiltersBar({
             onChange={(e) =>
               setDateBasis(e.target.value as SuperadminLeadsDateBasis)
             }
-            className="mt-1.5 block w-full min-h-10 rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
           >
             <option value="created">Lead created</option>
             <option value="assigned">Exec assigned</option>
@@ -153,7 +153,7 @@ export function SuperadminLeadsFiltersBar({
               if (v !== "team") setTeamId("");
               if (v !== "exec") setExecId("");
             }}
-            className="mt-1.5 block w-full min-h-10 rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2"
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
           >
             <option value="all">All leads</option>
             <option value="team">By sales team</option>
@@ -166,7 +166,7 @@ export function SuperadminLeadsFiltersBar({
             value={teamId}
             disabled={teamDisabled}
             onChange={(e) => setTeamId(e.target.value)}
-            className="mt-1.5 block w-full min-h-10 rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">Select team…</option>
             {teams.map((t) => (
@@ -182,7 +182,7 @@ export function SuperadminLeadsFiltersBar({
             value={execId}
             disabled={execDisabled}
             onChange={(e) => setExecId(e.target.value)}
-            className="mt-1.5 block w-full min-h-10 rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">Select executive…</option>
             {execs.map((e) => (

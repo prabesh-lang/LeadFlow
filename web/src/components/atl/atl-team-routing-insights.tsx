@@ -13,7 +13,7 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-slate-100 bg-lf-surface p-5 shadow-sm ${className}`}
+      className={`rounded-2xl border border-lf-border bg-lf-surface p-5 shadow-sm ${className}`}
     >
       {children}
     </div>
@@ -185,7 +185,7 @@ export async function AtlTeamRoutingInsights({
         <p className="mt-1 text-sm text-lf-muted">
           Qualified leads that have left internal routing
         </p>
-        <div className="mt-6 flex flex-wrap items-end gap-6 border-b border-slate-100 pb-6">
+        <div className="mt-6 flex flex-wrap items-end gap-6 border-b border-lf-border pb-6">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
               Passed
@@ -223,7 +223,7 @@ export async function AtlTeamRoutingInsights({
             ).map(([label, val]) => (
               <div
                 key={label}
-                className="rounded-xl border border-slate-100 bg-lf-bg px-4 py-3"
+                className="rounded-xl border border-lf-border bg-lf-bg px-4 py-3"
               >
                 <p className="text-xs text-lf-subtle">{label}</p>
                 <p className="mt-1 text-xl font-bold tabular-nums text-lf-text">

@@ -88,7 +88,7 @@ export default async function AnalystPipelinePage({
         ).map(([label, val, color]) => (
           <div
             key={label}
-            className="rounded-2xl border border-slate-100 bg-lf-surface p-5"
+            className="rounded-2xl border border-lf-border bg-lf-surface p-5"
           >
             <p className="text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
               {label}

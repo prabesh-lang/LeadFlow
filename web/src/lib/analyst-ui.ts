@@ -30,13 +30,13 @@ export type PipelinePill = {
 
 export function pipelinePillForLead(q: string, stage: string): PipelinePill {
   if (q !== QualificationStatus.QUALIFIED) {
-    return { label: "—", className: "bg-slate-100 text-lf-subtle" };
+    return { label: "—", className: "bg-lf-bg/60 text-lf-subtle" };
   }
   switch (stage) {
     case SalesStage.PRE_SALES:
       return {
         label: "Pending",
-        className: "bg-slate-100 text-lf-text-secondary",
+        className: "bg-lf-bg/60 text-lf-text-secondary",
       };
     case SalesStage.WITH_TEAM_LEAD:
       return {
@@ -48,7 +48,7 @@ export function pipelinePillForLead(q: string, stage: string): PipelinePill {
       return {
         label: "In progress",
         className:
-          "bg-lf-accent/10 text-lf-accent ring-1 ring-lf-accent/30",
+          "bg-lf-accent/10 text-lf-accent ring-1 ring-lf-brand/35",
       };
     case SalesStage.CLOSED_WON:
       return {
@@ -62,7 +62,7 @@ export function pipelinePillForLead(q: string, stage: string): PipelinePill {
         className: "bg-lf-danger/20 text-lf-danger ring-1 ring-lf-danger/40",
       };
     default:
-      return { label: stage, className: "bg-slate-100 text-lf-muted" };
+      return { label: stage, className: "bg-lf-bg/60 text-lf-muted" };
   }
 }
 

@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
+import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
 import { SuperadminReportCharts } from "@/components/superadmin/superadmin-report-charts";
 import { SuperadminReportExport } from "@/components/superadmin/superadmin-report-export";
 import { SuperadminReportHistograms } from "@/components/superadmin/superadmin-report-histograms";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
+import {
+  analystRangeParams,
+  analystRangeSummaryLabel,
+  hrefWithDateRange,
+} from "@/lib/analyst-date-range";
 import { getSuperadminReportAggregates } from "@/lib/superadmin-stats";
 import { buildUnifiedDashboardViewModel } from "@/lib/unified-dashboard-report";
 
@@ -20,7 +26,7 @@ function RatioCard({
   sub?: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-lf-surface/90 px-4 py-4">
+    <div className="rounded-xl border border-lf-border bg-lf-surface/90 px-4 py-4">
       <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
         {label}
       </p>
@@ -32,8 +38,14 @@ function RatioCard({
   );
 }
 
-export default async function SuperadminReportPage() {
-  const r = await getSuperadminReportAggregates();
+export default async function SuperadminReportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
+  const { from, to } = await analystRangeParams(searchParams);
+  const rangeLabel = analystRangeSummaryLabel(from, to);
+  const r = await getSuperadminReportAggregates({ from, to });
   const generatedAt = new Date().toISOString();
 
   const unifiedRows = r.leads.map((l) => ({
@@ -54,7 +66,7 @@ export default async function SuperadminReportPage() {
 
   const vm = buildUnifiedDashboardViewModel(unifiedRows, {
     kind: "superadmin",
-    rangeLabel: "All time",
+    rangeLabel,
     generatedAt,
     fileNamePrefix: "leadflow-dashboard",
     reportTitle: "LeadFlow dashboard report",
@@ -77,9 +89,16 @@ export default async function SuperadminReportPage() {
             analyst, team lead, and executive portals. Histograms and ratio cards
             below add organization-wide views.
           </p>
+          {rangeLabel !== "All time" ? (
+            <p className="mt-2 text-sm font-medium text-lf-muted">
+              Date range: {rangeLabel}
+            </p>
+          ) : null}
         </div>
         <SuperadminReportExport payload={vm.exportPayload} />
       </div>
+
+      <AnalystDateRangeBarSuspense />
 
       <SuperadminReportCharts
         totalLeads={r.total}
@@ -136,19 +155,20 @@ export default async function SuperadminReportPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-lf-bg/90 p-6">
+      <div className="rounded-2xl border border-lf-border bg-lf-bg/90 p-6">
         <h2 className="text-sm font-semibold text-lf-text-secondary">
           Unified portal dashboard (same as other roles)
         </h2>
         <p className="mt-1 text-xs text-lf-subtle">
-          All-time data · matches the analyst / team lead / executive dashboard
-          layout and export tables.
+          {rangeLabel === "All time"
+            ? "All-time data · matches the analyst / team lead / executive dashboard layout and export tables."
+            : `Leads created in ${rangeLabel} · export uses the same range.`}
         </p>
         <div className="mt-6 space-y-8">
           <UnifiedPortalReportSections
             vm={vm}
             countrySubtitle="Phone country (E.164) for all leads. Each row splits qualified, not qualified, and irrelevant."
-            leadsHref="/superadmin/leads"
+            leadsHref={hrefWithDateRange("/superadmin/leads", from, to)}
             recentLeadsTitle="Recent leads (org-wide)"
           />
         </div>

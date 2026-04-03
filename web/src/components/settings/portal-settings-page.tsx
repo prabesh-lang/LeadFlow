@@ -55,7 +55,7 @@ export default function PortalSettingsPage() {
     return (
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 h-10 w-56 animate-pulse rounded-lg bg-lf-elevated" />
-        <div className="h-72 animate-pulse rounded-2xl border border-slate-100 bg-lf-surface/40" />
+        <div className="h-72 animate-pulse rounded-2xl border border-lf-border bg-lf-surface/40" />
       </div>
     );
   }

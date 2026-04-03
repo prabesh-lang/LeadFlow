@@ -6,7 +6,7 @@ import { assignLeadToExecutive } from "@/app/actions/mtl";
 type ExecOption = { id: string; name: string };
 
 const selectClass =
-  "w-full max-w-[11rem] rounded-lg border border-slate-200 bg-lf-bg px-2 py-1.5 text-xs text-lf-text outline-none ring-lf-accent/35 focus:ring-2";
+  "w-full max-w-[11rem] rounded-lg border border-lf-border bg-lf-bg px-2 py-1.5 text-xs text-lf-text outline-none ring-lf-brand/35 focus:ring-2";
 
 export function AssignToExecForm({
   leadId,

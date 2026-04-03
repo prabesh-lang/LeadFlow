@@ -68,7 +68,7 @@ export default async function TeamLeadSalesTeamPage() {
         </div>
       </header>
 
-      <section className="rounded-2xl border border-slate-100 bg-lf-surface p-5">
+      <section className="rounded-2xl border border-lf-border bg-lf-surface p-5">
         <h2 className="text-base font-semibold text-lf-text">
           Sales executives ({execs.length})
         </h2>
@@ -80,7 +80,7 @@ export default async function TeamLeadSalesTeamPage() {
         </p>
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-slate-100 text-xs uppercase tracking-wide text-lf-subtle">
+            <thead className="border-b border-lf-border text-xs uppercase tracking-wide text-lf-subtle">
               <tr>
                 <th className="px-3 py-2 font-semibold">Name</th>
                 <th className="px-3 py-2 font-semibold">Email</th>
@@ -88,7 +88,7 @@ export default async function TeamLeadSalesTeamPage() {
                 <th className="px-3 py-2 font-semibold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-lf-divide">
               {execs.length === 0 ? (
                 <tr>
                   <td

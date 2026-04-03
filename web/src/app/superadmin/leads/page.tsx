@@ -34,7 +34,7 @@ function QualSummaryCard({
       ? "border-lf-success/35 bg-lf-success/[0.07]"
       : accent === "neutral"
         ? "border-lf-warning/35 bg-lf-warning/[0.07]"
-        : "border-slate-200 bg-lf-bg/80";
+        : "border-lf-border bg-lf-bg/80";
   return (
     <div className={`rounded-xl border px-5 py-4 ${ring}`}>
       <p className="text-xs font-medium uppercase tracking-wide text-lf-subtle">
@@ -104,7 +104,7 @@ export default async function SuperadminLeadsPage({
 
       <Suspense
         fallback={
-          <div className="h-40 animate-pulse rounded-xl border border-slate-200 bg-lf-surface/90" />
+          <div className="h-40 animate-pulse rounded-xl border border-lf-border bg-lf-surface/90" />
         }
       >
         <SuperadminLeadsFiltersBar
@@ -140,7 +140,7 @@ export default async function SuperadminLeadsPage({
       ) : (
         analystGroups.map(({ analyst, leads }) => (
           <section key={analyst.id} className="space-y-4">
-            <div className="border-b border-slate-200 pb-2">
+            <div className="border-b border-lf-border pb-2">
               <h2 className="text-lg font-semibold text-lf-text">{analyst.name}</h2>
               <p className="text-xs text-lf-subtle">{analyst.email}</p>
             </div>
@@ -148,7 +148,7 @@ export default async function SuperadminLeadsPage({
               {leads.map((lead) => (
                 <div
                   key={lead.id}
-                  className="rounded-xl border border-slate-200 bg-lf-surface/90 p-5"
+                  className="rounded-xl border border-lf-border bg-lf-surface/90 p-5"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
@@ -167,7 +167,7 @@ export default async function SuperadminLeadsPage({
                           : lead.qualificationStatus ===
                               QualificationStatus.NOT_QUALIFIED
                             ? "bg-lf-warning/15 text-lf-warning"
-                            : "bg-slate-100 text-lf-text-secondary"
+                            : "bg-lf-bg/60 text-lf-text-secondary"
                       }`}
                     >
                       {lead.qualificationStatus.replace(/_/g, " ")}
@@ -207,7 +207,7 @@ export default async function SuperadminLeadsPage({
                     </div>
                   </dl>
 
-                  <div className="mt-4 border-t border-slate-200 pt-4">
+                  <div className="mt-4 border-t border-lf-border pt-4">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-lf-subtle">
                       Journey
                     </p>
@@ -220,7 +220,7 @@ export default async function SuperadminLeadsPage({
                         {lead.handoffLogs.map((h) => (
                           <li
                             key={h.id}
-                            className="relative border-l border-slate-200 pl-4 text-xs"
+                            className="relative border-l border-lf-border pl-4 text-xs"
                           >
                             <span className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-lf-muted" />
                             <p className="text-lf-subtle">

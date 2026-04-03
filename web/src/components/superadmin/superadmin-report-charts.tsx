@@ -27,7 +27,7 @@ export function SuperadminReportCharts({
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
-      <div className="rounded-xl border border-slate-200 bg-lf-surface/90 p-6">
+      <div className="rounded-xl border border-lf-border bg-lf-surface/90 p-6">
         <h3 className="text-sm font-semibold text-lf-text-secondary">
           Closed outcomes (won vs lost)
         </h3>
@@ -39,7 +39,7 @@ export function SuperadminReportCharts({
           <p className="mt-4 text-sm text-lf-subtle">No closed leads yet.</p>
         ) : (
           <>
-            <div className="mt-4 flex h-10 overflow-hidden rounded-lg ring-1 ring-slate-200/80">
+            <div className="mt-4 flex h-10 overflow-hidden rounded-lg ring-1 ring-lf-border">
               <div
                 className="flex items-center justify-center bg-lf-success/90 text-xs font-medium text-lf-on-accent"
                 style={{ width: `${pct(closedWon, closedSum)}%` }}
@@ -71,7 +71,7 @@ export function SuperadminReportCharts({
         )}
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-lf-surface/90 p-6">
+      <div className="rounded-xl border border-lf-border bg-lf-surface/90 p-6">
         <h3 className="text-sm font-semibold text-lf-text-secondary">
           Qualification mix (all leads)
         </h3>
@@ -82,7 +82,7 @@ export function SuperadminReportCharts({
           <p className="mt-4 text-sm text-lf-subtle">No leads yet.</p>
         ) : (
           <>
-            <div className="mt-4 flex h-10 overflow-hidden rounded-lg ring-1 ring-slate-200/80">
+            <div className="mt-4 flex h-10 overflow-hidden rounded-lg ring-1 ring-lf-border">
               <div
                 className="flex min-w-0 items-center justify-center bg-lf-success/85 text-[11px] font-medium text-lf-on-accent"
                 style={{ width: `${pct(qualified, totalLeads)}%` }}

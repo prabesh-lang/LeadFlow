@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
-const INDIGO = "#4f46e5";
-const INDIGO_DEEP = "#4338ca";
+const BRAND = "#0066ff";
+const INK = "#1a1a1a";
 
-/** Pipeline mark — indigo accent (matches design tokens). */
+/** Pipeline mark — brand blue + white (Zoho-style CRM chrome). */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg
@@ -18,7 +18,7 @@ export function LogoMark({ className }: { className?: string }) {
         y1="20"
         x2="15"
         y2="20"
-        stroke={INDIGO}
+        stroke={BRAND}
         strokeWidth="2.5"
         strokeLinecap="round"
         opacity="0.95"
@@ -28,21 +28,14 @@ export function LogoMark({ className }: { className?: string }) {
         y1="20"
         x2="26"
         y2="20"
-        stroke={INDIGO}
+        stroke={BRAND}
         strokeWidth="2.5"
         strokeLinecap="round"
         opacity="0.85"
       />
-      <circle cx="10" cy="20" r="4" fill={INDIGO} />
-      <circle
-        cx="20"
-        cy="20"
-        r="5"
-        fill="#ffffff"
-        stroke={INDIGO_DEEP}
-        strokeWidth="1"
-      />
-      <circle cx="30" cy="20" r="4" fill={INDIGO} />
+      <circle cx="10" cy="20" r="4" fill={BRAND} />
+      <circle cx="20" cy="20" r="5" fill="#ffffff" stroke={INK} strokeWidth="1" />
+      <circle cx="30" cy="20" r="4" fill={BRAND} />
     </svg>
   );
 }
@@ -53,7 +46,7 @@ export function LogoWordmark({ className }: { className?: string }) {
       className={`inline-flex items-baseline gap-0 font-semibold tracking-tight ${className ?? ""}`}
     >
       <span className="text-lf-text">Lead</span>
-      <span className="text-lf-accent">Flow</span>
+      <span className="text-lf-brand">Flow</span>
     </span>
   );
 }

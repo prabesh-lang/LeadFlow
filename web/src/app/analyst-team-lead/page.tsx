@@ -92,7 +92,7 @@ export default async function AnalystTeamLeadDashboard({
           <DashboardReportExport payload={vm.exportPayload} />
           <Link
             href="/analyst-team-lead/team"
-            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-lf-on-accent shadow-lg shadow-slate-300/30 hover:bg-lf-accent-hover"
+            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-lf-on-accent shadow-lg shadow-[#c62828]/30 hover:bg-lf-accent-hover"
           >
             Members
           </Link>

@@ -60,7 +60,7 @@ export function DashboardReportExport({
         type="button"
         onClick={() => setOpen((o) => !o)}
         disabled={busy !== null}
-        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm font-medium text-lf-text shadow-sm hover:bg-slate-100 disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm font-medium text-lf-text shadow-sm hover:bg-lf-bg/50 disabled:opacity-60"
       >
         {busy ? (
           <span className="text-lf-muted">Exporting…</span>
@@ -92,12 +92,12 @@ export function DashboardReportExport({
           />
           <div
             role="menu"
-            className="absolute right-0 top-full z-50 mt-1 min-w-[11rem] rounded-xl border border-slate-200 bg-lf-surface py-1 shadow-xl"
+            className="absolute right-0 top-full z-50 mt-1 min-w-[11rem] rounded-xl border border-lf-border bg-lf-surface py-1 shadow-xl"
           >
             <button
               type="button"
               role="menuitem"
-              className="block w-full px-4 py-2.5 text-left text-sm text-lf-text hover:bg-slate-100"
+              className="block w-full px-4 py-2.5 text-left text-sm text-lf-text hover:bg-lf-bg/50"
               onClick={() => run("pdf")}
             >
               PDF
@@ -105,7 +105,7 @@ export function DashboardReportExport({
             <button
               type="button"
               role="menuitem"
-              className="block w-full px-4 py-2.5 text-left text-sm text-lf-text hover:bg-slate-100"
+              className="block w-full px-4 py-2.5 text-left text-sm text-lf-text hover:bg-lf-bg/50"
               onClick={() => run("xlsx")}
             >
               Excel (.xlsx)
@@ -113,7 +113,7 @@ export function DashboardReportExport({
             <button
               type="button"
               role="menuitem"
-              className="block w-full px-4 py-2.5 text-left text-sm text-lf-text hover:bg-slate-100"
+              className="block w-full px-4 py-2.5 text-left text-sm text-lf-text hover:bg-lf-bg/50"
               onClick={() => run("csv")}
             >
               CSV

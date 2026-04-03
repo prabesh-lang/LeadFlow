@@ -85,7 +85,7 @@ export function AtlNotificationBell({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="true"
-        className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-lf-surface text-lf-muted transition hover:bg-slate-100 hover:text-lf-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-link/50 focus-visible:ring-offset-2 focus-visible:ring-offset-lf-bg"
+        className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-lf-border bg-lf-surface text-lf-muted transition hover:bg-lf-bg/50 hover:text-lf-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-link/50 focus-visible:ring-offset-2 focus-visible:ring-offset-lf-bg"
         title="Notifications"
       >
         <svg
@@ -110,8 +110,8 @@ export function AtlNotificationBell({
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-full z-50 mt-2 w-[min(100vw-2rem,22rem)] overflow-hidden rounded-xl border border-slate-200 bg-lf-surface shadow-2xl">
-          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
+        <div className="absolute right-0 top-full z-50 mt-2 w-[min(100vw-2rem,22rem)] overflow-hidden rounded-xl border border-lf-border bg-lf-surface shadow-2xl">
+          <div className="flex items-center justify-between border-b border-lf-border px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-lf-subtle">
               Notifications
             </p>
@@ -135,13 +135,13 @@ export function AtlNotificationBell({
               items.map((n) => (
                 <li
                   key={n.id}
-                  className={`border-b border-slate-100 last:border-0 ${
+                  className={`border-b border-lf-border last:border-0 ${
                     !n.read ? "bg-lf-link/5" : ""
                   }`}
                 >
                   <Link
                     href="/analyst-team-lead/leads"
-                    className="block px-4 py-3 text-left transition hover:bg-slate-100"
+                    className="block px-4 py-3 text-left transition hover:bg-lf-bg/50"
                     onClick={() => {
                       if (!n.read) void onMarkRead(n.id);
                       setOpen(false);

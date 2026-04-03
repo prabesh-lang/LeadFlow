@@ -29,10 +29,10 @@ type MtlResult =
 function formClassName(variant: "page" | "modal") {
   return variant === "modal"
     ? "flex h-fit w-full flex-col gap-3"
-    : "flex h-fit w-full flex-col gap-3 rounded-2xl border border-slate-100 bg-lf-surface p-5";
+    : "flex h-fit w-full flex-col gap-3 rounded-2xl border border-lf-border bg-lf-surface p-5";
 }
 const inputClass =
-  "rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-accent/30 placeholder:text-lf-subtle focus:ring-2";
+  "rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 placeholder:text-lf-subtle focus:ring-2";
 
 function CopyCredentialsPanel({
   title,
@@ -58,7 +58,7 @@ function CopyCredentialsPanel({
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-lf-bg/80 p-4">
+    <div className="rounded-lg border border-lf-border bg-lf-bg/80 p-4">
       <p className="text-xs font-semibold uppercase tracking-wide text-lf-link">
         {title}
       </p>
@@ -90,7 +90,7 @@ function CopyCredentialsPanel({
               key={r.label}
               type="button"
               onClick={() => copy(r.value)}
-              className="rounded-lg border border-slate-200 bg-lf-bg px-3 py-2 text-xs font-medium text-lf-muted hover:bg-slate-100 hover:text-lf-text"
+              className="rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-xs font-medium text-lf-muted hover:bg-lf-bg/50 hover:text-lf-text"
             >
               Copy {r.label.toLowerCase()}
             </button>

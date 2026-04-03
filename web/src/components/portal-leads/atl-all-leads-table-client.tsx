@@ -61,18 +61,18 @@ export function AtlAllLeadsTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-lf-surface">
+      <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1040px] text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-lf-bg/50 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-lf-border bg-lf-bg/50 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Analyst</th>
                 <th className="px-4 py-3 font-medium">Phone</th>
@@ -88,7 +88,7 @@ export function AtlAllLeadsTableClient({
                 <th className="px-4 py-3 font-medium">Route SE</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-lf-divide">
               {leads.length === 0 ? (
                 <tr>
                   <td

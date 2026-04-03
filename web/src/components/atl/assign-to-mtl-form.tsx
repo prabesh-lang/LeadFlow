@@ -28,7 +28,7 @@ export function AssignToMtlForm({
       <select
         name="mainTeamLeadId"
         required
-        className="rounded-md border border-slate-200 bg-lf-bg px-2 py-1 text-xs text-lf-text outline-none ring-lf-accent/35 focus:ring-2"
+        className="rounded-md border border-lf-border bg-lf-bg px-2 py-1 text-xs text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
         defaultValue=""
       >
         <option value="" disabled>
