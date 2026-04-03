@@ -123,8 +123,8 @@ export async function getSuperadminReportAggregates(opts?: {
   const leads = await prisma.lead.findMany({
     where: range ? { createdAt: range } : {},
     include: {
-      createdBy: { select: { name: true } },
-      assignedSalesExec: { select: { name: true } },
+      createdBy: { select: { id: true, name: true, email: true } },
+      assignedSalesExec: { select: { id: true, name: true } },
     },
   });
 

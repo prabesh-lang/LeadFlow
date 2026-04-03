@@ -24,7 +24,8 @@ export function countryLabelForIso(iso: string): string {
   }
 }
 
-function resolveCountryKey(phone: string | null): string {
+/** ISO region code from E.164 phone, or sentinel keys for missing/invalid (same buckets as country report). */
+export function leadPhoneCountryIso(phone: string | null): string {
   const raw = phone?.trim();
   if (!raw) return "__none__";
   try {
@@ -47,7 +48,7 @@ export function buildCountryQualRows(
 ): CountryQualRow[] {
   const byCountryQual = new Map<string, CountryQual>();
   for (const l of leads) {
-    const iso = resolveCountryKey(l.phone);
+    const iso = leadPhoneCountryIso(l.phone);
     const row = byCountryQual.get(iso) ?? { q: 0, nq: 0, ir: 0 };
     bumpCountryQual(row, l.qualificationStatus);
     byCountryQual.set(iso, row);

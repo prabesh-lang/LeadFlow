@@ -37,8 +37,8 @@ export default async function AnalystTeamLeadDashboard({
           where: atlLeadWhere(analystIds, from, to),
           orderBy: { createdAt: "desc" },
           include: {
-            createdBy: { select: { name: true } },
-            assignedSalesExec: { select: { name: true } },
+            createdBy: { select: { id: true, name: true, email: true } },
+            assignedSalesExec: { select: { id: true, name: true } },
           },
         });
 
@@ -49,6 +49,8 @@ export default async function AnalystTeamLeadDashboard({
     id: l.id,
     leadName: l.leadName,
     source: l.source,
+    sourceWebsiteName: l.sourceWebsiteName,
+    sourceMetaProfileName: l.sourceMetaProfileName,
     qualificationStatus: l.qualificationStatus,
     salesStage: l.salesStage,
     leadScore: l.leadScore,
@@ -57,7 +59,10 @@ export default async function AnalystTeamLeadDashboard({
     city: l.city,
     createdAt: l.createdAt,
     notes: l.notes,
+    createdById: l.createdBy.id,
+    createdByEmail: l.createdBy.email,
     createdByName: l.createdBy.name,
+    assignedSalesExecId: l.assignedSalesExecId,
     assignedRepName: l.assignedSalesExec?.name ?? null,
   }));
 

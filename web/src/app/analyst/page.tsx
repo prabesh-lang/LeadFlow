@@ -27,6 +27,9 @@ export default async function AnalystDashboard({
   const leads = await prisma.lead.findMany({
     where: leadWhereWithDateRange(session.id, from, to),
     orderBy: { createdAt: "desc" },
+    include: {
+      assignedSalesExec: { select: { name: true } },
+    },
   });
 
   const generatedAt = new Date().toISOString();
@@ -34,6 +37,8 @@ export default async function AnalystDashboard({
     id: l.id,
     leadName: l.leadName,
     source: l.source,
+    sourceWebsiteName: l.sourceWebsiteName,
+    sourceMetaProfileName: l.sourceMetaProfileName,
     qualificationStatus: l.qualificationStatus,
     salesStage: l.salesStage,
     leadScore: l.leadScore,
@@ -42,8 +47,11 @@ export default async function AnalystDashboard({
     city: l.city,
     createdAt: l.createdAt,
     notes: l.notes,
+    createdById: session.id,
+    createdByEmail: session.email,
     createdByName: session.name,
-    assignedRepName: null,
+    assignedSalesExecId: l.assignedSalesExecId,
+    assignedRepName: l.assignedSalesExec?.name ?? null,
   }));
 
   const vm = buildUnifiedDashboardViewModel(unifiedRows, {

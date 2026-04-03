@@ -3,6 +3,8 @@ import { buildAnalystAnalyticsReportPayload } from "@/lib/analyst-analytics-payl
 import {
   buildAnalystCityRows,
   buildCountryQualRows,
+  countryLabelForIso,
+  leadPhoneCountryIso,
   type CountryQualRow,
 } from "@/lib/leads-by-country-qual";
 import {
@@ -26,6 +28,10 @@ export type UnifiedLeadRow = {
   id: string;
   leadName: string | null;
   source: string;
+  /** Site / brand when source is web or forms */
+  sourceWebsiteName: string | null;
+  /** Meta page or profile when source is Meta / WhatsApp */
+  sourceMetaProfileName: string | null;
   qualificationStatus: string;
   salesStage: string;
   leadScore: number | null;
@@ -34,9 +40,145 @@ export type UnifiedLeadRow = {
   city: string | null;
   createdAt: Date;
   notes: string | null;
+  createdById: string;
+  createdByEmail: string | null;
   createdByName: string;
+  assignedSalesExecId: string | null;
   assignedRepName: string | null;
 };
+
+/** Per lead analyst (creator): qualification mix. */
+export type LeadAnalystQualBreakdownRow = {
+  label: string;
+  total: number;
+  qualified: number;
+  notQ: number;
+  irrelevant: number;
+};
+
+/** Per sales executive: assigned volume and closed outcomes. */
+export type SalesExecOutcomeRow = {
+  label: string;
+  assignedTotal: number;
+  withRepOpen: number;
+  closedWon: number;
+  closedLost: number;
+};
+
+export function buildLeadAnalystQualBreakdown(
+  leads: UnifiedLeadRow[],
+): LeadAnalystQualBreakdownRow[] {
+  type Agg = { label: string; q: number; nq: number; ir: number };
+  const byId = new Map<string, Agg>();
+  for (const l of leads) {
+    const id = l.createdById;
+    let row = byId.get(id);
+    if (!row) {
+      const email = l.createdByEmail?.trim();
+      const label = email
+        ? `${l.createdByName} (${email})`
+        : l.createdByName;
+      row = { label, q: 0, nq: 0, ir: 0 };
+      byId.set(id, row);
+    }
+    if (l.qualificationStatus === QualificationStatus.QUALIFIED) row.q += 1;
+    else if (l.qualificationStatus === QualificationStatus.NOT_QUALIFIED)
+      row.nq += 1;
+    else if (l.qualificationStatus === QualificationStatus.IRRELEVANT) row.ir += 1;
+  }
+  return [...byId.values()]
+    .map((r) => ({
+      label: r.label,
+      total: r.q + r.nq + r.ir,
+      qualified: r.q,
+      notQ: r.nq,
+      irrelevant: r.ir,
+    }))
+    .sort((a, b) => b.total - a.total);
+}
+
+export function buildSalesExecOutcomeRows(
+  leads: UnifiedLeadRow[],
+): SalesExecOutcomeRow[] {
+  type Agg = {
+    label: string;
+    assignedTotal: number;
+    withRepOpen: number;
+    closedWon: number;
+    closedLost: number;
+  };
+  const byId = new Map<string | null, Agg>();
+
+  for (const l of leads) {
+    const id = l.assignedSalesExecId;
+    const label =
+      id == null
+        ? "Unassigned (no sales executive)"
+        : (l.assignedRepName ?? "Unknown executive");
+
+    let row = byId.get(id);
+    if (!row) {
+      row = {
+        label,
+        assignedTotal: 0,
+        withRepOpen: 0,
+        closedWon: 0,
+        closedLost: 0,
+      };
+      byId.set(id, row);
+    }
+
+    row.assignedTotal += 1;
+    if (l.salesStage === SalesStage.WITH_EXECUTIVE) row.withRepOpen += 1;
+    else if (l.salesStage === SalesStage.CLOSED_WON) row.closedWon += 1;
+    else if (l.salesStage === SalesStage.CLOSED_LOST) row.closedLost += 1;
+  }
+
+  const rows = [...byId.entries()].map(([, v]) => v);
+  const unassignedRows = rows.filter((r) =>
+    r.label.startsWith("Unassigned"),
+  );
+  const rest = rows
+    .filter((r) => !r.label.startsWith("Unassigned"))
+    .sort((a, b) => b.assignedTotal - a.assignedTotal);
+  return [...rest, ...unassignedRows];
+}
+
+/** Won conversion within a bucket (won ÷ leads in bucket × 100). */
+export type ConversionDimRow = {
+  label: string;
+  total: number;
+  won: number;
+  conversionPct: number;
+};
+
+/** Single bucket per logical label (trim + collapse spaces) to avoid duplicate rows. */
+function bucketDimLabel(v: string | null | undefined): string {
+  const t = v?.trim().replace(/\s+/g, " ");
+  return t ? t : "—";
+}
+
+function buildConversionRows(
+  leads: UnifiedLeadRow[],
+  keyFn: (l: UnifiedLeadRow) => string,
+): ConversionDimRow[] {
+  const agg = new Map<string, { total: number; won: number }>();
+  for (const l of leads) {
+    const key = keyFn(l);
+    const row = agg.get(key) ?? { total: 0, won: 0 };
+    row.total += 1;
+    if (l.salesStage === SalesStage.CLOSED_WON) row.won += 1;
+    agg.set(key, row);
+  }
+  return [...agg.entries()]
+    .map(([label, { total, won }]) => ({
+      label,
+      total,
+      won,
+      conversionPct: total ? (won / total) * 100 : 0,
+    }))
+    .sort((a, b) => b.total - a.total);
+}
 
 export type UnifiedPortalMeta = {
   kind: UnifiedPortalKind;
@@ -102,6 +244,12 @@ export type UnifiedDashboardViewModel = {
   pipelineQualified: UnifiedLeadRow[];
   /** All leads in scope (for full snapshot table). */
   allLeads: UnifiedLeadRow[];
+  conversionByCountry: ConversionDimRow[];
+  conversionByWebsite: ConversionDimRow[];
+  conversionByProfile: ConversionDimRow[];
+  conversionBySource: ConversionDimRow[];
+  leadAnalystBreakdown: LeadAnalystQualBreakdownRow[];
+  salesExecOutcomes: SalesExecOutcomeRow[];
 };
 
 function leadForAnalytics(l: UnifiedLeadRow) {
@@ -179,11 +327,27 @@ export function buildUnifiedDashboardViewModel(
 
   const bySource = new Map<string, number>();
   for (const l of leads) {
-    const key = l.source || "—";
+    const key = bucketDimLabel(l.source);
     bySource.set(key, (bySource.get(key) ?? 0) + 1);
   }
   const sourceEntries = [...bySource.entries()].sort((a, b) => b[1] - a[1]);
   const maxSource = sourceEntries[0]?.[1] ?? 1;
+
+  const conversionByCountry = buildConversionRows(leads, (l) =>
+    countryLabelForIso(leadPhoneCountryIso(l.phone)),
+  );
+  const conversionByWebsite = buildConversionRows(leads, (l) =>
+    bucketDimLabel(l.sourceWebsiteName),
+  );
+  const conversionByProfile = buildConversionRows(leads, (l) =>
+    bucketDimLabel(l.sourceMetaProfileName),
+  );
+  const conversionBySource = buildConversionRows(leads, (l) =>
+    bucketDimLabel(l.source),
+  );
+
+  const leadAnalystBreakdown = buildLeadAnalystQualBreakdown(leads);
+  const salesExecOutcomes = buildSalesExecOutcomeRows(leads);
 
   const countryRows = buildCountryQualRows(leads);
   const cityRows = buildAnalystCityRows(leads);
@@ -268,6 +432,12 @@ export function buildUnifiedDashboardViewModel(
     stageEntries,
     qualInsightRows,
     sourceEntries,
+    conversionByCountry,
+    conversionByWebsite,
+    conversionByProfile,
+    conversionBySource,
+    leadAnalystBreakdown,
+    salesExecOutcomes,
   );
 
   const showQualifiedPassedBlock =
@@ -311,6 +481,12 @@ export function buildUnifiedDashboardViewModel(
     pipelineQualified,
     allLeads: leads,
     pipelineInProgress: analytics.pipeline.inProgress,
+    conversionByCountry,
+    conversionByWebsite,
+    conversionByProfile,
+    conversionBySource,
+    leadAnalystBreakdown,
+    salesExecOutcomes,
   };
 }
 
@@ -343,6 +519,12 @@ function buildUnifiedExportPayload(
   stageEntries: { stageKey: string; label: string; count: number }[],
   qualInsightRows: { label: string; count: number; pct: number }[],
   sourceEntries: [string, number][],
+  conversionByCountry: ConversionDimRow[],
+  conversionByWebsite: ConversionDimRow[],
+  conversionByProfile: ConversionDimRow[],
+  conversionBySource: ConversionDimRow[],
+  leadAnalystBreakdown: LeadAnalystQualBreakdownRow[],
+  salesExecOutcomes: SalesExecOutcomeRow[],
 ): DashboardExportPayload {
   const summaryRows: { label: string; value: string | number }[] = [
     { label: "Portal", value: meta.kind.replace(/_/g, " ") },
@@ -402,7 +584,48 @@ function buildUnifiedExportPayload(
     });
   }
 
+  const fmtConv = (r: ConversionDimRow) => [
+    r.label,
+    r.total,
+    r.won,
+    r.conversionPct.toFixed(1),
+  ];
+
   const tables: DashboardExportPayload["tables"] = [
+    {
+      title: "Lead analysts — qualification",
+      headers: [
+        "Lead analyst",
+        "Total leads",
+        "Qualified",
+        "Not qualified",
+        "Irrelevant",
+      ],
+      rows: leadAnalystBreakdown.map((r) => [
+        r.label,
+        r.total,
+        r.qualified,
+        r.notQ,
+        r.irrelevant,
+      ]),
+    },
+    {
+      title: "Sales executives — assigned leads & outcomes",
+      headers: [
+        "Sales executive",
+        "Assigned (in range)",
+        "With rep (open)",
+        "Closed — won",
+        "Closed — lost",
+      ],
+      rows: salesExecOutcomes.map((r) => [
+        r.label,
+        r.assignedTotal,
+        r.withRepOpen,
+        r.closedWon,
+        r.closedLost,
+      ]),
+    },
     {
       title: "By source",
       headers: ["Source", "Count"],
@@ -420,6 +643,26 @@ function buildUnifiedExportPayload(
       title: "By city (optional · with country)",
       headers: ["City · country", "Count"],
       rows: cityRows.map((r) => [r.label, r.count]),
+    },
+    {
+      title: "Conversion — by country (won ÷ leads)",
+      headers: ["Country", "Leads", "Won", "Conversion %"],
+      rows: conversionByCountry.map(fmtConv),
+    },
+    {
+      title: "Conversion — by website",
+      headers: ["Website / brand", "Leads", "Won", "Conversion %"],
+      rows: conversionByWebsite.map(fmtConv),
+    },
+    {
+      title: "Conversion — by Meta profile",
+      headers: ["Profile / page", "Leads", "Won", "Conversion %"],
+      rows: conversionByProfile.map(fmtConv),
+    },
+    {
+      title: "Conversion — by source",
+      headers: ["Source", "Leads", "Won", "Conversion %"],
+      rows: conversionBySource.map(fmtConv),
     },
     {
       title: "Pipeline summary",
