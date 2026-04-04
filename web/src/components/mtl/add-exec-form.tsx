@@ -160,13 +160,13 @@ export default function AddExecForm({
 
         <div>
           <label htmlFor="mtl-exec-name" className={labelClass}>
-            Name
+            Profile name
           </label>
           <input
             id="mtl-exec-name"
             name="name"
             required
-            placeholder="Full name"
+            placeholder="Profile name"
             autoComplete="name"
             className={inputClass}
           />
@@ -221,12 +221,12 @@ export default function AddExecForm({
           <CopyCredentialsPanel
             title="Credentials"
             copyAllLabel="Copy all"
-            copyAllText={`Team: ${teamName ?? "—"}\nName: ${success.name}\nEmail: ${success.email}\nPassword: ${success.temporaryPassword}`}
+            copyAllText={`Team: ${teamName ?? "—"}\nProfile name: ${success.name}\nEmail: ${success.email}\nPassword: ${success.temporaryPassword}`}
             rows={[
               ...(teamName
                 ? [{ label: "Team", value: teamName } as const]
                 : []),
-              { label: "Name", value: success.name },
+              { label: "Profile name", value: success.name },
               { label: "Email", value: success.email },
               { label: "Password", value: success.temporaryPassword },
             ]}
