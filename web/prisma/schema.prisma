@@ -17,8 +17,8 @@ model User {
   authUserId String? @unique
   /// Legacy field; unused when `authUserId` is set (Supabase holds the password).
   passwordHash String?
-  /// Set when Analyst Team Lead creates this user; for display on Members page only.
-  provisioningPassword String?
+  /// True until the user completes a password change after first login (provisioning).
+  mustResetPassword Boolean @default(false)
   name         String
   image        String?
   role         String

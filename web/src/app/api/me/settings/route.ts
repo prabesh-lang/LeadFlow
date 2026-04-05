@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import {
   canUsePortalSettings,
   runPortalProfileUpdate,
 } from "@/lib/server/user-settings";
+import { forbidCrossOriginPost } from "@/lib/api-same-origin";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,9 @@ export async function GET() {
 }
 
 /** Profile/photo update via plain fetch (no Server Actions). */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const blocked = forbidCrossOriginPost(request);
+  if (blocked) return blocked;
   try {
     const session = await getSession();
     if (!session || !canUsePortalSettings(session.role)) {

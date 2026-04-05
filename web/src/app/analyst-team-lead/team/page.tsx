@@ -15,7 +15,6 @@ export default async function AnalystTeamLeadTeamPage() {
       name: true,
       email: true,
       analystTeamName: true,
-      provisioningPassword: true,
     },
   });
 
@@ -26,7 +25,6 @@ export default async function AnalystTeamLeadTeamPage() {
         select: {
           name: true,
           email: true,
-          provisioningPassword: true,
         },
       },
       whatsappLines: {

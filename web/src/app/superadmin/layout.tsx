@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { SuperadminAppShell } from "@/components/superadmin/superadmin-app-shell";
 import { getSession } from "@/lib/auth/session";
 import { UserRole } from "@/lib/constants";
+import { redirectIfMustResetPassword } from "@/lib/auth-redirects";
 import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
 import { prisma } from "@/lib/prisma";
 
@@ -17,6 +18,7 @@ export default async function SuperadminLayout({
   if (!session || session.role !== UserRole.SUPERADMIN) {
     redirect("/login");
   }
+  await redirectIfMustResetPassword();
 
   const [user, notif] = await Promise.all([
     prisma.user.findUnique({

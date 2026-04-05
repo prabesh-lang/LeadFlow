@@ -92,7 +92,7 @@ function AddLeadAnalystForm({
     email: string;
     analystTeamName: string | null;
   }[];
-  laState: { error?: string } | undefined;
+  laState: { error?: string; temporaryPassword?: string } | undefined;
   laAction: (formData: FormData) => void;
   laPending: boolean;
 }) {
@@ -113,7 +113,12 @@ function AddLeadAnalystForm({
   /* Reset after successful server action — useActionState exposes no onSuccess callback. */
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (wasLaPending.current && !laPending && !laState?.error) {
+    if (
+      wasLaPending.current &&
+      !laPending &&
+      !laState?.error &&
+      !laState?.temporaryPassword
+    ) {
       setManagerId("");
       setAnalystTeamName("");
     }
@@ -124,11 +129,20 @@ function AddLeadAnalystForm({
   return (
     <form action={laAction} className="space-y-4" autoComplete="off">
       <input type="hidden" name="role" value={UserRole.LEAD_ANALYST} />
-      {laState?.error ? (
-        <p className="text-sm text-lf-danger" role="alert">
-          {laState.error}
-        </p>
-      ) : null}
+        {laState?.error ? (
+          <p className="text-sm text-lf-danger" role="alert">
+            {laState.error}
+          </p>
+        ) : null}
+        {laState?.temporaryPassword ? (
+          <p className="rounded-lg bg-lf-success/15 p-3 text-sm text-lf-text-secondary">
+            User created. One-time password:{" "}
+            <code className="font-mono font-semibold">
+              {laState.temporaryPassword}
+            </code>{" "}
+            (copy now — it will not be shown again.)
+          </p>
+        ) : null}
       <label className="block text-xs font-medium text-lf-subtle">
         Name
         <input name="name" required className={`mt-1 ${inputClass}`} />
@@ -206,7 +220,7 @@ function AddAnalystTeamLeadForm({
   atlAction,
   atlPending,
 }: {
-  atlState: { error?: string } | undefined;
+  atlState: { error?: string; temporaryPassword?: string } | undefined;
   atlAction: (formData: FormData) => void;
   atlPending: boolean;
 }) {
@@ -216,6 +230,15 @@ function AddAnalystTeamLeadForm({
       {atlState?.error ? (
         <p className="text-sm text-lf-danger" role="alert">
           {atlState.error}
+        </p>
+      ) : null}
+      {atlState?.temporaryPassword ? (
+        <p className="rounded-lg bg-lf-success/15 p-3 text-sm text-lf-text-secondary">
+          User created. One-time password:{" "}
+          <code className="font-mono font-semibold">
+            {atlState.temporaryPassword}
+          </code>{" "}
+          (copy now — it will not be shown again.)
         </p>
       ) : null}
       <label className="block text-xs font-medium text-lf-subtle">
@@ -354,23 +377,19 @@ export function SuperadminAddUserCard({
   const wasAtlPending = useRef(false);
   const wasLaPending = useRef(false);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (wasAtlPending.current && !atlPending && !atlState?.error && modal === "atl") {
-      setModal(null);
+    if (wasAtlPending.current && !atlPending && atlState?.temporaryPassword) {
       router.refresh();
     }
     wasAtlPending.current = atlPending;
-  }, [atlPending, atlState, modal, router]);
+  }, [atlPending, atlState, router]);
 
   useEffect(() => {
-    if (wasLaPending.current && !laPending && !laState?.error && modal === "la") {
-      setModal(null);
+    if (wasLaPending.current && !laPending && laState?.temporaryPassword) {
       router.refresh();
     }
     wasLaPending.current = laPending;
-  }, [laPending, laState, modal, router]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [laPending, laState, router]);
 
   return (
     <>

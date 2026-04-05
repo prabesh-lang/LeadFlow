@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# Private user uploads (avatars); never commit
+/private-uploads/
+
 # production
 /build
 

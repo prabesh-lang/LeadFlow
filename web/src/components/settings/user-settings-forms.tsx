@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { logoutAction } from "@/app/actions/auth";
+import { normalizeAvatarSrc } from "@/lib/avatar-url";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -169,7 +170,7 @@ export function UserSettingsForms({
               {previewAvatar ? (
                 <div className="mt-4 flex items-center gap-3">
                   <Image
-                    src={previewAvatar}
+                    src={normalizeAvatarSrc(previewAvatar) ?? previewAvatar}
                     alt=""
                     width={64}
                     height={64}

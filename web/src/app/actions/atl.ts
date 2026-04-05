@@ -43,8 +43,8 @@ export async function createLeadAnalystMember(formData: FormData) {
   try {
     authUserId = await authAdminCreateUser(email, password);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Could not create auth user.";
-    return { error: msg };
+    console.error("[createLeadAnalystMember] auth create:", e);
+    return { error: "Something went wrong. Please try again." };
   }
 
   try {
@@ -53,7 +53,7 @@ export async function createLeadAnalystMember(formData: FormData) {
         name,
         email,
         authUserId,
-        provisioningPassword: password,
+        mustResetPassword: true,
         role: UserRole.LEAD_ANALYST,
         managerId: session.id,
         analystTeamName,
@@ -99,8 +99,8 @@ export async function createMainTeamLeadAndTeam(formData: FormData) {
   try {
     authUserId = await authAdminCreateUser(email, password);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Could not create auth user.";
-    return { error: msg };
+    console.error("[createMainTeamLeadAndTeam] auth create:", e);
+    return { error: "Something went wrong. Please try again." };
   }
 
   try {
@@ -109,7 +109,7 @@ export async function createMainTeamLeadAndTeam(formData: FormData) {
         name: leadName,
         email,
         authUserId,
-        provisioningPassword: password,
+        mustResetPassword: true,
         role: UserRole.MAIN_TEAM_LEAD,
       },
     });

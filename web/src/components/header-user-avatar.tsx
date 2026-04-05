@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { initialsFromName } from "@/lib/analyst-ui";
+import { normalizeAvatarSrc } from "@/lib/avatar-url";
 
 /** Small profile image or initials for the shell header (next to the user name). */
 export function HeaderUserAvatar({
@@ -10,10 +11,11 @@ export function HeaderUserAvatar({
   avatarUrl: string | null;
 }) {
   const initials = initialsFromName(name);
-  if (avatarUrl) {
+  const src = normalizeAvatarSrc(avatarUrl);
+  if (src) {
     return (
       <Image
-        src={avatarUrl}
+        src={src}
         alt=""
         width={32}
         height={32}

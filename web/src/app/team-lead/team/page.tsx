@@ -28,7 +28,6 @@ export default async function TeamLeadSalesTeamPage() {
             id: true,
             name: true,
             email: true,
-            provisioningPassword: true,
           },
         });
 
@@ -73,8 +72,8 @@ export default async function TeamLeadSalesTeamPage() {
           Sales executives ({execs.length})
         </h2>
         <p className="mt-1 text-sm text-lf-muted">
-          Temporary password is stored when you create the account; it clears
-          after the user changes their password in settings. Use Transfer to
+          The temporary password is shown only once when you create the account.
+          New users must set a new password on first sign-in. Use Transfer to
           move a rep to another sales team when your organisation reassigns
           them.
         </p>
@@ -107,9 +106,7 @@ export default async function TeamLeadSalesTeamPage() {
                     </td>
                     <td className="px-3 py-3 text-lf-muted">{e.email}</td>
                     <td className="px-3 py-3">
-                      <MtlProvisionedPasswordCell
-                        plain={e.provisioningPassword}
-                      />
+                      <MtlProvisionedPasswordCell />
                     </td>
                     <td className="px-3 py-3 text-right">
                       <MtlTransferExecButton

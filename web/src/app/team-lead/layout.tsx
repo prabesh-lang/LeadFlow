@@ -1,9 +1,9 @@
 import { Inter } from "next/font/google";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { sweepOverdueLeadsGlobal } from "@/lib/deadline";
 import { MtlAppShell } from "@/components/mtl/mtl-app-shell";
 import { UserRole } from "@/lib/constants";
+import { redirectIfMustResetPassword } from "@/lib/auth-redirects";
 import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
 import { prisma } from "@/lib/prisma";
 
@@ -18,7 +18,7 @@ export default async function TeamLeadLayout({
   if (!session || session.role !== UserRole.MAIN_TEAM_LEAD) {
     redirect("/login");
   }
-  await sweepOverdueLeadsGlobal();
+  await redirectIfMustResetPassword();
 
   const [user, team, notif] = await Promise.all([
     prisma.user.findUnique({

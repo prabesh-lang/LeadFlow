@@ -44,8 +44,8 @@ export async function superadminCreateUser(formData: FormData) {
   try {
     authUserId = await authAdminCreateUser(email, password);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Could not create auth user.";
-    return { error: msg };
+    console.error("[superadminCreateUser] auth create:", e);
+    return { error: "Something went wrong. Please try again." };
   }
 
   try {
@@ -73,7 +73,7 @@ export async function superadminCreateUser(formData: FormData) {
           name,
           email,
           authUserId,
-          provisioningPassword: password,
+          mustResetPassword: true,
           role: UserRole.LEAD_ANALYST,
           managerId,
           analystTeamName,
@@ -92,7 +92,7 @@ export async function superadminCreateUser(formData: FormData) {
           name,
           email,
           authUserId,
-          provisioningPassword: password,
+          mustResetPassword: true,
           role: UserRole.ANALYST_TEAM_LEAD,
           analystTeamName,
         },
@@ -104,15 +104,18 @@ export async function superadminCreateUser(formData: FormData) {
   }
 
   revalidatePath("/superadmin");
-  return { ok: true as const };
+  return { ok: true as const, temporaryPassword: password };
 }
 
 export async function superadminCreateUserFormAction(
-  _prev: { error?: string } | undefined,
+  _prev: { error?: string; temporaryPassword?: string } | undefined,
   formData: FormData,
-): Promise<{ error?: string } | undefined> {
+): Promise<{ error?: string; temporaryPassword?: string } | undefined> {
   const r = await superadminCreateUser(formData);
   if (r && "error" in r) return { error: r.error };
+  if (r && "ok" in r && r.ok && "temporaryPassword" in r) {
+    return { temporaryPassword: r.temporaryPassword };
+  }
   return undefined;
 }
 
@@ -142,14 +145,14 @@ export async function superadminSetUserPassword(formData: FormData) {
   try {
     await authAdminUpdatePassword(user.authUserId, password);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Could not update password.";
-    return { error: msg };
+    console.error("[superadminSetUserPassword]", e);
+    return { error: "Something went wrong. Please try again." };
   }
 
   await prisma.user.update({
     where: { id: userId },
     data: {
-      provisioningPassword: password,
+      mustResetPassword: false,
     },
   });
 

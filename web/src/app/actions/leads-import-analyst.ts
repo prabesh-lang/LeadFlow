@@ -20,8 +20,11 @@ import {
   type ParsedImportRow,
 } from "@/lib/analyst-lead-import";
 
-const MAX_BYTES = 5 * 1024 * 1024;
-const MAX_ROWS = 500;
+const MAX_BYTES = 2 * 1024 * 1024;
+const MAX_ROWS = Math.min(
+  Number(process.env.EXCEL_MAX_ROWS) || 1000,
+  5000,
+);
 
 export type ImportLeadsResult =
   | {
@@ -53,7 +56,10 @@ export async function importLeadsFromExcelAnalyst(
     return { ok: false, error: "The file is empty." };
   }
   if (file.size > MAX_BYTES) {
-    return { ok: false, error: "File is too large (max 5 MB)." };
+    return {
+      ok: false,
+      error: "File too large. Maximum allowed size is 2MB.",
+    };
   }
 
   const name = file.name.toLowerCase();
@@ -62,11 +68,28 @@ export async function importLeadsFromExcelAnalyst(
   }
 
   const buf = Buffer.from(await file.arrayBuffer());
+  if (buf.byteLength > MAX_BYTES) {
+    return {
+      ok: false,
+      error: "File too large. Maximum allowed size is 2MB.",
+    };
+  }
   let workbook: XLSX.WorkBook;
   try {
-    workbook = XLSX.read(buf, { type: "buffer" });
-  } catch {
-    return { ok: false, error: "Could not read that Excel file." };
+    workbook = XLSX.read(buf, {
+      type: "buffer",
+      sheetStubs: false,
+      cellFormula: false,
+      cellHTML: false,
+      cellNF: false,
+      cellDates: true,
+    });
+  } catch (e) {
+    console.error("XLSX parse error:", e);
+    return {
+      ok: false,
+      error: "Failed to parse file. Please check the format and try again.",
+    };
   }
 
   const sheetName = workbook.SheetNames[0];

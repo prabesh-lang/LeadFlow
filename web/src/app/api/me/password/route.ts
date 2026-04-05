@@ -1,14 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import {
   canUsePortalSettings,
   runPortalPasswordUpdate,
 } from "@/lib/server/user-settings";
+import { forbidCrossOriginPost } from "@/lib/api-same-origin";
 
 export const runtime = "nodejs";
 
 /** Password change via plain fetch (no Server Actions). */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const blocked = forbidCrossOriginPost(request);
+  if (blocked) return blocked;
   try {
     const session = await getSession();
     if (!session || !canUsePortalSettings(session.role)) {

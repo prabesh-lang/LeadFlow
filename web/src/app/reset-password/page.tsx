@@ -2,18 +2,20 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { homePathForRole } from "@/lib/role-home";
-import LoginForm from "./login-form";
+import { ResetPasswordForm } from "./reset-password-form";
 
-export default async function LoginPage() {
+export default async function ResetPasswordPage() {
   const session = await getSession();
-  if (session) {
-    const user = await prisma.user.findUnique({
-      where: { id: session.id },
-      select: { mustResetPassword: true },
-    });
-    if (user?.mustResetPassword) {
-      redirect("/reset-password");
-    }
+  if (!session) {
+    redirect("/login");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { mustResetPassword: true },
+  });
+
+  if (!user?.mustResetPassword) {
     redirect(homePathForRole(session.role) ?? "/login");
   }
 
@@ -22,11 +24,13 @@ export default async function LoginPage() {
       <div className="w-full max-w-md rounded-2xl border border-white/20 bg-white p-8 shadow-2xl shadow-black/25 ring-1 ring-white/30">
         <div className="text-center">
           <h1 className="text-2xl font-bold tracking-tight text-lf-text">
-            LeadFlow
+            Set a new password
           </h1>
-          <p className="mt-1 text-sm text-lf-muted">Sign in to continue</p>
+          <p className="mt-1 text-sm text-lf-muted">
+            Your account requires a new password before continuing.
+          </p>
         </div>
-        <LoginForm />
+        <ResetPasswordForm />
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import { Inter } from "next/font/google";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { sweepOverdueLeadsGlobal } from "@/lib/deadline";
 import { ExecAppShell } from "@/components/exec/exec-app-shell";
 import { UserRole } from "@/lib/constants";
+import { redirectIfMustResetPassword } from "@/lib/auth-redirects";
 import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
 import { prisma } from "@/lib/prisma";
 
@@ -18,7 +18,7 @@ export default async function ExecutiveLayout({
   if (!session || session.role !== UserRole.SALES_EXECUTIVE) {
     redirect("/login");
   }
-  await sweepOverdueLeadsGlobal();
+  await redirectIfMustResetPassword();
 
   const [user, team, notif] = await Promise.all([
     prisma.user.findUnique({

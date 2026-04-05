@@ -47,8 +47,8 @@ export async function createSalesExecutive(formData: FormData) {
   try {
     authUserId = await authAdminCreateUser(email, password);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Could not create auth user.";
-    return { error: msg };
+    console.error("[createSalesExecutive] auth create:", e);
+    return { error: "Something went wrong. Please try again." };
   }
 
   try {
@@ -57,7 +57,7 @@ export async function createSalesExecutive(formData: FormData) {
         name,
         email,
         authUserId,
-        provisioningPassword: password,
+        mustResetPassword: true,
         role: UserRole.SALES_EXECUTIVE,
         teamId: session.teamId,
       },

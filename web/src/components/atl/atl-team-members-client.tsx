@@ -11,7 +11,6 @@ export type AnalystRow = {
   name: string;
   email: string;
   analystTeamName: string | null;
-  provisioningPassword: string | null;
 };
 export type TeamRow = {
   id: string;
@@ -19,73 +18,11 @@ export type TeamRow = {
   mainTeamLead: {
     name: string;
     email: string;
-    provisioningPassword: string | null;
   };
   whatsappLines: { id: string; phone: string; label: string | null }[];
 };
 
 type ModalType = "analyst" | "mtl" | null;
-
-function IconEyeOpen() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    </svg>
-  );
-}
-
-function IconEyeOff() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-    </svg>
-  );
-}
-
-/** Masked password; `plain` is stored when ATL creates the user (see provisioningPassword). */
-function PasswordRevealCell({ plain }: { plain: string | null }) {
-  const [visible, setVisible] = useState(false);
-  const hasPlain = Boolean(plain && plain.length > 0);
-
-  return (
-    <div className="flex min-w-[10rem] max-w-[280px] items-center gap-2">
-      <span className="min-w-0 flex-1 text-xs leading-snug">
-        {visible ? (
-          hasPlain ? (
-            <span className="break-all font-mono text-lf-text">{plain}</span>
-          ) : (
-            <span className="text-lf-muted">
-              No password on file for this account (created before tracking or
-              changed elsewhere). Use{" "}
-              <span className="text-lf-text-secondary">Add member</span> for new users
-              to store a visible copy here.
-            </span>
-          )
-        ) : (
-          <span
-            className={
-              hasPlain
-                ? "select-none font-mono tracking-[0.2em] text-lf-subtle"
-                : "text-lf-subtle"
-            }
-          >
-            {hasPlain ? "••••••••" : "—"}
-          </span>
-        )}
-      </span>
-      <button
-        type="button"
-        onClick={() => setVisible((v) => !v)}
-        className="shrink-0 rounded-md p-1.5 text-lf-subtle transition hover:bg-lf-bg/50 hover:text-lf-muted"
-        aria-label={visible ? "Hide password" : "Show password"}
-        aria-pressed={visible}
-      >
-        {visible ? <IconEyeOff /> : <IconEyeOpen />}
-      </button>
-    </div>
-  );
-}
 
 function Modal({
   title,
@@ -348,10 +285,8 @@ export function AtlTeamMembersClient({
                           {a.name}
                         </td>
                         <td className="px-4 py-3">{a.email}</td>
-                        <td className="px-4 py-3 align-top">
-                          <PasswordRevealCell
-                            plain={a.provisioningPassword}
-                          />
+                        <td className="px-4 py-3 text-xs text-lf-muted">
+                          Password shown at creation only
                         </td>
                         <td className="px-4 py-3 text-xs text-lf-text-secondary">
                           Lead analyst
@@ -419,10 +354,8 @@ export function AtlTeamMembersClient({
                         </td>
                         <td className="px-4 py-3">{t.mainTeamLead.name}</td>
                         <td className="px-4 py-3">{t.mainTeamLead.email}</td>
-                        <td className="px-4 py-3 align-top">
-                          <PasswordRevealCell
-                            plain={t.mainTeamLead.provisioningPassword}
-                          />
+                        <td className="px-4 py-3 text-xs text-lf-muted">
+                          Password shown at creation only
                         </td>
                       </tr>
                     ))

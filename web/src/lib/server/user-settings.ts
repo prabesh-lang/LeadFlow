@@ -59,11 +59,11 @@ export async function runPortalProfileUpdate(
           : null;
     if (!ext) return { error: "Photo must be JPEG or PNG." };
     const buf = Buffer.from(await file.arrayBuffer());
-    const dir = path.join(process.cwd(), "public", "uploads");
+    const dir = path.join(process.cwd(), "private-uploads");
     await mkdir(dir, { recursive: true });
     const filename = `${session.id}.${ext}`;
     await writeFile(path.join(dir, filename), buf);
-    image = `/uploads/${filename}`;
+    image = `/api/avatar?ext=${ext}`;
   }
 
   await prisma.user.update({
@@ -125,12 +125,13 @@ export async function runPortalPasswordUpdate(
     password: nextPassword,
   });
   if (updateErr) {
-    return { error: updateErr.message };
+    console.error("[runPortalPasswordUpdate] Supabase update:", updateErr);
+    return { error: "Something went wrong. Please try again." };
   }
 
   await prisma.user.update({
     where: { id: session.id },
-    data: { provisioningPassword: null },
+    data: { mustResetPassword: false },
   });
 
   try {
