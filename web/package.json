@@ -6,14 +6,15 @@
     "dev": "next dev -H localhost --webpack",
     "build": "node scripts/prisma-with-postgres-url.mjs generate && next build --webpack",
     "postbuild": "node scripts/ensure-database.mjs",
-    "start": "node scripts/railway-db-guard.mjs && node scripts/ensure-database.mjs && next start",
+    "start": "node scripts/railway-db-guard.mjs && node scripts/ensure-database.mjs && node scripts/auto-bootstrap-railway.mjs && next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "validate:schema": "node scripts/prisma-with-postgres-url.mjs validate",
     "postinstall": "node scripts/prisma-with-postgres-url.mjs generate && node scripts/ensure-xlsx-for-turbopack.mjs",
     "db:push": "prisma db push",
     "db:generate": "node scripts/prisma-with-postgres-url.mjs generate",
-    "db:migrate:deploy": "prisma migrate deploy"
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:seed:bootstrap": "tsx prisma/seed-bootstrap.ts"
   },
   "engines": {
     "node": ">=20.9.0"
@@ -34,7 +35,8 @@
     "react-phone-number-input": "^3.4.16",
     "tailwindcss": "4.2.2",
     "xlsx": "^0.18.5",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "tsx": "^4.21.0"
   },
   "optionalDependencies": {
     "@tailwindcss/oxide-linux-arm64-gnu": "4.2.2",
@@ -55,7 +57,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
-    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

@@ -81,7 +81,7 @@ export async function loginAction(formData: FormData) {
     await supabase.auth.signOut();
     return {
       error:
-        "No LeadFlow user for this account (Supabase sign-in worked, but the app database has no matching profile). From the web folder, run `npx prisma db seed` with this deployment’s DATABASE_URL and Supabase keys in .env, or ask an admin to create your user.",
+        "No LeadFlow user for this account (Supabase sign-in worked, but the app database has no matching profile). On Railway, redeploy so startup can auto-seed an empty DB, or from the web folder run `npx prisma db seed` with this deployment’s DATABASE_URL and Supabase keys.",
     };
   }
 
