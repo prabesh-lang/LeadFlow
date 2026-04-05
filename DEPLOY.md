@@ -1,10 +1,18 @@
 # Deploying LeadFlow (Railway + Supabase)
 
+## Build succeeded but service shows “Crashed”
+
+The **build** can pass while the **runtime** still fails (wrong `start` command, missing env, or process exits immediately).
+
+1. Open **Railway → your service → Deployments → latest** and switch to **Deploy logs** (not only Build logs). The crash reason is printed when **`npm start`** runs.
+2. Confirm **Variables** include **`DATABASE_URL`** (Supabase `postgresql://...` on port **5432**) and Supabase API keys. An empty `DATABASE_URL` causes the app to exit on startup.
+3. Set **Healthcheck path** to **`/api/health`** (Settings → Healthcheck) so Railway probes a route that does not touch the database.
+
 ## “Application failed to respond” (Railway)
 
 Usually the container **never became healthy** in time: the process crashed on startup, or the HTTP server started too slowly.
 
-1. Open **Railway → your service → Deployments → latest → Logs** and read the first error.
+1. Open **Railway → your service → Deployments → latest → Logs** (Build **and** Deploy) and read the first error.
 2. **`DATABASE_URL`** must be set for **both** build and runtime (Prisma runs `migrate deploy` in **`postbuild`** after `next build`). If it is missing at build time, the deploy can fail or the DB schema may be out of date.
 3. Use a **Supabase Postgres** URI on port **5432** (direct connection). If the connection fails, append **`?sslmode=require`** to the URL.
 4. Do **not** use `file:...` (SQLite) on Railway — set `DATABASE_URL` to `postgresql://...` only.
