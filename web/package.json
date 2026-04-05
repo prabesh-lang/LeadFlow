@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -H localhost --webpack",
     "build": "prisma generate && next build --webpack",
-    "start": "next start",
+    "start": "node scripts/ensure-sqlite-database.mjs && next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "validate:schema": "prisma validate",
