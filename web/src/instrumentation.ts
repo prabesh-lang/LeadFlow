@@ -20,10 +20,23 @@ export function register() {
   }
 
   const dbUrl = process.env.DATABASE_URL ?? "";
-  if (dbUrl.startsWith("file:")) {
+  if (!dbUrl) {
     console.warn(
-      "[LeadFlow] Production: DATABASE_URL points to a local SQLite file. For a live multi-instance deploy use PostgreSQL (e.g. Supabase) with a pooled connection string; SQLite is only suitable for single-process hosting.",
+      "[LeadFlow] Production: DATABASE_URL is missing — Prisma cannot connect.",
     );
+  } else if (
+    !dbUrl.startsWith("postgres://") &&
+    !dbUrl.startsWith("postgresql://")
+  ) {
+    if (dbUrl.startsWith("file:")) {
+      console.warn(
+        "[LeadFlow] Production: DATABASE_URL uses SQLite (file:). Prefer Supabase Postgres for hosted deploys.",
+      );
+    } else {
+      console.warn(
+        "[LeadFlow] Production: DATABASE_URL does not look like a PostgreSQL connection string.",
+      );
+    }
   }
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {

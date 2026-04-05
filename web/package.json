@@ -4,14 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H localhost --webpack",
-    "build": "prisma generate && next build --webpack",
-    "start": "node scripts/ensure-sqlite-database.mjs && next start",
+    "build": "node scripts/prisma-with-postgres-url.mjs generate && next build --webpack",
+    "start": "node scripts/ensure-database.mjs && next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "validate:schema": "prisma validate",
-    "postinstall": "prisma generate && node scripts/ensure-xlsx-for-turbopack.mjs",
+    "validate:schema": "node scripts/prisma-with-postgres-url.mjs validate",
+    "postinstall": "node scripts/prisma-with-postgres-url.mjs generate && node scripts/ensure-xlsx-for-turbopack.mjs",
     "db:push": "prisma db push",
-    "db:generate": "prisma generate",
+    "db:generate": "node scripts/prisma-with-postgres-url.mjs generate",
     "db:migrate:deploy": "prisma migrate deploy"
   },
   "engines": {

@@ -3,12 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 /// LEAD_ANALYST | ANALYST_TEAM_LEAD | MAIN_TEAM_LEAD | SALES_EXECUTIVE | SUPERADMIN
-/// (SQLite: stored as plain string)
 
 model User {
   id           String   @id @default(cuid())

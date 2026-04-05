@@ -1,8 +1,3 @@
--- LeadFlow application schema for PostgreSQL (Supabase).
--- Generated from prisma/schema.prisma via `prisma migrate diff --from-empty`.
--- Prefer applying schema with: `cd web && npx prisma migrate deploy` against DATABASE_URL.
--- Optional: Supabase Dashboard → SQL Editor → paste and run on an empty database only.
-
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,

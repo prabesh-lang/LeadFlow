@@ -1,3 +1,9 @@
+/**
+ * Demo data for PostgreSQL (Supabase). Requires DATABASE_URL=postgresql://...
+ * and Supabase keys. Run: `npx prisma migrate deploy` then `npx prisma db seed`.
+ * Migrating existing SQLite data: use a DB export/import tool or one-off SQL;
+ * this script does not import from SQLite automatically.
+ */
 import { PrismaClient } from "@prisma/client";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -33,6 +39,9 @@ async function createAuthUser(email: string, password: string) {
 
 async function main() {
   await prisma.lead.deleteMany();
+  await prisma.salesExecTeamTransfer.deleteMany();
+  await prisma.notification.deleteMany();
+  await prisma.teamWhatsApp.deleteMany();
   await prisma.team.deleteMany();
   await prisma.user.deleteMany();
 
