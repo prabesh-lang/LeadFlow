@@ -40,6 +40,8 @@ export type UnifiedLeadRow = {
   city: string | null;
   createdAt: Date;
   notes: string | null;
+  /** Sales executive’s reason when closed lost */
+  lostNotes: string | null;
   createdById: string;
   createdByEmail: string | null;
   createdByName: string;
@@ -728,6 +730,7 @@ function buildUnifiedExportPayload(
               l.qualificationStatus,
               l.salesStage,
               l.notes,
+              l.lostNotes,
             ),
           ];
         }),

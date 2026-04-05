@@ -66,11 +66,18 @@ export function pipelinePillForLead(q: string, stage: string): PipelinePill {
   }
 }
 
+/** Note text for “Qualified pipeline detail” (export + dashboards). For closed lost, shows the sales executive’s loss reason (`lostNotes`), not general lead notes. */
 export function pipelineNoteForLead(
   q: string,
   stage: string,
   notes: string | null,
+  lostNotes?: string | null,
 ): string {
+  if (stage === SalesStage.CLOSED_LOST) {
+    const exec = lostNotes?.trim();
+    if (exec) return exec;
+    return "No loss reason recorded";
+  }
   if (notes?.trim()) return notes.trim();
   if (q !== QualificationStatus.QUALIFIED) return "—";
   switch (stage) {
@@ -82,8 +89,6 @@ export function pipelineNoteForLead(
       return "In active discussion";
     case SalesStage.CLOSED_WON:
       return "Won";
-    case SalesStage.CLOSED_LOST:
-      return "Lost";
     default:
       return "—";
   }

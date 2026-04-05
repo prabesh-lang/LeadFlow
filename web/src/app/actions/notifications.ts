@@ -1,15 +1,26 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth/session";
-import { UserRole } from "@/lib/constants";
+import { prisma } from "@/lib/prisma";
 
-export async function markAtlNotificationRead(notificationId: string) {
-  const session = await getSession();
-  if (!session || session.role !== UserRole.ANALYST_TEAM_LEAD) {
-    return { error: "Unauthorized." };
+const LAYOUT_ROOTS = [
+  "/analyst",
+  "/analyst-team-lead",
+  "/team-lead",
+  "/executive",
+  "/superadmin",
+] as const;
+
+function revalidatePortalLayouts() {
+  for (const p of LAYOUT_ROOTS) {
+    revalidatePath(p, "layout");
   }
+}
+
+export async function markNotificationRead(notificationId: string) {
+  const session = await getSession();
+  if (!session) return { error: "Unauthorized." };
 
   const n = await prisma.notification.findFirst({
     where: { id: notificationId, recipientId: session.id },
@@ -22,21 +33,19 @@ export async function markAtlNotificationRead(notificationId: string) {
     data: { read: true },
   });
 
-  revalidatePath("/analyst-team-lead", "layout");
+  revalidatePortalLayouts();
   return { ok: true as const };
 }
 
-export async function markAllAtlNotificationsRead() {
+export async function markAllNotificationsRead() {
   const session = await getSession();
-  if (!session || session.role !== UserRole.ANALYST_TEAM_LEAD) {
-    return { error: "Unauthorized." };
-  }
+  if (!session) return { error: "Unauthorized." };
 
   await prisma.notification.updateMany({
     where: { recipientId: session.id, read: false },
     data: { read: true },
   });
 
-  revalidatePath("/analyst-team-lead", "layout");
+  revalidatePortalLayouts();
   return { ok: true as const };
 }

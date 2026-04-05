@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { logoutAction } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -342,6 +343,21 @@ export function UserSettingsForms({
             </div>
           ) : null}
         </div>
+      </div>
+
+      <div className="mt-10 rounded-2xl border border-lf-border bg-lf-surface p-6">
+        <h2 className="text-lg font-semibold text-lf-text">Session</h2>
+        <p className="mt-1 text-sm text-lf-subtle">
+          Sign out of LeadFlow on this device.
+        </p>
+        <form action={logoutAction} className="mt-4">
+          <button
+            type="submit"
+            className="rounded-lg border border-lf-border bg-lf-bg px-4 py-2 text-sm font-semibold text-lf-text-secondary transition hover:bg-lf-bg/80"
+          >
+            Sign out
+          </button>
+        </form>
       </div>
     </div>
   );

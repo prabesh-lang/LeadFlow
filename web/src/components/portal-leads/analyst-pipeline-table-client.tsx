@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
+import ExecLostNotesReadonly from "@/components/exec-lost-notes-readonly";
 import { LeadSourcePill } from "@/components/lead-source-display";
 import { PortalLeadSearchLiveField } from "@/components/portal-lead-search-live-field";
 import {
@@ -9,6 +10,7 @@ import {
   pipelinePillForLead,
   scoreBarColor,
 } from "@/lib/analyst-ui";
+import { SalesStage } from "@/lib/constants";
 import { filterLeadsByNameOrPhone } from "@/lib/lead-client-search";
 import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
 
@@ -18,6 +20,7 @@ export type PipelineLeadRow = {
   phone: string | null;
   source: string;
   notes: string | null;
+  lostNotes: string | null;
   qualificationStatus: string;
   salesStage: string;
   leadScore: number | null;
@@ -66,7 +69,7 @@ export function AnalystPipelineTableClient({
               <tr className="border-b border-lf-border text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="px-5 py-3 font-medium">Lead</th>
                 <th className="px-5 py-3 font-medium">Source</th>
-                <th className="px-5 py-3 font-medium">Your notes</th>
+                <th className="px-5 py-3 font-medium">Notes</th>
                 <th className="px-5 py-3 font-medium">Score</th>
                 <th className="px-5 py-3 font-medium">Pipeline</th>
                 <th className="px-5 py-3 font-medium">Qualified on</th>
@@ -113,7 +116,17 @@ export function AnalystPipelineTableClient({
                         <LeadSourcePill source={l.source} />
                       </td>
                       <td className="px-5 py-3 align-top">
-                        <AnalystNotesReadonly notes={l.notes} />
+                        {l.salesStage === SalesStage.CLOSED_LOST ? (
+                          l.lostNotes?.trim() ? (
+                            <ExecLostNotesReadonly notes={l.lostNotes} />
+                          ) : (
+                            <span className="text-lf-subtle">
+                              No loss reason recorded
+                            </span>
+                          )
+                        ) : (
+                          <AnalystNotesReadonly notes={l.notes} />
+                        )}
                       </td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">

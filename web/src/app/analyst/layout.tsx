@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth/session";
 import { sweepOverdueLeadsGlobal } from "@/lib/deadline";
 import { AnalystAppShell } from "@/components/analyst/analyst-app-shell";
 import { UserRole } from "@/lib/constants";
+import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
 import { prisma } from "@/lib/prisma";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -19,20 +20,25 @@ export default async function AnalystLayout({
   }
   await sweepOverdueLeadsGlobal();
 
-  const [leadCount, user] = await Promise.all([
-    prisma.lead.count({ where: { createdById: session.id } }),
+  const [user, notif] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.id },
-      select: { image: true },
+      select: { image: true, analystTeamName: true },
     }),
+    getPortalNotificationsForUser(session.id),
   ]);
+
+  const teamName =
+    user?.analystTeamName?.trim() || "Lead Analyst";
 
   return (
     <div className={inter.className}>
       <AnalystAppShell
-        leadCount={leadCount}
         session={{ name: session.name, email: session.email }}
         avatarUrl={user?.image ?? null}
+        teamName={teamName}
+        notifications={notif.notifications}
+        notificationUnreadCount={notif.unreadCount}
       >
         {children}
       </AnalystAppShell>

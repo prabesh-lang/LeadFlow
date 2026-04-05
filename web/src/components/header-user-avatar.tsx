@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { initialsFromName } from "@/lib/analyst-ui";
 
-/** Small profile image or initials for the shell header (next to Sign out). */
+/** Small profile image or initials for the shell header (next to the user name). */
 export function HeaderUserAvatar({
   name,
   avatarUrl,

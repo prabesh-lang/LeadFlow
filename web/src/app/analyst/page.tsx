@@ -47,6 +47,7 @@ export default async function AnalystDashboard({
     city: l.city,
     createdAt: l.createdAt,
     notes: l.notes,
+    lostNotes: l.lostNotes,
     createdById: session.id,
     createdByEmail: session.email,
     createdByName: session.name,

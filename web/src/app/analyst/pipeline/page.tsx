@@ -48,6 +48,7 @@ export default async function AnalystPipelinePage({
     phone: l.phone,
     source: l.source,
     notes: l.notes,
+    lostNotes: l.lostNotes,
     qualificationStatus: l.qualificationStatus,
     salesStage: l.salesStage,
     leadScore: l.leadScore,
@@ -73,7 +74,8 @@ export default async function AnalystPipelinePage({
         </span>
         <p>
           You can see outcome statuses for privacy — sales executive names and
-          call details are not shown here.
+          call details are not shown here. For closed lost, Notes shows the
+          executive’s loss reason when recorded.
         </p>
       </div>
 

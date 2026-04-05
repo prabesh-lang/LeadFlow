@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  markAllAtlNotificationsRead,
-  markAtlNotificationRead,
-} from "@/app/actions/atl-notifications";
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "@/app/actions/notifications";
 
 export type AtlNotificationItem = {
   id: string;
@@ -31,12 +31,15 @@ function formatWhen(iso: string) {
   }
 }
 
-export function AtlNotificationBell({
+export function PortalNotificationBell({
   initialItems,
   initialUnread,
+  leadsHref = "/analyst-team-lead/leads",
 }: {
   initialItems: AtlNotificationItem[];
   initialUnread: number;
+  /** Where notification links go when opened (per portal). */
+  leadsHref?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -59,7 +62,7 @@ export function AtlNotificationBell({
   }, [router]);
 
   const onMarkRead = async (id: string) => {
-    const res = await markAtlNotificationRead(id);
+    const res = await markNotificationRead(id);
     if ("ok" in res && res.ok) {
       setItems((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
@@ -70,7 +73,7 @@ export function AtlNotificationBell({
   };
 
   const onMarkAll = async () => {
-    const res = await markAllAtlNotificationsRead();
+    const res = await markAllNotificationsRead();
     if ("ok" in res && res.ok) {
       setItems((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnread(0);
@@ -128,8 +131,7 @@ export function AtlNotificationBell({
           <ul className="max-h-[min(70vh,24rem)] overflow-y-auto">
             {items.length === 0 ? (
               <li className="px-4 py-8 text-center text-sm text-lf-subtle">
-                No notifications yet. When an analyst sets a lead to
-                Qualified, you&apos;ll see it here.
+                No notifications yet. Alerts about your leads will appear here.
               </li>
             ) : (
               items.map((n) => (
@@ -140,7 +142,7 @@ export function AtlNotificationBell({
                   }`}
                 >
                   <Link
-                    href="/analyst-team-lead/leads"
+                    href={leadsHref}
                     className="block px-4 py-3 text-left transition hover:bg-lf-bg/50"
                     onClick={() => {
                       if (!n.read) void onMarkRead(n.id);

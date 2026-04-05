@@ -62,6 +62,7 @@ export default async function ExecutiveDashboardPage({
     city: l.city,
     createdAt: l.createdAt,
     notes: l.notes,
+    lostNotes: l.lostNotes,
     createdById: l.createdBy.id,
     createdByEmail: l.createdBy.email,
     createdByName: l.createdBy.name,

@@ -511,7 +511,8 @@ export function UnifiedPortalReportSections({
         </h2>
         <p className="mt-1 text-sm text-lf-muted">
           All qualified leads in range — same rows as export “Qualified pipeline
-          detail”
+          detail”. For closed lost, the note is the sales executive’s loss
+          reason.
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -563,6 +564,7 @@ export function UnifiedPortalReportSections({
                           l.qualificationStatus,
                           l.salesStage,
                           l.notes,
+                          l.lostNotes,
                         )}
                       </td>
                     </tr>

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { SuperadminAppShell } from "@/components/superadmin/superadmin-app-shell";
 import { getSession } from "@/lib/auth/session";
 import { UserRole } from "@/lib/constants";
+import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
 import { prisma } from "@/lib/prisma";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -17,13 +18,12 @@ export default async function SuperadminLayout({
     redirect("/login");
   }
 
-  const [userCount, leadCount, user] = await Promise.all([
-    prisma.user.count(),
-    prisma.lead.count(),
+  const [user, notif] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.id },
       select: { image: true },
     }),
+    getPortalNotificationsForUser(session.id),
   ]);
 
   return (
@@ -31,8 +31,9 @@ export default async function SuperadminLayout({
       <SuperadminAppShell
         session={{ name: session.name, email: session.email }}
         avatarUrl={user?.image ?? null}
-        userCount={userCount}
-        leadCount={leadCount}
+        teamName="Superadmin"
+        notifications={notif.notifications}
+        notificationUnreadCount={notif.unreadCount}
       >
         {children}
       </SuperadminAppShell>
