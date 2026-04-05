@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -H localhost --webpack",
     "build": "node scripts/prisma-with-postgres-url.mjs generate && next build --webpack",
-    "start": "node scripts/ensure-database.mjs && next start",
+    "postbuild": "node scripts/ensure-database.mjs",
+    "start": "node scripts/railway-db-guard.mjs && next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "validate:schema": "node scripts/prisma-with-postgres-url.mjs validate",

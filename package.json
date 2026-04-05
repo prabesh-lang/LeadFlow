@@ -8,7 +8,7 @@
     "start": "npm run start --prefix web",
     "lint": "npm run lint --prefix web",
     "typecheck": "npm run typecheck --prefix web",
-    "qa": "npm run lint && npm run typecheck && npm run validate:schema && npm run build",
+    "qa": "npm run lint && npm run typecheck && npm run validate:schema && SKIP_POSTBUILD_MIGRATE=true npm run build --prefix web",
     "deploy:check": "npm run qa",
     "validate:schema": "npm run validate:schema --prefix web",
     "db:push": "npm run db:push --prefix web",

@@ -1,9 +1,9 @@
 /**
- * Before `next start`:
+ * Run from `postbuild` after `next build` (not on `next start`) so Railway can pass health checks.
  * - SQLite (`file:`): create parent dirs and run `prisma migrate deploy`.
- * - PostgreSQL (`postgres://` / `postgresql://`): run `prisma migrate deploy` (Supabase, Railway, etc.).
+ * - PostgreSQL: `prisma migrate deploy` (Supabase, etc.).
  *
- * Local dev uses `next dev` and does not run this script.
+ * Local dev (`next dev`) does not run this; use `npm run db:migrate:deploy` when needed.
  */
 import fs from "fs";
 import path from "path";
@@ -43,21 +43,21 @@ function runMigrateDeploy() {
 }
 
 function main() {
+  if (process.env.SKIP_POSTBUILD_MIGRATE === "true") {
+    console.log(
+      "[LeadFlow] SKIP_POSTBUILD_MIGRATE=true — skipping prisma migrate deploy.",
+    );
+    return;
+  }
+
   const dbUrl = process.env.DATABASE_URL ?? "";
 
-  // Railway (and similar) cannot use SQLite: no persistent path for file: URLs.
   if (process.env.RAILWAY_ENVIRONMENT && dbUrl.startsWith("file:")) {
     console.error(
       "[LeadFlow] DATABASE_URL on Railway must be PostgreSQL (Supabase), not SQLite.",
     );
     console.error(
-      "  In Railway → your service → Variables: set DATABASE_URL to your Supabase connection string",
-    );
-    console.error(
-      "  (Supabase → Project Settings → Database → URI, port 5432, postgresql://...).",
-    );
-    console.error(
-      "  Remove any value like file:./prisma/dev.db — it only works on your laptop.",
+      "  Set DATABASE_URL to postgresql://... from Supabase (Settings → Database → URI).",
     );
     process.exit(1);
   }
