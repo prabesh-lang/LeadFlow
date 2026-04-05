@@ -63,13 +63,33 @@ export async function loginAction(formData: FormData) {
     return { error: "Invalid email or password." };
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  const authUserId = authUser?.id;
+
+  let user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email },
+        ...(authUserId ? [{ authUserId }] : []),
+      ],
+    },
+  });
+
   if (!user) {
     await supabase.auth.signOut();
     return {
       error:
-        "No portal profile exists for this account. Ask an administrator to create your user in LeadFlow.",
+        "No LeadFlow user for this account (Supabase sign-in worked, but the app database has no matching profile). From the web folder, run `npx prisma db seed` with this deployment’s DATABASE_URL and Supabase keys in .env, or ask an admin to create your user.",
     };
+  }
+
+  if (authUserId && user.authUserId !== authUserId) {
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: { authUserId },
+    });
   }
 
   if (user.mustResetPassword) {
