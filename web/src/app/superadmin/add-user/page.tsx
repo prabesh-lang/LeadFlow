@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SuperadminAddUserForms } from "@/components/superadmin/superadmin-add-user-forms";
+import { SuperadminAddUserCard } from "@/components/superadmin/superadmin-add-user-forms";
 import { SuperadminDeleteForm } from "@/components/superadmin/superadmin-delete-form";
 import { SuperadminPasswordForm } from "@/components/superadmin/superadmin-password-form";
 import { superadminRoleLabel } from "@/lib/superadmin-ui";
@@ -28,17 +28,19 @@ export default async function SuperadminAddUserPage() {
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-lf-text">
-          Add user
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-lf-muted">
-          Create Lead Analyst and Analyst Team Lead accounts. Set passwords or
-          remove users (superadmin accounts are protected).
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-semibold tracking-tight text-lf-text">
+            Add user
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-lf-muted">
+            Create Lead Analyst and Analyst Team Lead accounts from the card on
+            the right. Set passwords or remove users (superadmin accounts are
+            protected).
+          </p>
+        </div>
+        <SuperadminAddUserCard atlas={atlas} />
       </div>
-
-      <SuperadminAddUserForms atlas={atlas} />
 
       <div className="overflow-x-auto rounded-xl border border-lf-border">
         <table className="w-full min-w-[960px] text-left text-sm">
