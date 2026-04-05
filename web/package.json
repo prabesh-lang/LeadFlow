@@ -4,14 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H localhost --webpack",
-    "build": "next build --webpack",
+    "build": "prisma generate && next build --webpack",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "validate:schema": "prisma validate",
     "postinstall": "prisma generate && node scripts/ensure-xlsx-for-turbopack.mjs",
     "db:push": "prisma db push",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:migrate:deploy": "prisma migrate deploy"
+  },
+  "engines": {
+    "node": ">=20.9.0"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -23,6 +27,7 @@
     "next": "16.2.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "prisma": "^5.22.0",
     "react-phone-number-input": "^3.4.16",
     "xlsx": "^0.18.5",
     "zod": "^4.3.6"
@@ -37,7 +42,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
-    "prisma": "^5.22.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
