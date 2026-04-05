@@ -2,6 +2,10 @@
  * Runs `prisma migrate deploy` when DATABASE_URL is PostgreSQL.
  * Invoked from `postbuild` (after `next build`) and from `start` (after `railway-db-guard`).
  *
+ * During postbuild the database is not yet available (DATABASE_URL is injected at runtime
+ * in containerised deployments), so migrations are always skipped at build time and only
+ * executed when the service actually starts via `npm start`.
+ *
  * Prisma schema uses PostgreSQL only — `file:` URLs are skipped with a warning (no process.exit).
  * Local dev (`next dev`) does not run this; use `npm run db:migrate:deploy` when needed.
  */
@@ -35,22 +39,21 @@ function runMigrateDeploy() {
 }
 
 function main() {
-  // Only used during `npm run build` → postbuild (e.g. root `npm run qa`). Runtime `npm start` must still migrate.
-  if (
-    process.env.npm_lifecycle_event === "postbuild" &&
-    process.env.SKIP_POSTBUILD_MIGRATE === "true"
-  ) {
+  // During postbuild the real DATABASE_URL is not available — it is injected at runtime.
+  // Always skip migrations here; they will run when the service starts via `npm start`.
+  if (process.env.npm_lifecycle_event === "postbuild") {
     console.log(
-      "[LeadFlow] SKIP_POSTBUILD_MIGRATE=true — skipping prisma migrate deploy in postbuild.",
+      "[LeadFlow] postbuild phase — skipping prisma migrate deploy. Migrations will run at runtime (npm start).",
     );
     return;
   }
 
   const dbUrl = (process.env.DATABASE_URL ?? "").trim();
 
-  if (/^postgres(ql)?:\/\//i.test(dbUrl)) {
-    console.log("[LeadFlow] prisma migrate deploy (PostgreSQL)…");
-    runMigrateDeploy();
+  if (!dbUrl) {
+    console.warn(
+      "[LeadFlow] DATABASE_URL is not set — skipping prisma migrate deploy.",
+    );
     return;
   }
 
@@ -64,9 +67,18 @@ function main() {
     return;
   }
 
-  console.warn(
-    "[LeadFlow] DATABASE_URL is missing or not postgres — skipping migrate deploy.",
-  );
+  if (!/^postgres(ql)?:\/\//i.test(dbUrl)) {
+    console.warn(
+      "[LeadFlow] DATABASE_URL does not look like a PostgreSQL URL — skipping prisma migrate deploy.",
+    );
+    console.warn(
+      "[LeadFlow] Set DATABASE_URL to postgresql://... from Supabase (Settings → Database → URI).",
+    );
+    return;
+  }
+
+  console.log("[LeadFlow] prisma migrate deploy (PostgreSQL)…");
+  runMigrateDeploy();
 }
 
 main();
