@@ -41,9 +41,11 @@ export default function LoginForm() {
         {pending ? "Signing in…" : "Sign in"}
       </button>
       <p className="text-xs text-lf-subtle">
-        After running the seed against your Supabase project, use the demo emails from{" "}
-        <code className="text-lf-muted">prisma/seed.ts</code> with password{" "}
-        <code className="text-lf-muted">password123</code>.
+        First-time cloud deploy creates only{" "}
+        <code className="text-lf-muted">superadmin@demo.local</code> (password{" "}
+        <code className="text-lf-muted">password123</code>). After a full{" "}
+        <code className="text-lf-muted">prisma db seed</code>, see all demo accounts in{" "}
+        <code className="text-lf-muted">prisma/seed.ts</code>.
       </p>
     </form>
   );

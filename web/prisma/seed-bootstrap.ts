@@ -1,15 +1,11 @@
 /**
- * One-time demo bootstrap when the app database has no users (e.g. fresh Railway deploy).
+ * One-time bootstrap when the app database has no users (e.g. fresh Railway deploy).
+ * Creates exactly one Supabase Auth user and one Prisma user: superadmin@demo.local.
  * Runs only when RAILWAY_ENVIRONMENT is set and LEADFLOW_SKIP_AUTO_BOOTSTRAP is not "true".
- * Idempotent: skips if any User row exists. Safe if Supabase Auth users already exist.
  */
 import { PrismaClient, Prisma } from "@prisma/client";
 import { createClient } from "@supabase/supabase-js";
-import {
-  DEMO_PASSWORD,
-  seedDemoWithAuthIds,
-  type DemoAuthIds,
-} from "./seed-demo-data";
+import { DEMO_PASSWORD, seedBootstrapSuperAdminOnly } from "./seed-demo-data";
 import { assertPostgresDatabaseUrl } from "./seed-env";
 
 async function getOrCreateAuthUser(email: string, password: string) {
@@ -49,20 +45,6 @@ async function getOrCreateAuthUser(email: string, password: string) {
   );
 }
 
-async function loadAuthIds(): Promise<DemoAuthIds> {
-  return {
-    superadmin: await getOrCreateAuthUser(
-      "superadmin@demo.local",
-      DEMO_PASSWORD,
-    ),
-    atl: await getOrCreateAuthUser("atl@demo.local", DEMO_PASSWORD),
-    analyst: await getOrCreateAuthUser("analyst@demo.local", DEMO_PASSWORD),
-    mtl: await getOrCreateAuthUser("mtl@demo.local", DEMO_PASSWORD),
-    exec1: await getOrCreateAuthUser("exec1@demo.local", DEMO_PASSWORD),
-    exec2: await getOrCreateAuthUser("exec2@demo.local", DEMO_PASSWORD),
-  };
-}
-
 async function main() {
   assertPostgresDatabaseUrl();
   const prisma = new PrismaClient();
@@ -74,16 +56,21 @@ async function main() {
     return;
   }
 
-  const ids = await loadAuthIds();
+  const superadminAuthId = await getOrCreateAuthUser(
+    "superadmin@demo.local",
+    DEMO_PASSWORD,
+  );
 
   try {
     await prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(41820319)`;
       const n = await tx.user.count();
       if (n > 0) return;
-      await seedDemoWithAuthIds(tx, ids);
+      await seedBootstrapSuperAdminOnly(tx, superadminAuthId);
     });
-    console.log("[LeadFlow] bootstrap: demo data created.");
+    console.log(
+      "[LeadFlow] bootstrap: superadmin created (superadmin@demo.local). Sign in with password from seed (default password123).",
+    );
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       console.log(

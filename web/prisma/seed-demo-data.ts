@@ -17,6 +17,24 @@ export type DemoAuthIds = {
 };
 
 /**
+ * Railway bootstrap: one Supabase Auth user + one portal user (superadmin only).
+ */
+export async function seedBootstrapSuperAdminOnly(
+  prisma: Pick<PrismaClient, "user">,
+  superadminAuthId: string,
+) {
+  await prisma.user.create({
+    data: {
+      email: "superadmin@demo.local",
+      authUserId: superadminAuthId,
+      name: "Super Admin",
+      role: UserRole.SUPERADMIN,
+      mustResetPassword: false,
+    },
+  });
+}
+
+/**
  * Inserts demo users, team, and leads. Callers must clear tables first (full seed)
  * or ensure the database is empty (bootstrap).
  */
