@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
@@ -101,12 +100,6 @@ export default async function MainTeamLeadDashboard({
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <DashboardReportExport payload={vm.exportPayload} />
-          <Link
-            href="/team-lead/team"
-            className="text-sm font-medium text-lf-link hover:text-lf-link-bright"
-          >
-            View team →
-          </Link>
         </div>
       </header>
 

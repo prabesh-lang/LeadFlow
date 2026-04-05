@@ -6,34 +6,25 @@ import ExecLostNotesReadonly from "@/components/exec-lost-notes-readonly";
 import { AssignToExecForm } from "@/components/mtl/assign-to-exec-form";
 import { LeadSourceDisplay } from "@/components/lead-source-display";
 import { PortalLeadSearchLiveField } from "@/components/portal-lead-search-live-field";
+import { DashboardReportExport } from "@/components/dashboard-report-export";
 import { SalesStage } from "@/lib/constants";
 import { filterLeadsByNameOrPhone } from "@/lib/lead-client-search";
+import { buildMtlLeadsExportPayload } from "@/lib/mtl-leads-export";
 import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
+import type { MtlLeadRow } from "@/lib/mtl-lead-row";
 
-export type MtlLeadRow = {
-  id: string;
-  leadName: string;
-  phone: string | null;
-  leadEmail: string | null;
-  source: string;
-  notes: string | null;
-  lostNotes: string | null;
-  leadScore: number | null;
-  salesStage: string;
-  execDeadlineAt: string | null;
-  assignedSalesExecId: string | null;
-  createdBy: { name: string };
-  assignedSalesExec: { name: string; id: string } | null;
-};
+export type { MtlLeadRow };
 
 export function MtlLeadsTableClient({
   leads,
   initialQ,
   execs,
+  rangeLabel,
 }: {
   leads: MtlLeadRow[];
   initialQ: string | null;
   execs: { id: string; name: string }[];
+  rangeLabel: string;
 }) {
   const [query, setQuery] = useState(initialQ ?? "");
   useDebouncedLeadSearchUrl(query);
@@ -41,6 +32,15 @@ export function MtlLeadsTableClient({
   const filtered = useMemo(
     () => filterLeadsByNameOrPhone(leads, query),
     [leads, query],
+  );
+
+  const exportPayload = useMemo(
+    () =>
+      buildMtlLeadsExportPayload(filtered, {
+        rangeLabel,
+        searchQuery: query,
+      }),
+    [filtered, rangeLabel, query],
   );
 
   const hasQuery = query.trim().length > 0;
@@ -52,6 +52,21 @@ export function MtlLeadsTableClient({
           Find a client
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-lf-border bg-lf-surface px-4 py-4 shadow-sm sm:px-5 sm:py-4">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-lf-subtle">
+            Export leads
+          </p>
+          <p className="mt-1 text-sm text-lf-muted">
+            PDF, Excel, or CSV for the leads shown below. Uses the date range
+            above and your search filter.
+          </p>
+        </div>
+        <div className="shrink-0">
+          <DashboardReportExport payload={exportPayload} />
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-lf-border bg-lf-surface">

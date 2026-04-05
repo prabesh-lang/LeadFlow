@@ -77,6 +77,7 @@ export default async function TeamLeadLeadsPage({
         leads={rows}
         initialQ={q}
         execs={execOptions}
+        rangeLabel={rangeLabel}
       />
     </div>
   );
