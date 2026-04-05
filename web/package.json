@@ -21,7 +21,7 @@
     "@prisma/client": "^5.22.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.49.8",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "4.2.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
     "libphonenumber-js": "^1.12.40",
@@ -31,13 +31,19 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-phone-number-input": "^3.4.16",
-    "tailwindcss": "^4",
+    "tailwindcss": "4.2.2",
     "xlsx": "^0.18.5",
     "zod": "^4.3.6"
   },
   "optionalDependencies": {
+    "@tailwindcss/oxide-linux-arm64-gnu": "4.2.2",
+    "@tailwindcss/oxide-linux-arm64-musl": "4.2.2",
+    "@tailwindcss/oxide-linux-x64-gnu": "4.2.2",
+    "@tailwindcss/oxide-linux-x64-musl": "4.2.2",
     "lightningcss-linux-arm64-gnu": "1.32.0",
-    "lightningcss-linux-x64-gnu": "1.32.0"
+    "lightningcss-linux-arm64-musl": "1.32.0",
+    "lightningcss-linux-x64-gnu": "1.32.0",
+    "lightningcss-linux-x64-musl": "1.32.0"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
