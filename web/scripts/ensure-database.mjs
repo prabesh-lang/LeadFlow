@@ -45,6 +45,23 @@ function runMigrateDeploy() {
 function main() {
   const dbUrl = process.env.DATABASE_URL ?? "";
 
+  // Railway (and similar) cannot use SQLite: no persistent path for file: URLs.
+  if (process.env.RAILWAY_ENVIRONMENT && dbUrl.startsWith("file:")) {
+    console.error(
+      "[LeadFlow] DATABASE_URL on Railway must be PostgreSQL (Supabase), not SQLite.",
+    );
+    console.error(
+      "  In Railway → your service → Variables: set DATABASE_URL to your Supabase connection string",
+    );
+    console.error(
+      "  (Supabase → Project Settings → Database → URI, port 5432, postgresql://...).",
+    );
+    console.error(
+      "  Remove any value like file:./prisma/dev.db — it only works on your laptop.",
+    );
+    process.exit(1);
+  }
+
   if (dbUrl.startsWith("file:")) {
     const absPath = resolveSqlitePath(dbUrl);
     if (!absPath) return;

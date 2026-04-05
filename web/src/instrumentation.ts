@@ -29,8 +29,8 @@ export function register() {
     !dbUrl.startsWith("postgresql://")
   ) {
     if (dbUrl.startsWith("file:")) {
-      console.warn(
-        "[LeadFlow] Production: DATABASE_URL uses SQLite (file:). Prefer Supabase Postgres for hosted deploys.",
+      console.error(
+        "[LeadFlow] DATABASE_URL uses SQLite (file:). Hosted deploys (Railway, etc.) need postgresql:// from Supabase — set it in the host dashboard Variables.",
       );
     } else {
       console.warn(
