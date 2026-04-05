@@ -103,9 +103,12 @@ function CopyCredentialsPanel({
 export function AddAnalystForm({
   variant = "page",
   onSuccess,
+  defaultAnalystTeamName,
 }: {
   variant?: "page" | "modal";
   onSuccess?: () => void;
+  /** Prefills team name when the analyst team lead has analystTeamName set */
+  defaultAnalystTeamName?: string | null;
 } = {}) {
   const [formKey, setFormKey] = useState(0);
   const lastHandledOkEmail = useRef<string | null>(null);
@@ -142,6 +145,7 @@ export function AddAnalystForm({
       <input
         name="analystTeamName"
         required
+        defaultValue={defaultAnalystTeamName?.trim() || undefined}
         placeholder="Team name (e.g. Team A, North region)"
         className={inputClass}
         autoComplete="off"

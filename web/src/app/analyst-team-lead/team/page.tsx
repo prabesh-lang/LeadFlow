@@ -7,16 +7,22 @@ export default async function AnalystTeamLeadTeamPage() {
   const session = await getSession();
   if (!session) return null;
 
-  const analysts = await prisma.user.findMany({
-    where: { managerId: session.id, role: UserRole.LEAD_ANALYST },
-    orderBy: { name: "asc" },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      analystTeamName: true,
-    },
-  });
+  const [atlProfile, analysts] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.id },
+      select: { analystTeamName: true },
+    }),
+    prisma.user.findMany({
+      where: { managerId: session.id, role: UserRole.LEAD_ANALYST },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        analystTeamName: true,
+      },
+    }),
+  ]);
 
   const teams = await prisma.team.findMany({
     orderBy: { name: "asc" },
@@ -36,7 +42,11 @@ export default async function AnalystTeamLeadTeamPage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <AtlTeamMembersClient analysts={analysts} teams={teams} />
+      <AtlTeamMembersClient
+        analysts={analysts}
+        teams={teams}
+        defaultAnalystTeamName={atlProfile?.analystTeamName?.trim() || null}
+      />
     </div>
   );
 }

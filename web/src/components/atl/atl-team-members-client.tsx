@@ -172,9 +172,12 @@ function AddMemberMenu({
 export function AtlTeamMembersClient({
   analysts,
   teams,
+  defaultAnalystTeamName,
 }: {
   analysts: AnalystRow[];
   teams: TeamRow[];
+  /** ATL's cohort label — prefills "Team name" when adding a lead analyst */
+  defaultAnalystTeamName?: string | null;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<"analyst" | "mtl">("analyst");
@@ -375,6 +378,7 @@ export function AtlTeamMembersClient({
           <AddAnalystForm
             variant="modal"
             onSuccess={refresh}
+            defaultAnalystTeamName={defaultAnalystTeamName}
           />
         </Modal>
       ) : null}
