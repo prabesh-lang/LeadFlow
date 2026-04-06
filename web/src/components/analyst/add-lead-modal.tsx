@@ -36,13 +36,6 @@ export function requestAnalystAddLeadModal() {
   }
 }
 
-function localYmd(d: Date) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
 function FieldLabel({
   children,
   required: req,
@@ -72,7 +65,6 @@ function AddLeadModalInner({
   );
   const [phone, setPhone] = useState<string | undefined>();
 
-  const maxDateToday = useMemo(() => localYmd(new Date()), []);
   const countryLabel = useMemo(
     () => countryNameFromPhone(phone) ?? null,
     [phone],
@@ -310,11 +302,15 @@ function AddLeadModalInner({
           <label className="mt-6 flex flex-col">
             <FieldLabel>Date added (optional)</FieldLabel>
             <input
-              type="date"
+              type="text"
               name="leadAddedDate"
-              max={maxDateToday}
+              inputMode="numeric"
+              placeholder="YYYY/MM/DD"
               className="rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2 [color-scheme:light]"
             />
+            <span className="mt-1 text-[11px] text-lf-subtle">
+              Use Year/Month/Day format, e.g. 2026/04/06.
+            </span>
           </label>
 
           <label className="mt-6 flex flex-col">

@@ -189,7 +189,7 @@ export async function importLeadsFromExcelAnalyst(
         row.lead_source as LeadSourceValue,
         row.source_other,
       );
-      const country = countryNameFromPhone(row.phone);
+      const country = countryNameFromPhone(row.phone) ?? "Unknown";
 
       const leadId = newId();
       const createdAt = row.date_added ?? new Date();

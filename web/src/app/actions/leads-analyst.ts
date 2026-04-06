@@ -26,9 +26,9 @@ function isValidEmail(s: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
-/** YYYY-MM-DD → local start-of-day, or null if invalid. */
+/** YYYY/MM/DD or YYYY-MM-DD -> local start-of-day, or null if invalid. */
 function parseLocalDateYmd(raw: string): Date | null {
-  const m = raw.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const m = raw.trim().match(/^(\d{4})[/-](\d{2})[/-](\d{2})$/);
   if (!m) return null;
   const y = Number(m[1]);
   const mo = Number(m[2]);
@@ -122,7 +122,9 @@ export async function createLeadAnalyst(formData: FormData) {
   let createdAt: Date | undefined;
   if (leadAddedDateRaw) {
     const parsed = parseLocalDateYmd(leadAddedDateRaw);
-    if (!parsed) return { error: "Enter a valid date (or leave it blank)." };
+    if (!parsed) {
+      return { error: "Enter date in YYYY/MM/DD format (or leave it blank)." };
+    }
     if (parsed > startOfTodayLocal()) {
       return { error: "Date added cannot be in the future." };
     }
@@ -133,7 +135,7 @@ export async function createLeadAnalyst(formData: FormData) {
     websiteName: sourceWebsiteName,
     metaProfileName: sourceMetaProfileName,
   });
-  const country = countryNameFromPhone(phone);
+  const country = countryNameFromPhone(phone) ?? "Unknown";
 
   const leadId = newId();
 

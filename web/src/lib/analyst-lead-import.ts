@@ -75,7 +75,7 @@ export const ANALYST_IMPORT_COLUMN_META: {
     key: "date_added",
     label: "Date added",
     required: false,
-    hint: "YYYY-MM-DD (optional backfill; not in the future)",
+    hint: "YYYY/MM/DD (optional backfill; not in the future)",
   },
   { key: "notes", label: "Notes", required: false },
 ];
@@ -147,9 +147,9 @@ function isValidEmail(s: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
-/** YYYY-MM-DD → local start-of-day, or null if invalid. */
+/** YYYY/MM/DD or YYYY-MM-DD -> local start-of-day, or null if invalid. */
 export function parseLocalDateYmd(raw: string): Date | null {
-  const m = raw.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const m = raw.trim().match(/^(\d{4})[/-](\d{2})[/-](\d{2})$/);
   if (!m) return null;
   const y = Number(m[1]);
   const mo = Number(m[2]);
@@ -251,7 +251,7 @@ export function parseAnalystImportRow(
   if (dateRaw) {
     const parsed = parseLocalDateYmd(dateRaw);
     if (!parsed) {
-      return { ok: false, rowNumber, error: "date_added must be YYYY-MM-DD." };
+      return { ok: false, rowNumber, error: "date_added must be YYYY/MM/DD." };
     }
     if (parsed > startOfTodayLocal()) {
       return {
