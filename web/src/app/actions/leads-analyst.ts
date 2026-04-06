@@ -67,10 +67,19 @@ export async function createLeadAnalyst(formData: FormData) {
     String(formData.get("sourceWebsiteName") ?? "").trim() || null;
   let sourceMetaProfileName =
     String(formData.get("sourceMetaProfileName") ?? "").trim() || null;
-  if (leadSource !== "WEBSITE" && leadSource !== "DOWNLOADS") {
+  if (
+    leadSource !== "WEBSITE_WHATSAPP" &&
+    leadSource !== "WEBSITE_LEAD_FORMS"
+  ) {
     sourceWebsiteName = null;
   }
-  if (leadSource !== "META_WHATSAPP") sourceMetaProfileName = null;
+  if (
+    leadSource !== "META_WHATSAPP" &&
+    leadSource !== "META_MESSENGER" &&
+    leadSource !== "META_LEAD_FORMS"
+  ) {
+    sourceMetaProfileName = null;
+  }
   const notes = String(formData.get("notes") ?? "").trim() || null;
   const qualificationStatus = String(
     formData.get("qualificationStatus") ?? "",

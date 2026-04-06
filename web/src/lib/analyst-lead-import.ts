@@ -57,7 +57,7 @@ export const ANALYST_IMPORT_COLUMN_META: {
     key: "source_other",
     label: "Source other",
     required: false,
-    hint: "Required when Lead Source is OTHER",
+    hint: "Optional free-text detail (typically leave blank)",
   },
   {
     key: "qualification",
@@ -216,13 +216,6 @@ export function parseAnalystImportRow(
       ok: false,
       rowNumber,
       error: `Invalid lead_source. Use one of: ${[...SOURCE_VALUES].join(", ")}.`,
-    };
-  }
-  if (lead_source === "OTHER" && !source_other?.trim()) {
-    return {
-      ok: false,
-      rowNumber,
-      error: "source_other is required when lead_source is OTHER.",
     };
   }
   if (emailRaw && !isValidEmail(emailRaw)) {

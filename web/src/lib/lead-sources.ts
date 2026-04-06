@@ -1,30 +1,40 @@
-/** Preset lead sources (dropdown). "Other" uses optional detail in notes or appended label. */
+/** Preset lead sources (dropdown). */
 export const LEAD_SOURCE_OPTIONS = [
   {
     value: "META_WHATSAPP",
-    label: "Meta Ads / WhatsApp",
+    label: "Meta WhatsApp",
   },
   {
-    value: "WEBSITE",
-    label: "Website / Forms / Chat",
+    value: "META_MESSENGER",
+    label: "Meta Messenger",
   },
   {
-    value: "DOWNLOADS",
-    label: "Downloads / Gated content",
+    value: "WEBSITE_WHATSAPP",
+    label: "Website WhatsApp",
   },
   {
-    value: "OTHER",
-    label: "Other",
+    value: "META_LEAD_FORMS",
+    label: "Meta Lead Forms",
+  },
+  {
+    value: "WEBSITE_LEAD_FORMS",
+    label: "Website Lead Forms",
+  },
+  {
+    value: "SUPPORT_NUMBERS",
+    label: "Support Numbers (CAM/CWA/CRW)",
   },
 ] as const;
 
 export type LeadSourceValue = (typeof LEAD_SOURCE_OPTIONS)[number]["value"];
 
 const LABEL_BY_VALUE: Record<LeadSourceValue, string> = {
-  META_WHATSAPP: "Meta Ads / WhatsApp",
-  WEBSITE: "Website / Forms / Chat",
-  DOWNLOADS: "Downloads / Gated content",
-  OTHER: "Other",
+  META_WHATSAPP: "Meta WhatsApp",
+  META_MESSENGER: "Meta Messenger",
+  WEBSITE_WHATSAPP: "Website WhatsApp",
+  META_LEAD_FORMS: "Meta Lead Forms",
+  WEBSITE_LEAD_FORMS: "Website Lead Forms",
+  SUPPORT_NUMBERS: "Support Numbers (CAM/CWA/CRW)",
 };
 
 export type LeadSourceChannelDetail = {
@@ -38,20 +48,25 @@ export function resolveLeadSourceLabel(
   otherDetail: string | null,
   channel?: LeadSourceChannelDetail | null,
 ): string {
-  if (value === "OTHER" && otherDetail && otherDetail.trim()) {
-    return `Other — ${otherDetail.trim()}`;
-  }
   if (value in LABEL_BY_VALUE) {
     let label = LABEL_BY_VALUE[value as LeadSourceValue];
     const web = channel?.websiteName?.trim();
     const meta = channel?.metaProfileName?.trim();
-    if ((value === "WEBSITE" || value === "DOWNLOADS") && web) {
+    if ((value === "WEBSITE_WHATSAPP" || value === "WEBSITE_LEAD_FORMS") && web) {
       label += ` — ${web}`;
     }
-    if (value === "META_WHATSAPP" && meta) {
+    if (
+      (value === "META_WHATSAPP" ||
+        value === "META_MESSENGER" ||
+        value === "META_LEAD_FORMS") &&
+      meta
+    ) {
       label += ` — Facebook: ${meta}`;
     }
     return label;
+  }
+  if (otherDetail && otherDetail.trim()) {
+    return `${value} — ${otherDetail.trim()}`;
   }
   return value || "—";
 }
