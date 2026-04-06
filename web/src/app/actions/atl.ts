@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
+import { dbQuery, dbQueryOne, newId, withTransaction } from "@/lib/db/pool";
 import { getSession } from "@/lib/auth/session";
 import {
   authAdminCreateUser,
@@ -36,7 +36,10 @@ export async function createLeadAnalystMember(formData: FormData) {
   }
   if (password.length < 8) return { error: "Password must be at least 8 characters." };
 
-  const exists = await prisma.user.findUnique({ where: { email } });
+  const exists = await dbQueryOne<{ id: string }>(
+    `SELECT id FROM "User" WHERE email = $1`,
+    [email],
+  );
   if (exists) return { error: "That email is already in use." };
 
   let authUserId: string;
@@ -47,18 +50,21 @@ export async function createLeadAnalystMember(formData: FormData) {
     return { error: "Something went wrong. Please try again." };
   }
 
+  const uid = newId();
   try {
-    await prisma.user.create({
-      data: {
-        name,
+    await dbQuery(
+      `INSERT INTO "User" (id, email, name, role, "authUserId", "mustResetPassword", "managerId", "analystTeamName", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, true, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+      [
+        uid,
         email,
+        name,
+        UserRole.LEAD_ANALYST,
         authUserId,
-        mustResetPassword: true,
-        role: UserRole.LEAD_ANALYST,
-        managerId: session.id,
+        session.id,
         analystTeamName,
-      },
-    });
+      ],
+    );
   } catch {
     await authAdminDeleteUser(authUserId).catch(() => {});
     return { error: "Could not save the user profile. Try again." };
@@ -92,7 +98,10 @@ export async function createMainTeamLeadAndTeam(formData: FormData) {
   }
   if (password.length < 8) return { error: "Password must be at least 8 characters." };
 
-  const exists = await prisma.user.findUnique({ where: { email } });
+  const exists = await dbQueryOne<{ id: string }>(
+    `SELECT id FROM "User" WHERE email = $1`,
+    [email],
+  );
   if (exists) return { error: "That email is already in use." };
 
   let authUserId: string;
@@ -103,27 +112,24 @@ export async function createMainTeamLeadAndTeam(formData: FormData) {
     return { error: "Something went wrong. Please try again." };
   }
 
+  const mtlId = newId();
+  const teamId = newId();
   try {
-    const mtl = await prisma.user.create({
-      data: {
-        name: leadName,
-        email,
-        authUserId,
-        mustResetPassword: true,
-        role: UserRole.MAIN_TEAM_LEAD,
-      },
-    });
-
-    const team = await prisma.team.create({
-      data: {
-        name: teamName,
-        mainTeamLeadId: mtl.id,
-      },
-    });
-
-    await prisma.user.update({
-      where: { id: mtl.id },
-      data: { teamId: team.id },
+    await withTransaction(async (c) => {
+      await c.query(
+        `INSERT INTO "User" (id, email, name, role, "authUserId", "mustResetPassword", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        [mtlId, email, leadName, UserRole.MAIN_TEAM_LEAD, authUserId],
+      );
+      await c.query(
+        `INSERT INTO "Team" (id, name, "mainTeamLeadId", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        [teamId, teamName, mtlId],
+      );
+      await c.query(
+        `UPDATE "User" SET "teamId" = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2`,
+        [teamId, mtlId],
+      );
     });
   } catch {
     await authAdminDeleteUser(authUserId).catch(() => {});
@@ -155,10 +161,13 @@ export async function assignLeadToMainTeamLead(formData: FormData) {
     return { error: "Lead and main team lead are required." };
   }
 
-  const lead = await prisma.lead.findUnique({
-    where: { id: leadId },
-    include: { createdBy: true },
-  });
+  const lead = await dbQueryOne<{
+    qualificationStatus: string;
+    createdById: string;
+  }>(
+    `SELECT "qualificationStatus", "createdById" FROM "Lead" WHERE id = $1`,
+    [leadId],
+  );
   if (!lead) return { error: "Lead not found." };
   if (lead.qualificationStatus !== QualificationStatus.QUALIFIED) {
     if (lead.qualificationStatus === QualificationStatus.NOT_QUALIFIED) {
@@ -176,40 +185,54 @@ export async function assignLeadToMainTeamLead(formData: FormData) {
     return { error: "Only qualified leads can be assigned to a main team." };
   }
 
-  const analystIds = await prisma.user.findMany({
-    where: { managerId: session.id, role: UserRole.LEAD_ANALYST },
-    select: { id: true },
-  });
-  const allowedAnalystIds = new Set(analystIds.map((a) => a.id));
+  const analystRows = await dbQuery<{ id: string }>(
+    `SELECT id FROM "User" WHERE "managerId" = $1 AND role = $2`,
+    [session.id, UserRole.LEAD_ANALYST],
+  );
+  const allowedAnalystIds = new Set(analystRows.map((a) => a.id));
   if (!allowedAnalystIds.has(lead.createdById)) {
     return { error: "You can only route leads from analysts on your team." };
   }
 
-  const mtl = await prisma.user.findFirst({
-    where: { id: mainTeamLeadId, role: UserRole.MAIN_TEAM_LEAD },
-    include: { teamAsMainLead: true },
-  });
-  if (!mtl?.teamAsMainLead) {
+  const mtl = await dbQueryOne<{
+    id: string;
+    name: string;
+    teamId: string;
+    teamName: string;
+  }>(
+    `SELECT u.id, u.name, t.id AS "teamId", t.name AS "teamName"
+     FROM "User" u
+     INNER JOIN "Team" t ON t."mainTeamLeadId" = u.id
+     WHERE u.id = $1 AND u.role = $2`,
+    [mainTeamLeadId, UserRole.MAIN_TEAM_LEAD],
+  );
+  if (!mtl) {
     return { error: "Invalid main team lead." };
   }
 
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: {
-      assignedMainTeamLeadId: mtl.id,
-      teamId: mtl.teamAsMainLead.id,
-      salesStage: SalesStage.WITH_TEAM_LEAD,
-      assignedSalesExecId: null,
-      execAssignedAt: null,
-      execDeadlineAt: null,
-    },
-  });
+  await dbQuery(
+    `UPDATE "Lead" SET
+      "assignedMainTeamLeadId" = $1,
+      "teamId" = $2,
+      "salesStage" = $3,
+      "assignedSalesExecId" = NULL,
+      "execAssignedAt" = NULL,
+      "execDeadlineAt" = NULL,
+      "updatedAt" = CURRENT_TIMESTAMP
+     WHERE id = $4`,
+    [
+      mtl.id,
+      mtl.teamId,
+      SalesStage.WITH_TEAM_LEAD,
+      leadId,
+    ],
+  );
 
   await logLeadHandoff({
     leadId,
     action: LeadHandoffAction.ROUTED_TO_MAIN_TEAM,
     actorId: session.id,
-    detail: `Main team lead: ${mtl.name} · Team: ${mtl.teamAsMainLead.name}`,
+    detail: `Main team lead: ${mtl.name} · Team: ${mtl.teamName}`,
   });
 
   revalidatePath("/analyst-team-lead");

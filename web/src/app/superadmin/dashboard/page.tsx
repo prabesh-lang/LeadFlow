@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 import {
   superadminHandoffLabels,
   superadminRoleLabel,
@@ -34,28 +34,83 @@ function StatCard({
   );
 }
 
+type HandoffRow = {
+  id: string;
+  createdAt: Date;
+  action: string;
+  detail: string | null;
+  lead_id: string | null;
+  lead_leadName: string | null;
+  actor_name: string | null;
+  actor_email: string | null;
+  actor_role: string | null;
+};
+
+type TransferRow = {
+  id: string;
+  createdAt: Date;
+  se_name: string;
+  se_email: string;
+  from_name: string | null;
+  to_name: string;
+  tb_name: string;
+  tb_email: string;
+};
+
 export default async function SuperadminDashboardPage() {
-  const [metrics, handoffs, seTransfers] = await Promise.all([
+  const [metrics, handoffRows, transferRows] = await Promise.all([
     getSuperadminDashboardMetrics(),
-    prisma.leadHandoffLog.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 80,
-      include: {
-        lead: { select: { leadName: true, id: true } },
-        actor: { select: { name: true, email: true, role: true } },
-      },
-    }),
-    prisma.salesExecTeamTransfer.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 40,
-      include: {
-        salesExec: { select: { name: true, email: true } },
-        fromTeam: { select: { name: true } },
-        toTeam: { select: { name: true } },
-        transferredBy: { select: { name: true, email: true } },
-      },
-    }),
+    dbQuery<HandoffRow>(
+      `SELECT h.id, h."createdAt", h.action, h.detail,
+        l.id AS lead_id, l."leadName" AS lead_leadName,
+        a.name AS actor_name, a.email AS actor_email, a.role AS actor_role
+       FROM "LeadHandoffLog" h
+       LEFT JOIN "Lead" l ON l.id = h."leadId"
+       LEFT JOIN "User" a ON a.id = h."actorId"
+       ORDER BY h."createdAt" DESC LIMIT 80`,
+    ),
+    dbQuery<TransferRow>(
+      `SELECT t.id, t."createdAt",
+        se.name AS se_name, se.email AS se_email,
+        ft.name AS from_name,
+        tt.name AS to_name,
+        tb.name AS tb_name, tb.email AS tb_email
+       FROM "SalesExecTeamTransfer" t
+       JOIN "User" se ON se.id = t."salesExecId"
+       LEFT JOIN "Team" ft ON ft.id = t."fromTeamId"
+       JOIN "Team" tt ON tt.id = t."toTeamId"
+       JOIN "User" tb ON tb.id = t."transferredById"
+       ORDER BY t."createdAt" DESC LIMIT 40`,
+    ),
   ]);
+
+  const handoffs = handoffRows.map((h) => ({
+    id: h.id,
+    createdAt: h.createdAt,
+    action: h.action,
+    detail: h.detail,
+    lead: {
+      id: h.lead_id ?? "",
+      leadName: h.lead_leadName ?? "",
+    },
+    actor:
+      h.actor_name && h.actor_email && h.actor_role
+        ? {
+            name: h.actor_name,
+            email: h.actor_email,
+            role: h.actor_role,
+          }
+        : null,
+  }));
+
+  const seTransfers = transferRows.map((t) => ({
+    id: t.id,
+    createdAt: t.createdAt,
+    salesExec: { name: t.se_name, email: t.se_email },
+    fromTeam: t.from_name ? { name: t.from_name } : null,
+    toTeam: { name: t.to_name },
+    transferredBy: { name: t.tb_name, email: t.tb_email },
+  }));
 
   return (
     <div className="space-y-12">

@@ -1,9 +1,10 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
-import { writeFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import { mkdir, unlink, writeFile } from "fs/promises";
 import path from "path";
-import { prisma } from "@/lib/prisma";
+import { dbQuery, dbQueryOne } from "@/lib/db/pool";
 import { getSession } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { UserRole } from "@/lib/constants";
@@ -34,6 +35,28 @@ async function revalidatePortalLayouts() {
   revalidatePath("/superadmin", "layout");
 }
 
+async function deleteAvatarFilesOnDisk(userId: string) {
+  const cwd = process.cwd();
+  for (const ext of ["jpg", "png"] as const) {
+    const priv = path.join(cwd, "private-uploads", `${userId}.${ext}`);
+    if (existsSync(priv)) await unlink(priv).catch(() => {});
+    const legacy = path.join(cwd, "public", "uploads", `${userId}.${ext}`);
+    if (existsSync(legacy)) await unlink(legacy).catch(() => {});
+  }
+}
+
+async function deleteOtherAvatarExtension(userId: string, keepExt: "jpg" | "png") {
+  const other = keepExt === "jpg" ? "png" : "jpg";
+  const cwd = process.cwd();
+  for (const base of [
+    path.join(cwd, "private-uploads"),
+    path.join(cwd, "public", "uploads"),
+  ]) {
+    const p = path.join(base, `${userId}.${other}`);
+    if (existsSync(p)) await unlink(p).catch(() => {});
+  }
+}
+
 export async function runPortalProfileUpdate(
   formData: FormData,
 ): Promise<PortalSettingsResult> {
@@ -45,12 +68,19 @@ export async function runPortalProfileUpdate(
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Name is required." };
 
-  const user = await prisma.user.findUnique({ where: { id: session.id } });
+  const user = await dbQueryOne<{ id: string }>(
+    `SELECT id FROM "User" WHERE id = $1`,
+    [session.id],
+  );
   if (!user) return { error: "User not found." };
 
-  let image: string | null | undefined = undefined;
+  const removePhoto = formData.get("removePhoto") === "true";
   const file = formData.get("photo");
-  if (file instanceof File && file.size > 0) {
+  const hasNewFile = file instanceof File && file.size > 0;
+
+  let imageUpdate: string | null | undefined = undefined;
+
+  if (hasNewFile) {
     const ext =
       file.type === "image/png"
         ? "png"
@@ -61,20 +91,30 @@ export async function runPortalProfileUpdate(
     const buf = Buffer.from(await file.arrayBuffer());
     const dir = path.join(process.cwd(), "private-uploads");
     await mkdir(dir, { recursive: true });
-    const filename = `${session.id}.${ext}`;
-    await writeFile(path.join(dir, filename), buf);
-    image = `/api/avatar?ext=${ext}`;
+    await writeFile(path.join(dir, `${session.id}.${ext}`), buf);
+    imageUpdate = `/api/avatar?ext=${ext}`;
+    await deleteOtherAvatarExtension(session.id, ext);
+  } else if (removePhoto) {
+    await deleteAvatarFilesOnDisk(session.id);
+    imageUpdate = null;
   }
 
-  await prisma.user.update({
-    where: { id: session.id },
-    data: {
-      name,
-      ...(image !== undefined ? { image } : {}),
-    },
-  });
+  if (imageUpdate !== undefined) {
+    await dbQuery(
+      `UPDATE "User" SET name = $1, image = $2, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $3`,
+      [name, imageUpdate, session.id],
+    );
+  } else {
+    await dbQuery(
+      `UPDATE "User" SET name = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2`,
+      [name, session.id],
+    );
+  }
 
-  const fresh = await prisma.user.findUnique({ where: { id: session.id } });
+  const fresh = await dbQueryOne<{ image: string | null }>(
+    `SELECT image FROM "User" WHERE id = $1`,
+    [session.id],
+  );
 
   try {
     await revalidatePortalLayouts();
@@ -103,7 +143,13 @@ export async function runPortalPasswordUpdate(
     return { error: "Enter your current password." };
   }
 
-  const user = await prisma.user.findUnique({ where: { id: session.id } });
+  const user = await dbQueryOne<{
+    email: string;
+    authUserId: string | null;
+  }>(
+    `SELECT email, "authUserId" FROM "User" WHERE id = $1`,
+    [session.id],
+  );
   if (!user) return { error: "User not found." };
   if (!user.authUserId) {
     return {
@@ -129,10 +175,10 @@ export async function runPortalPasswordUpdate(
     return { error: "Something went wrong. Please try again." };
   }
 
-  await prisma.user.update({
-    where: { id: session.id },
-    data: { mustResetPassword: false },
-  });
+  await dbQuery(
+    `UPDATE "User" SET "mustResetPassword" = false, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $1`,
+    [session.id],
+  );
 
   try {
     await revalidatePortalLayouts();

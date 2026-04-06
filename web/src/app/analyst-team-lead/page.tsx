@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQuery, dbQueryOne } from "@/lib/db/pool";
 import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
 import { DashboardReportExport } from "@/components/dashboard-report-export";
@@ -9,9 +9,31 @@ import {
   analystRangeSummaryLabel,
   hrefWithDateRange,
 } from "@/lib/analyst-date-range";
-import { atlLeadWhere } from "@/lib/atl-leads";
+import { atlLeadSql } from "@/lib/atl-leads";
 import { UserRole } from "@/lib/constants";
 import { buildUnifiedDashboardViewModel } from "@/lib/unified-dashboard-report";
+
+type LeadDashRow = {
+  id: string;
+  leadName: string;
+  source: string;
+  sourceWebsiteName: string | null;
+  sourceMetaProfileName: string | null;
+  qualificationStatus: string;
+  salesStage: string;
+  leadScore: number | null;
+  phone: string | null;
+  country: string | null;
+  city: string | null;
+  createdAt: Date;
+  notes: string | null;
+  lostNotes: string | null;
+  createdById: string;
+  assignedSalesExecId: string | null;
+  cb_name: string;
+  cb_email: string;
+  se_name: string | null;
+};
 
 export default async function AnalystTeamLeadDashboard({
   searchParams,
@@ -24,25 +46,30 @@ export default async function AnalystTeamLeadDashboard({
   const { from, to } = await analystRangeParams(searchParams);
   const rangeLabel = analystRangeSummaryLabel(from, to);
 
-  const analystsList = await prisma.user.findMany({
-    where: { managerId: session.id, role: UserRole.LEAD_ANALYST },
-    orderBy: { name: "asc" },
-  });
+  const analystsList = await dbQuery<{ id: string; name: string }>(
+    `SELECT id, name FROM "User" WHERE "managerId" = $1 AND role = $2 ORDER BY name ASC`,
+    [session.id, UserRole.LEAD_ANALYST],
+  );
   const analystIds = analystsList.map((a) => a.id);
 
+  const { clause, params } = atlLeadSql(analystIds, from, to);
   const leads =
     analystIds.length === 0
       ? []
-      : await prisma.lead.findMany({
-          where: atlLeadWhere(analystIds, from, to),
-          orderBy: { createdAt: "desc" },
-          include: {
-            createdBy: { select: { id: true, name: true, email: true } },
-            assignedSalesExec: { select: { id: true, name: true } },
-          },
-        });
+      : await dbQuery<LeadDashRow>(
+          `SELECT l.*, cb.name AS cb_name, cb.email AS cb_email, se.name AS se_name
+           FROM "Lead" l
+           JOIN "User" cb ON cb.id = l."createdById"
+           LEFT JOIN "User" se ON se.id = l."assignedSalesExecId"
+           WHERE ${clause}
+           ORDER BY l."createdAt" DESC`,
+          params,
+        );
 
-  const teamCount = await prisma.team.count();
+  const teamCountRow = await dbQueryOne<{ c: string }>(
+    `SELECT COUNT(*)::text AS c FROM "Team"`,
+  );
+  const teamCount = Number(teamCountRow?.c ?? 0);
   const generatedAt = new Date().toISOString();
 
   const unifiedRows = leads.map((l) => ({
@@ -60,11 +87,11 @@ export default async function AnalystTeamLeadDashboard({
     createdAt: l.createdAt,
     notes: l.notes,
     lostNotes: l.lostNotes,
-    createdById: l.createdBy.id,
-    createdByEmail: l.createdBy.email,
-    createdByName: l.createdBy.name,
+    createdById: l.createdById,
+    createdByEmail: l.cb_email,
+    createdByName: l.cb_name,
     assignedSalesExecId: l.assignedSalesExecId,
-    assignedRepName: l.assignedSalesExec?.name ?? null,
+    assignedRepName: l.se_name ?? null,
   }));
 
   const vm = buildUnifiedDashboardViewModel(unifiedRows, {

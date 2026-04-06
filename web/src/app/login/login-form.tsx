@@ -44,8 +44,8 @@ export default function LoginForm() {
         First-time cloud deploy creates only{" "}
         <code className="text-lf-muted">superadmin@demo.local</code> (password{" "}
         <code className="text-lf-muted">password123</code>). After a full{" "}
-        <code className="text-lf-muted">prisma db seed</code>, see all demo accounts in{" "}
-        <code className="text-lf-muted">prisma/seed.ts</code>.
+        <code className="text-lf-muted">npm run db:seed</code>, see demo data in{" "}
+        <code className="text-lf-muted">database/seed.ts</code>.
       </p>
     </form>
   );

@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+import { dbQuery, dbQueryOne } from "@/lib/db/pool";
+import { isDbConnectionError } from "@/lib/db/errors";
 import {
   createSupabaseServerClient,
   isSupabaseConfigured,
@@ -24,6 +25,15 @@ export type SessionUser = {
   teamId: string | null;
 };
 
+type UserRow = {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  teamId: string | null;
+  authUserId: string | null;
+};
+
 export async function getSession(): Promise<SessionUser | null> {
   if (!isSupabaseConfigured()) {
     return null;
@@ -43,19 +53,24 @@ export async function getSession(): Promise<SessionUser | null> {
     if (!user?.id) return null;
 
     const email = (user.email ?? "").trim().toLowerCase();
-    let profile = await prisma.user.findFirst({
-      where: {
-        OR: [{ authUserId: user.id }, ...(email ? [{ email }] : [])],
-      },
-    });
+    let profile = await dbQueryOne<UserRow>(
+      `SELECT id, email, name, role, "teamId", "authUserId" FROM "User"
+       WHERE "authUserId" = $1 OR ($2 <> '' AND email = $2)
+       LIMIT 1`,
+      [user.id, email],
+    );
 
     if (!profile) return null;
 
     if (profile.authUserId !== user.id) {
-      profile = await prisma.user.update({
-        where: { id: profile.id },
-        data: { authUserId: user.id },
-      });
+      await dbQuery(
+        `UPDATE "User" SET "authUserId" = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2`,
+        [user.id, profile.id],
+      );
+      profile = {
+        ...profile,
+        authUserId: user.id,
+      };
     }
 
     return {
@@ -66,13 +81,20 @@ export async function getSession(): Promise<SessionUser | null> {
       teamId: profile.teamId,
     };
   } catch (e) {
-    // Let Next.js mark the route dynamic (cookies / headers); do not swallow as "no session".
     if (
       e instanceof Error &&
       (e.message.includes("Dynamic server usage") ||
         e.message.includes("couldn't be rendered statically"))
     ) {
       throw e;
+    }
+    if (isDbConnectionError(e)) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          "[LeadFlow:getSession] Database unreachable — treating as signed out. Check DATABASE_URL and network (e.g. port 5432 blocked).",
+        );
+      }
+      return null;
     }
     logSessionOrDataError("getSession", e);
     return null;

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQueryOne } from "@/lib/db/pool";
 import { homePathForRole } from "@/lib/role-home";
 import { ResetPasswordForm } from "./reset-password-form";
 
@@ -10,10 +10,10 @@ export default async function ResetPasswordPage() {
     redirect("/login");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.id },
-    select: { mustResetPassword: true },
-  });
+  const user = await dbQueryOne<{ mustResetPassword: boolean }>(
+    `SELECT "mustResetPassword" FROM "User" WHERE id = $1`,
+    [session.id],
+  );
 
   if (!user?.mustResetPassword) {
     redirect(homePathForRole(session.role) ?? "/login");

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
+import { dbQuery, dbQueryOne } from "@/lib/db/pool";
 import { getSession } from "@/lib/auth/session";
 import { LeadHandoffAction, SalesStage, UserRole } from "@/lib/constants";
 import { logLeadHandoff } from "@/lib/lead-handoff-log";
@@ -21,7 +21,10 @@ export async function updateLeadSalesOutcome(formData: FormData) {
     return { error: "Invalid status." };
   }
 
-  const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+  const lead = await dbQueryOne<{ assignedSalesExecId: string | null }>(
+    `SELECT "assignedSalesExecId" FROM "Lead" WHERE id = $1`,
+    [leadId],
+  );
   if (!lead) return { error: "Lead not found." };
   if (lead.assignedSalesExecId !== session.id) {
     return { error: "This lead is not assigned to you." };
@@ -34,18 +37,21 @@ export async function updateLeadSalesOutcome(formData: FormData) {
   }
 
   const now = new Date();
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: {
+  await dbQuery(
+    `UPDATE "Lead" SET
+      "salesStage" = $1,
+      "closedAt" = $2,
+      "execDeadlineAt" = NULL,
+      "lostNotes" = $3,
+      "updatedAt" = CURRENT_TIMESTAMP
+     WHERE id = $4`,
+    [
       salesStage,
-      closedAt: now,
-      execDeadlineAt: null,
-      lostNotes:
-        salesStage === SalesStage.CLOSED_LOST
-          ? lostNotesRaw
-          : null,
-    },
-  });
+      now,
+      salesStage === SalesStage.CLOSED_LOST ? lostNotesRaw : null,
+      leadId,
+    ],
+  );
 
   await logLeadHandoff({
     leadId,
@@ -82,7 +88,13 @@ export async function updateExecLostNotes(formData: FormData) {
     return { error: "Notes cannot be empty." };
   }
 
-  const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+  const lead = await dbQueryOne<{
+    assignedSalesExecId: string | null;
+    salesStage: string;
+  }>(
+    `SELECT "assignedSalesExecId", "salesStage" FROM "Lead" WHERE id = $1`,
+    [leadId],
+  );
   if (!lead) return { error: "Lead not found." };
   if (lead.assignedSalesExecId !== session.id) {
     return { error: "This lead is not assigned to you." };
@@ -91,10 +103,10 @@ export async function updateExecLostNotes(formData: FormData) {
     return { error: "Notes apply only to closed lost leads." };
   }
 
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: { lostNotes },
-  });
+  await dbQuery(
+    `UPDATE "Lead" SET "lostNotes" = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2`,
+    [lostNotes, leadId],
+  );
 
   revalidatePath("/executive", "layout");
   return { ok: true as const };

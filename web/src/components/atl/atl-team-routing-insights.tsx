@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/prisma";
-import { atlLeadWhere } from "@/lib/atl-leads";
+import { dbQuery } from "@/lib/db/pool";
+import { atlLeadSql } from "@/lib/atl-leads";
 import { computeAtlInsights } from "@/lib/atl-insights";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
 import { formatLeadSourceDisplay } from "@/lib/lead-sources";
@@ -57,17 +57,18 @@ export async function AtlTeamRoutingInsights({
 }: {
   analystIds: string[];
 }) {
+  const { clause, params } = atlLeadSql(analystIds, null, null);
   const leads =
     analystIds.length === 0
       ? []
-      : await prisma.lead.findMany({
-          where: atlLeadWhere(analystIds, null, null),
-          select: {
-            qualificationStatus: true,
-            salesStage: true,
-            source: true,
-          },
-        });
+      : await dbQuery<{
+          qualificationStatus: string;
+          salesStage: string;
+          source: string;
+        }>(
+          `SELECT "qualificationStatus", "salesStage", source FROM "Lead" WHERE ${clause}`,
+          params,
+        );
 
   const ins = computeAtlInsights(leads);
 

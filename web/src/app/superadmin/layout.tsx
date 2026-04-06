@@ -1,11 +1,14 @@
 import { Inter } from "next/font/google";
 import { redirect } from "next/navigation";
 import { SuperadminAppShell } from "@/components/superadmin/superadmin-app-shell";
+
+/** Never prerender superadmin routes at build time (avoids DB access when offline). */
+export const dynamic = "force-dynamic";
 import { getSession } from "@/lib/auth/session";
 import { UserRole } from "@/lib/constants";
 import { redirectIfMustResetPassword } from "@/lib/auth-redirects";
 import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
-import { prisma } from "@/lib/prisma";
+import { dbQueryOne } from "@/lib/db/pool";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -21,10 +24,10 @@ export default async function SuperadminLayout({
   await redirectIfMustResetPassword();
 
   const [user, notif] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: session.id },
-      select: { image: true },
-    }),
+    dbQueryOne<{ image: string | null }>(
+      `SELECT image FROM "User" WHERE id = $1`,
+      [session.id],
+    ),
     getPortalNotificationsForUser(session.id),
   ]);
 

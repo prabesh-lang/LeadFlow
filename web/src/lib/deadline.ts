@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 import { EXEC_DEADLINE_DAYS, SalesStage, UserRole } from "@/lib/constants";
 
 function addDays(d: Date, days: number) {
@@ -7,22 +7,28 @@ function addDays(d: Date, days: number) {
   return x;
 }
 
+type LeadOverdue = {
+  id: string;
+  assignedSalesExecId: string | null;
+  internalReassignCount: number;
+};
+
+type ExecRow = { id: string; name: string };
+
 /** Reassign leads whose exec deadline passed and are still active with an executive. */
 export async function sweepOverdueLeadsForTeam(teamId: string) {
   const now = new Date();
-  const overdue = await prisma.lead.findMany({
-    where: {
-      teamId,
-      salesStage: SalesStage.WITH_EXECUTIVE,
-      execDeadlineAt: { lt: now },
-    },
-  });
+  const overdue = await dbQuery<LeadOverdue>(
+    `SELECT id, "assignedSalesExecId", "internalReassignCount" FROM "Lead"
+     WHERE "teamId" = $1 AND "salesStage" = $2 AND "execDeadlineAt" IS NOT NULL AND "execDeadlineAt" < $3`,
+    [teamId, SalesStage.WITH_EXECUTIVE, now],
+  );
   if (overdue.length === 0) return;
 
-  const execs = await prisma.user.findMany({
-    where: { teamId, role: UserRole.SALES_EXECUTIVE },
-    orderBy: { name: "asc" },
-  });
+  const execs = await dbQuery<ExecRow>(
+    `SELECT id, name FROM "User" WHERE "teamId" = $1 AND role = $2 ORDER BY name ASC`,
+    [teamId, UserRole.SALES_EXECUTIVE],
+  );
   if (execs.length === 0) return;
 
   for (const lead of overdue) {
@@ -35,20 +41,23 @@ export async function sweepOverdueLeadsForTeam(teamId: string) {
         : 0;
     const next = pool[idx];
 
-    await prisma.lead.update({
-      where: { id: lead.id },
-      data: {
-        assignedSalesExecId: next.id,
-        execAssignedAt: now,
-        execDeadlineAt: addDays(now, EXEC_DEADLINE_DAYS),
-        internalReassignCount: { increment: 1 },
-      },
-    });
+    await dbQuery(
+      `UPDATE "Lead" SET
+        "assignedSalesExecId" = $1,
+        "execAssignedAt" = $2,
+        "execDeadlineAt" = $3,
+        "internalReassignCount" = "internalReassignCount" + 1,
+        "updatedAt" = CURRENT_TIMESTAMP
+       WHERE id = $4`,
+      [next.id, now, addDays(now, EXEC_DEADLINE_DAYS), lead.id],
+    );
   }
 }
 
 export async function sweepOverdueLeadsGlobal() {
-  const teams = await prisma.team.findMany({ select: { id: true } });
+  const teams = await dbQuery<{ id: string }>(
+    `SELECT id FROM "Team"`,
+  );
   for (const t of teams) {
     await sweepOverdueLeadsForTeam(t.id);
   }

@@ -4,23 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H localhost --webpack",
-    "build": "node scripts/prisma-with-postgres-url.mjs generate && next build --webpack",
+    "build": "next build --webpack",
     "postbuild": "node scripts/ensure-database.mjs",
     "start": "node scripts/railway-db-guard.mjs && node scripts/ensure-database.mjs && node scripts/auto-bootstrap-railway.mjs && next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "validate:schema": "node scripts/prisma-with-postgres-url.mjs validate",
-    "postinstall": "node scripts/prisma-with-postgres-url.mjs generate && node scripts/ensure-xlsx-for-turbopack.mjs",
-    "db:push": "prisma db push",
-    "db:generate": "node scripts/prisma-with-postgres-url.mjs generate",
-    "db:migrate:deploy": "prisma migrate deploy",
-    "db:seed:bootstrap": "tsx prisma/seed-bootstrap.ts"
+    "postinstall": "node scripts/ensure-xlsx-for-turbopack.mjs",
+    "db:seed": "tsx database/seed.ts",
+    "db:seed:bootstrap": "tsx database/seed-bootstrap.ts"
   },
   "engines": {
     "node": ">=20.9.0"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.49.8",
     "@tailwindcss/postcss": "4.2.2",
@@ -28,7 +24,7 @@
     "jspdf-autotable": "^5.0.7",
     "libphonenumber-js": "^1.12.40",
     "next": "16.2.1",
-    "prisma": "^5.22.0",
+    "pg": "^8.13.1",
     "rate-limiter-flexible": "^11.0.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -48,11 +44,9 @@
     "lightningcss-linux-x64-gnu": "1.32.0",
     "lightningcss-linux-x64-musl": "1.32.0"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pg": "^8.11.10",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

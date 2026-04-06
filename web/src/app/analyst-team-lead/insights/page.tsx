@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 import { AtlTeamRoutingInsights } from "@/components/atl/atl-team-routing-insights";
 import { UserRole } from "@/lib/constants";
 
@@ -8,10 +8,10 @@ export default async function AnalystTeamLeadInsightsPage() {
   const session = await getSession();
   if (!session) return null;
 
-  const analysts = await prisma.user.findMany({
-    where: { managerId: session.id, role: UserRole.LEAD_ANALYST },
-    select: { id: true },
-  });
+  const analysts = await dbQuery<{ id: string }>(
+    `SELECT id FROM "User" WHERE "managerId" = $1 AND role = $2`,
+    [session.id, UserRole.LEAD_ANALYST],
+  );
   const analystIds = analysts.map((a) => a.id);
 
   return (

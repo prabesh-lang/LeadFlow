@@ -57,15 +57,19 @@ export function leadCreatedAtRange(
   return { gte, lte };
 }
 
-export function leadWhereWithDateRange(
+/** SQL WHERE fragment + params for leads owned by `createdById` (optional date on `createdAt`). */
+export function leadWhereSql(
   createdById: string,
   fromStr?: string | null,
   toStr?: string | null,
-) {
+): { clause: string; params: unknown[] } {
   const range = leadCreatedAtRange(fromStr, toStr);
+  if (!range) {
+    return { clause: `"createdById" = $1`, params: [createdById] };
+  }
   return {
-    createdById,
-    ...(range ? { createdAt: range } : {}),
+    clause: `"createdById" = $1 AND "createdAt" >= $2::timestamp AND "createdAt" <= $3::timestamp`,
+    params: [createdById, range.gte, range.lte],
   };
 }
 

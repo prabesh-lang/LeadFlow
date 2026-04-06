@@ -1,14 +1,20 @@
 import { leadCreatedAtRange } from "@/lib/analyst-date-range";
 
-/** Leads routed to this main team lead, optionally filtered by lead `createdAt`. */
-export function mtlLeadWhere(
+/** SQL WHERE fragment for leads routed to this main team lead (optional `createdAt` range). */
+export function mtlLeadSql(
   assignedMainTeamLeadId: string,
   from?: string | null,
   to?: string | null,
-) {
+): { clause: string; params: unknown[] } {
   const range = leadCreatedAtRange(from, to);
+  if (!range) {
+    return {
+      clause: `"assignedMainTeamLeadId" = $1`,
+      params: [assignedMainTeamLeadId],
+    };
+  }
   return {
-    assignedMainTeamLeadId,
-    ...(range ? { createdAt: range } : {}),
+    clause: `"assignedMainTeamLeadId" = $1 AND "createdAt" >= $2::timestamp AND "createdAt" <= $3::timestamp`,
+    params: [assignedMainTeamLeadId, range.gte, range.lte],
   };
 }

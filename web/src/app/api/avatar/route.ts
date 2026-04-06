@@ -60,7 +60,8 @@ export async function GET(req: NextRequest) {
     return new NextResponse(file, {
       headers: {
         "Content-Type": contentType,
-        "Cache-Control": "private, max-age=3600",
+        // Avoid stale avatars in the shell after the user replaces the same URL (e.g. jpg → jpg).
+        "Cache-Control": "private, no-store, must-revalidate",
       },
     });
   } catch (e) {

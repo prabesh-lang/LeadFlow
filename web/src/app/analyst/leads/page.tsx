@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
 import {
   analystRangeParams,
   hrefWithDateRange,
-  leadWhereWithDateRange,
+  leadWhereSql,
 } from "@/lib/analyst-date-range";
 import { AnalystAllLeadsTableClient } from "@/components/portal-leads/analyst-all-leads-table-client";
 
@@ -18,11 +18,24 @@ export default async function AnalystAllLeadsPage({
   if (!session) return null;
 
   const { from, to, q } = await analystRangeParams(searchParams);
+  const { clause, params } = leadWhereSql(session.id, from, to);
 
-  const leads = await prisma.lead.findMany({
-    where: leadWhereWithDateRange(session.id, from, to),
-    orderBy: { createdAt: "desc" },
-  });
+  const leads = await dbQuery<{
+    id: string;
+    leadName: string;
+    phone: string | null;
+    leadEmail: string | null;
+    source: string;
+    notes: string | null;
+    lostNotes: string | null;
+    qualificationStatus: string;
+    leadScore: number | null;
+    salesStage: string;
+    createdAt: Date;
+  }>(
+    `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC`,
+    params,
+  );
 
   const rows = leads.map((l) => ({
     id: l.id,

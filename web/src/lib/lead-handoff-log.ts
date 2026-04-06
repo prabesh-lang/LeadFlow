@@ -1,22 +1,21 @@
-import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
-import { LeadHandoffAction } from "@/lib/constants";
+import { newId, dbQuery } from "@/lib/db/pool";
 
-type Action = (typeof LeadHandoffAction)[keyof typeof LeadHandoffAction];
-
-export async function logLeadHandoff(params: {
+export async function logLeadHandoff(opts: {
   leadId: string;
-  action: Action;
+  action: string;
   actorId: string | null;
   detail?: string | null;
 }) {
-  await prisma.leadHandoffLog.create({
-    data: {
-      leadId: params.leadId,
-      action: params.action,
-      actorId: params.actorId,
-      detail: params.detail ?? null,
-    },
-  });
-  revalidatePath("/superadmin");
+  const id = newId();
+  await dbQuery(
+    `INSERT INTO "LeadHandoffLog" (id, "leadId", action, "actorId", detail)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [
+      id,
+      opts.leadId,
+      opts.action,
+      opts.actorId,
+      opts.detail ?? null,
+    ],
+  );
 }

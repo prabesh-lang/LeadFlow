@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
 import {
   analystRangeParams,
   hrefWithDateRange,
 } from "@/lib/analyst-date-range";
-import { atlLeadWhere } from "@/lib/atl-leads";
+import { atlLeadSql } from "@/lib/atl-leads";
 import { AtlAllLeadsTableClient } from "@/components/portal-leads/atl-all-leads-table-client";
 import { UserRole } from "@/lib/constants";
 
@@ -20,39 +20,64 @@ export default async function AnalystTeamLeadLeadsPage({
 
   const { from, to, q } = await analystRangeParams(searchParams);
 
-  const analysts = await prisma.user.findMany({
-    where: { managerId: session.id, role: UserRole.LEAD_ANALYST },
-    select: { id: true },
-  });
+  const analysts = await dbQuery<{ id: string }>(
+    `SELECT id FROM "User" WHERE "managerId" = $1 AND role = $2`,
+    [session.id, UserRole.LEAD_ANALYST],
+  );
   const analystIds = analysts.map((a) => a.id);
 
-  const leads =
+  const { clause, params } = atlLeadSql(analystIds, from, to);
+  const leadRows =
     analystIds.length === 0
       ? []
-      : await prisma.lead.findMany({
-          where: atlLeadWhere(analystIds, from, to),
-          orderBy: { createdAt: "desc" },
-          include: {
-            createdBy: { select: { name: true } },
-            team: { select: { name: true } },
-            assignedMainTeamLead: { select: { name: true } },
-            assignedSalesExec: { select: { name: true } },
-          },
-        });
+      : await dbQuery<{
+          id: string;
+          leadName: string;
+          phone: string | null;
+          leadEmail: string | null;
+          source: string;
+          notes: string | null;
+          lostNotes: string | null;
+          qualificationStatus: string;
+          leadScore: number | null;
+          salesStage: string;
+          createdAt: Date;
+          teamId: string | null;
+          assignedMainTeamLeadId: string | null;
+          cb_name: string;
+          team_name: string | null;
+          mtl_name: string | null;
+          se_name: string | null;
+        }>(
+          `SELECT l.*, cb.name AS cb_name, tm.name AS team_name, mtl.name AS mtl_name, se.name AS se_name
+           FROM "Lead" l
+           JOIN "User" cb ON cb.id = l."createdById"
+           LEFT JOIN "Team" tm ON tm.id = l."teamId"
+           LEFT JOIN "User" mtl ON mtl.id = l."assignedMainTeamLeadId"
+           LEFT JOIN "User" se ON se.id = l."assignedSalesExecId"
+           WHERE ${clause}
+           ORDER BY l."createdAt" DESC`,
+          params,
+        );
 
-  const mainTeamLeads = await prisma.user.findMany({
-    where: { role: UserRole.MAIN_TEAM_LEAD },
-    include: { teamAsMainLead: true },
-  });
-  const mtlOptions = mainTeamLeads
-    .filter((u) => u.teamAsMainLead)
-    .map((u) => ({
-      id: u.id,
-      name: u.name,
-      teamName: u.teamAsMainLead!.name,
-    }));
+  const mtlRows = await dbQuery<{
+    id: string;
+    name: string;
+    team_name: string;
+  }>(
+    `SELECT u.id, u.name, t.name AS team_name
+     FROM "User" u
+     INNER JOIN "Team" t ON t."mainTeamLeadId" = u.id
+     WHERE u.role = $1`,
+    [UserRole.MAIN_TEAM_LEAD],
+  );
+  const mtlOptions = mtlRows.map((u) => ({
+    id: u.id,
+    name: u.name,
+    teamName: u.team_name,
+  }));
 
-  const rows = leads.map((l) => ({
+  const rows = leadRows.map((l) => ({
     id: l.id,
     leadName: l.leadName,
     phone: l.phone,
@@ -66,10 +91,10 @@ export default async function AnalystTeamLeadLeadsPage({
     createdAt: l.createdAt.toISOString(),
     teamId: l.teamId,
     assignedMainTeamLeadId: l.assignedMainTeamLeadId,
-    createdBy: l.createdBy,
-    team: l.team,
-    assignedMainTeamLead: l.assignedMainTeamLead,
-    assignedSalesExec: l.assignedSalesExec,
+    createdBy: { name: l.cb_name },
+    team: l.team_name ? { name: l.team_name } : null,
+    assignedMainTeamLead: l.mtl_name ? { name: l.mtl_name } : null,
+    assignedSalesExec: l.se_name ? { name: l.se_name } : null,
   }));
 
   return (

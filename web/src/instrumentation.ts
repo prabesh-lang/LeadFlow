@@ -22,7 +22,7 @@ export function register() {
   const dbUrl = process.env.DATABASE_URL ?? "";
   if (!dbUrl) {
     console.warn(
-      "[LeadFlow] Production: DATABASE_URL is missing — Prisma cannot connect.",
+      "[LeadFlow] Production: DATABASE_URL is missing — the app cannot reach Postgres.",
     );
   } else if (
     !dbUrl.startsWith("postgres://") &&

@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { dbQuery, dbQueryOne } from "@/lib/db/pool";
+import { isDbConnectionError, isDbPasswordAuthError } from "@/lib/db/errors";
 import { getSession } from "@/lib/auth/session";
 import {
   createSupabaseServerClient,
@@ -22,6 +23,14 @@ const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
+
+type UserRow = {
+  id: string;
+  email: string;
+  authUserId: string | null;
+  role: string;
+  mustResetPassword: boolean;
+};
 
 export async function loginAction(formData: FormData) {
   const rawEmail = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -68,28 +77,49 @@ export async function loginAction(formData: FormData) {
   } = await supabase.auth.getUser();
   const authUserId = authUser?.id;
 
-  let user = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { email },
-        ...(authUserId ? [{ authUserId }] : []),
-      ],
-    },
-  });
+  let user: UserRow | null;
+  try {
+    user = await dbQueryOne<UserRow>(
+      `SELECT id, email, "authUserId", role, "mustResetPassword" FROM "User"
+       WHERE email = $1 OR ($2::text IS NOT NULL AND "authUserId" = $2)
+       LIMIT 1`,
+      [email, authUserId ?? null],
+    );
+    if (user && authUserId && user.authUserId !== authUserId) {
+      await dbQuery(
+        `UPDATE "User" SET "authUserId" = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2`,
+        [authUserId, user.id],
+      );
+      user = { ...user, authUserId };
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.startsWith("DATABASE_URL still")) {
+      await supabase.auth.signOut();
+      return { error: e.message };
+    }
+    if (isDbPasswordAuthError(e)) {
+      await supabase.auth.signOut();
+      return {
+        error:
+          "Database rejected DATABASE_URL: wrong database password (this is the Postgres password in your connection string, not your Supabase login). In Supabase → Project Settings → Database, reset the database password or use “Copy connection string”, then update web/.env. URL-encode @ # % and other special characters in the password.",
+      };
+    }
+    if (isDbConnectionError(e)) {
+      await supabase.auth.signOut();
+      return {
+        error:
+          "Cannot connect to the database. Check DATABASE_URL in web/.env, resume the Supabase project if paused, try another network (port 5432 is often blocked), or use the Session pooler URI (port 6543) from Supabase.",
+      };
+    }
+    throw e;
+  }
 
   if (!user) {
     await supabase.auth.signOut();
     return {
       error:
-        "No LeadFlow user for this account (Supabase sign-in worked, but the app database has no matching profile). On Railway, redeploy so startup can create superadmin on an empty DB, or run `npx prisma db seed` from the web folder with this deployment’s DATABASE_URL and Supabase keys.",
+        "No LeadFlow user for this account (Supabase sign-in worked, but the app database has no matching profile). On Railway, redeploy so startup can create superadmin on an empty DB, or run `npm run db:seed:bootstrap` from the web folder with this deployment’s DATABASE_URL and Supabase keys.",
     };
-  }
-
-  if (authUserId && user.authUserId !== authUserId) {
-    user = await prisma.user.update({
-      where: { id: user.id },
-      data: { authUserId },
-    });
   }
 
   if (user.mustResetPassword) {
@@ -116,7 +146,14 @@ export async function completeMandatoryPasswordResetAction(formData: FormData) {
     return { error: "Password must be at least 8 characters." };
   }
 
-  const user = await prisma.user.findUnique({ where: { id: session.id } });
+  const user = await dbQueryOne<{
+    mustResetPassword: boolean;
+    authUserId: string | null;
+    role: string;
+  }>(
+    `SELECT "mustResetPassword", "authUserId", role FROM "User" WHERE id = $1`,
+    [session.id],
+  );
   if (!user?.mustResetPassword) {
     return { error: "Password reset is not required for this account." };
   }
@@ -134,10 +171,10 @@ export async function completeMandatoryPasswordResetAction(formData: FormData) {
     return { error: "Something went wrong. Please try again." };
   }
 
-  await prisma.user.update({
-    where: { id: session.id },
-    data: { mustResetPassword: false },
-  });
+  await dbQuery(
+    `UPDATE "User" SET "mustResetPassword" = false, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $1`,
+    [session.id],
+  );
 
   revalidatePath("/", "layout");
   return {

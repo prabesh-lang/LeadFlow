@@ -5,7 +5,7 @@ import { AtlAppShell } from "@/components/atl/atl-app-shell";
 import { UserRole } from "@/lib/constants";
 import { redirectIfMustResetPassword } from "@/lib/auth-redirects";
 import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
-import { prisma } from "@/lib/prisma";
+import { dbQueryOne } from "@/lib/db/pool";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -21,10 +21,10 @@ export default async function AnalystTeamLeadLayout({
   await redirectIfMustResetPassword();
 
   const [user, notif] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: session.id },
-      select: { image: true, analystTeamName: true },
-    }),
+    dbQueryOne<{ image: string | null; analystTeamName: string | null }>(
+      `SELECT image, "analystTeamName" FROM "User" WHERE id = $1`,
+      [session.id],
+    ),
     getPortalNotificationsForUser(session.id),
   ]);
 

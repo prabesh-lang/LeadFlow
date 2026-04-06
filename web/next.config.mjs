@@ -41,8 +41,7 @@ const nextConfig = {
       },
     ];
   },
-  // Prisma: avoid bundling engine into server chunks incorrectly in production.
-  serverExternalPackages: ["@prisma/client", "prisma"],
+  serverExternalPackages: ["pg"],
   // This Next app lives in `web/`. Pin Turbopack root to this folder (not the
   // monorepo parent): otherwise Next picks `LeadFlow/` when multiple
   // lockfiles exist, which breaks `@/` imports AND `@import "tailwindcss"`.

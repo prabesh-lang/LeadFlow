@@ -66,7 +66,7 @@ export default async function SuperadminReportPage({
     createdById: l.createdBy.id,
     createdByEmail: l.createdBy.email,
     createdByName: l.createdBy.name,
-    assignedSalesExecId: l.assignedSalesExecId,
+    assignedSalesExecId: l.assignedSalesExec?.id ?? null,
     assignedRepName: l.assignedSalesExec?.name ?? null,
   }));
 

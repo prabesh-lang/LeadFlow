@@ -23,7 +23,7 @@ export type UnifiedPortalKind =
   | "sales_executive"
   | "superadmin";
 
-/** Normalized lead row for reports (map each portal’s Prisma shape to this). */
+/** Normalized lead row for reports (map each portal’s lead row to this). */
 export type UnifiedLeadRow = {
   id: string;
   leadName: string | null;

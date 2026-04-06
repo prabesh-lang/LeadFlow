@@ -8,6 +8,7 @@ export type PortalSettingsPayload = {
   name: string;
   image: string | null;
   teamName: string | null;
+  updatedAt: string;
 };
 
 /**
@@ -43,6 +44,17 @@ export default function PortalSettingsPage() {
     };
   }, [router]);
 
+  async function reloadProfile() {
+    const res = await fetch("/api/me/settings", { credentials: "same-origin" });
+    if (res.status === 401) {
+      router.replace("/login");
+      return;
+    }
+    if (!res.ok) return;
+    const d = (await res.json()) as PortalSettingsPayload;
+    setData(d);
+  }
+
   if (loadError) {
     return (
       <p className="text-sm text-lf-danger" role="alert">
@@ -62,11 +74,13 @@ export default function PortalSettingsPage() {
 
   return (
     <UserSettingsForms
+      key={`${data.name}-${data.image ?? "none"}-${data.updatedAt}`}
       defaultName={data.name}
       teamName={data.teamName}
       avatarUrl={data.image}
       fetchProfileUrl="/api/me/settings"
       fetchPasswordUrl="/api/me/password"
+      onProfileSaved={reloadProfile}
     />
   );
 }

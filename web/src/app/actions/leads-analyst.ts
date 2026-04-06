@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
+import { dbQuery, dbQueryOne, newId } from "@/lib/db/pool";
 import { getSession } from "@/lib/auth/session";
 import {
   LeadHandoffAction,
@@ -126,27 +126,65 @@ export async function createLeadAnalyst(formData: FormData) {
   });
   const country = countryNameFromPhone(phone);
 
-  const lead = await prisma.lead.create({
-    data: {
-      leadName,
-      phone,
-      leadEmail,
-      country,
-      city,
-      source,
-      sourceWebsiteName,
-      sourceMetaProfileName,
-      notes,
-      qualificationStatus,
-      leadScore,
-      salesStage: SalesStage.PRE_SALES,
-      createdById: session.id,
-      ...(createdAt ? { createdAt } : {}),
-    },
-  });
+  const leadId = newId();
+
+  if (createdAt) {
+    await dbQuery(
+      `INSERT INTO "Lead" (
+        id, "leadName", phone, "leadEmail", country, city, source, "sourceWebsiteName", "sourceMetaProfileName",
+        notes, "qualificationStatus", "leadScore", "salesStage", "createdById", "createdAt", "updatedAt", "internalReassignCount"
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9,
+        $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP, 0
+      )`,
+      [
+        leadId,
+        leadName,
+        phone,
+        leadEmail,
+        country,
+        city,
+        source,
+        sourceWebsiteName,
+        sourceMetaProfileName,
+        notes,
+        qualificationStatus,
+        leadScore,
+        SalesStage.PRE_SALES,
+        session.id,
+        createdAt,
+      ],
+    );
+  } else {
+    await dbQuery(
+      `INSERT INTO "Lead" (
+        id, "leadName", phone, "leadEmail", country, city, source, "sourceWebsiteName", "sourceMetaProfileName",
+        notes, "qualificationStatus", "leadScore", "salesStage", "createdById", "createdAt", "updatedAt", "internalReassignCount"
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9,
+        $10, $11, $12, $13, $14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0
+      )`,
+      [
+        leadId,
+        leadName,
+        phone,
+        leadEmail,
+        country,
+        city,
+        source,
+        sourceWebsiteName,
+        sourceMetaProfileName,
+        notes,
+        qualificationStatus,
+        leadScore,
+        SalesStage.PRE_SALES,
+        session.id,
+      ],
+    );
+  }
 
   await logLeadHandoff({
-    leadId: lead.id,
+    leadId,
     action: LeadHandoffAction.LEAD_CREATED,
     actorId: session.id,
     detail: `Created by ${session.name ?? session.email}`,
@@ -173,46 +211,52 @@ export async function updateLeadQualificationAnalyst(
     return { error: "Invalid qualification." };
   }
 
-  const lead = await prisma.lead.findFirst({
-    where: { id: leadId, createdById: session.id },
-    select: {
-      id: true,
-      leadName: true,
-      qualificationStatus: true,
-      createdBy: {
-        select: { name: true, managerId: true },
-      },
-    },
-  });
+  const lead = await dbQueryOne<{
+    id: string;
+    leadName: string;
+    qualificationStatus: string;
+    analystName: string;
+    managerId: string | null;
+  }>(
+    `SELECT l.id, l."leadName", l."qualificationStatus", u.name AS "analystName", u."managerId"
+     FROM "Lead" l
+     INNER JOIN "User" u ON u.id = l."createdById"
+     WHERE l.id = $1 AND l."createdById" = $2`,
+    [leadId, session.id],
+  );
   if (!lead) return { error: "Lead not found." };
 
   const previousStatus = lead.qualificationStatus;
 
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: { qualificationStatus },
-  });
+  await dbQuery(
+    `UPDATE "Lead" SET "qualificationStatus" = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2`,
+    [qualificationStatus, leadId],
+  );
 
   if (
     qualificationStatus === QualificationStatus.QUALIFIED &&
     previousStatus !== QualificationStatus.QUALIFIED &&
-    lead.createdBy.managerId
+    lead.managerId
   ) {
-    const manager = await prisma.user.findUnique({
-      where: { id: lead.createdBy.managerId },
-      select: { role: true },
-    });
+    const manager = await dbQueryOne<{ role: string }>(
+      `SELECT role FROM "User" WHERE id = $1`,
+      [lead.managerId],
+    );
     if (manager?.role === UserRole.ANALYST_TEAM_LEAD) {
       const displayName = lead.leadName?.trim() || "A lead";
-      await prisma.notification.create({
-        data: {
-          recipientId: lead.createdBy.managerId,
-          kind: "LEAD_QUALIFIED",
-          leadId: lead.id,
-          title: `${displayName} marked qualified`,
-          body: `Updated by ${lead.createdBy.name}`,
-        },
-      });
+      const notifId = newId();
+      await dbQuery(
+        `INSERT INTO "Notification" (id, "recipientId", kind, "leadId", title, body, "read", "createdAt")
+         VALUES ($1, $2, $3, $4, $5, $6, false, CURRENT_TIMESTAMP)`,
+        [
+          notifId,
+          lead.managerId,
+          "LEAD_QUALIFIED",
+          lead.id,
+          `${displayName} marked qualified`,
+          `Updated by ${lead.analystName}`,
+        ],
+      );
     }
   }
 

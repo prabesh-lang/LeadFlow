@@ -18,6 +18,8 @@ type UserSettingsFormsProps = {
   avatarUrl?: string | null;
   fetchProfileUrl: string;
   fetchPasswordUrl: string;
+  /** Refetch profile from GET /api/me/settings so header + form stay in sync after save */
+  onProfileSaved?: () => void | Promise<void>;
 };
 
 export function UserSettingsForms({
@@ -26,6 +28,7 @@ export function UserSettingsForms({
   avatarUrl,
   fetchProfileUrl,
   fetchPasswordUrl,
+  onProfileSaved,
 }: UserSettingsFormsProps) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("profile");
@@ -98,6 +101,7 @@ export function UserSettingsForms({
         if (result.image !== undefined) {
           setPreviewAvatar(result.image);
         }
+        await onProfileSaved?.();
         router.refresh();
       }
     } finally {
@@ -182,11 +186,7 @@ export function UserSettingsForms({
                   </p>
                 </div>
               ) : null}
-              <form
-                key={profileState?.ok ? "ok" : "p"}
-                onSubmit={onProfileSubmit}
-                className="mt-6 space-y-4"
-              >
+              <form onSubmit={onProfileSubmit} className="mt-6 space-y-4">
                 <label className="block text-sm text-lf-muted">
                   Display name
                   <input
@@ -205,6 +205,20 @@ export function UserSettingsForms({
                     className="mt-1 w-full text-sm text-lf-muted file:mr-3 file:rounded-lg file:border-0 file:bg-lf-bg file:px-3 file:py-2 file:text-lf-text-secondary"
                   />
                 </label>
+                {previewAvatar || (avatarUrl != null && avatarUrl !== "") ? (
+                  <label className="flex cursor-pointer items-start gap-3 text-sm text-lf-muted">
+                    <input
+                      name="removePhoto"
+                      type="checkbox"
+                      value="true"
+                      className="mt-1 rounded border-lf-border text-lf-accent focus:ring-lf-brand"
+                    />
+                    <span>
+                      Remove current profile photo (saved when you click Save
+                      profile; ignored if you also choose a new file above)
+                    </span>
+                  </label>
+                ) : null}
                 {profileState?.error ? (
                   <p className="text-sm text-lf-danger">{profileState.error}</p>
                 ) : null}

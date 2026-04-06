@@ -1,10 +1,10 @@
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
 import {
   analystRangeParams,
   analystRangeSummaryLabel,
-  leadWhereWithDateRange,
+  leadWhereSql,
 } from "@/lib/analyst-date-range";
 import { AnalystPipelineTableClient } from "@/components/portal-leads/analyst-pipeline-table-client";
 import { QualificationStatus, SalesStage } from "@/lib/constants";
@@ -19,11 +19,23 @@ export default async function AnalystPipelinePage({
 
   const { from, to, q } = await analystRangeParams(searchParams);
   const rangeLabel = analystRangeSummaryLabel(from, to);
+  const { clause, params } = leadWhereSql(session.id, from, to);
 
-  const leads = await prisma.lead.findMany({
-    where: leadWhereWithDateRange(session.id, from, to),
-    orderBy: { createdAt: "desc" },
-  });
+  const leads = await dbQuery<{
+    qualificationStatus: string;
+    salesStage: string;
+    id: string;
+    leadName: string;
+    phone: string | null;
+    source: string;
+    notes: string | null;
+    lostNotes: string | null;
+    leadScore: number | null;
+    createdAt: Date;
+  }>(
+    `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC`,
+    params,
+  );
 
   const qualified = leads.filter(
     (l) => l.qualificationStatus === QualificationStatus.QUALIFIED,

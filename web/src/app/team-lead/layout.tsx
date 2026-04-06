@@ -5,7 +5,7 @@ import { MtlAppShell } from "@/components/mtl/mtl-app-shell";
 import { UserRole } from "@/lib/constants";
 import { redirectIfMustResetPassword } from "@/lib/auth-redirects";
 import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
-import { prisma } from "@/lib/prisma";
+import { dbQueryOne } from "@/lib/db/pool";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -21,16 +21,16 @@ export default async function TeamLeadLayout({
   await redirectIfMustResetPassword();
 
   const [user, team, notif] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: session.id },
-      select: { image: true },
-    }),
+    dbQueryOne<{ image: string | null }>(
+      `SELECT image FROM "User" WHERE id = $1`,
+      [session.id],
+    ),
     session.teamId
-      ? prisma.team.findUnique({
-          where: { id: session.teamId },
-          select: { name: true },
-        })
-      : null,
+      ? dbQueryOne<{ name: string }>(
+          `SELECT name FROM "Team" WHERE id = $1`,
+          [session.teamId],
+        )
+      : Promise.resolve(null),
     getPortalNotificationsForUser(session.id),
   ]);
 

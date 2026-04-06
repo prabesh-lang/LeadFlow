@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import { leadCreatedAtRange } from "@/lib/analyst-date-range";
 
 export type SuperadminLeadsScope = "all" | "team" | "exec";
@@ -11,6 +10,13 @@ export type SuperadminLeadsParsed = {
   scope: SuperadminLeadsScope;
   teamId: string | null;
   execId: string | null;
+};
+
+/** SQL fragment (no leading WHERE) + params for filtering "Lead" rows. */
+export type SuperadminLeadsWhereSql = {
+  /** Combined with AND; use `TRUE` when empty. */
+  clause: string;
+  params: unknown[];
 };
 
 function first(
@@ -46,37 +52,48 @@ export function parseSuperadminLeadsSearchParams(
   };
 }
 
-export function buildSuperadminLeadsWhere(
+/** Build SQL WHERE fragment for `Lead` (alias optional — use bare column names). */
+export function buildSuperadminLeadsWhereSql(
   p: SuperadminLeadsParsed,
-): Prisma.LeadWhereInput {
+): SuperadminLeadsWhereSql {
+  const parts: string[] = [];
+  const params: unknown[] = [];
+  let n = 1;
+
   const range = leadCreatedAtRange(p.from, p.to);
-  const and: Prisma.LeadWhereInput[] = [];
 
   if (p.dateBasis === "assigned") {
+    parts.push(`"execAssignedAt" IS NOT NULL`);
     if (range) {
-      and.push({
-        execAssignedAt: {
-          not: null,
-          gte: range.gte,
-          lte: range.lte,
-        },
-      });
-    } else {
-      and.push({ execAssignedAt: { not: null } });
+      parts.push(
+        `"execAssignedAt" >= $${n}::timestamp AND "execAssignedAt" <= $${n + 1}::timestamp`,
+      );
+      params.push(range.gte, range.lte);
+      n += 2;
     }
   } else if (range) {
-    and.push({ createdAt: range });
+    parts.push(
+      `"createdAt" >= $${n}::timestamp AND "createdAt" <= $${n + 1}::timestamp`,
+    );
+    params.push(range.gte, range.lte);
+    n += 2;
   }
 
   if (p.scope === "team" && p.teamId) {
-    and.push({ teamId: p.teamId });
+    parts.push(`"teamId" = $${n}`);
+    params.push(p.teamId);
+    n += 1;
   }
   if (p.scope === "exec" && p.execId) {
-    and.push({ assignedSalesExecId: p.execId });
+    parts.push(`"assignedSalesExecId" = $${n}`);
+    params.push(p.execId);
+    n += 1;
   }
 
-  if (and.length === 0) return {};
-  return { AND: and };
+  return {
+    clause: parts.length > 0 ? parts.join(" AND ") : "TRUE",
+    params,
+  };
 }
 
 function fmtShort(d: Date) {

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import * as XLSX from "xlsx";
-import { prisma } from "@/lib/prisma";
+import { newId, withTransaction } from "@/lib/db/pool";
 import { getSession } from "@/lib/auth/session";
 import {
   LeadHandoffAction,
@@ -181,9 +181,9 @@ export async function importLeadsFromExcelAnalyst(
   }
 
   const actorName = session.name ?? session.email;
-  let created = 0;
 
-  await prisma.$transaction(async (tx) => {
+  let created = 0;
+  await withTransaction(async (c) => {
     for (const row of parsedRows) {
       const source = buildStoredSource(
         row.lead_source as LeadSourceValue,
@@ -191,31 +191,46 @@ export async function importLeadsFromExcelAnalyst(
       );
       const country = countryNameFromPhone(row.phone);
 
-      const lead = await tx.lead.create({
-        data: {
-          leadName: row.full_name,
-          phone: row.phone,
-          leadEmail: row.email,
-          country,
-          city: row.city,
-          source,
-          notes: row.notes,
-          qualificationStatus: row.qualification,
-          leadScore: row.lead_score,
-          salesStage: SalesStage.PRE_SALES,
-          createdById: session.id,
-          ...(row.date_added ? { createdAt: row.date_added } : {}),
-        },
-      });
+      const leadId = newId();
+      const createdAt = row.date_added ?? new Date();
 
-      await tx.leadHandoffLog.create({
-        data: {
-          leadId: lead.id,
-          action: LeadHandoffAction.LEAD_CREATED,
-          actorId: session.id,
-          detail: `Created by ${actorName} (Excel import)`,
-        },
-      });
+      await c.query(
+        `INSERT INTO "Lead" (
+          id, "leadName", phone, "leadEmail", country, city, source, notes, "qualificationStatus", "leadScore",
+          "salesStage", "createdById", "createdAt", "updatedAt", "internalReassignCount"
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+          $11, $12, $13, CURRENT_TIMESTAMP, 0
+        )`,
+        [
+          leadId,
+          row.full_name,
+          row.phone,
+          row.email,
+          country,
+          row.city,
+          source,
+          row.notes,
+          row.qualification,
+          row.lead_score,
+          SalesStage.PRE_SALES,
+          session.id,
+          createdAt,
+        ],
+      );
+
+      const logId = newId();
+      await c.query(
+        `INSERT INTO "LeadHandoffLog" (id, "leadId", action, "actorId", detail)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          logId,
+          leadId,
+          LeadHandoffAction.LEAD_CREATED,
+          session.id,
+          `Created by ${actorName} (Excel import)`,
+        ],
+      );
       created++;
     }
   });

@@ -1,16 +1,16 @@
 /**
  * Demo data for PostgreSQL (Supabase). Requires DATABASE_URL=postgresql://...
- * and Supabase keys. Run: `npx prisma migrate deploy` then `npx prisma db seed`.
- * Migrating existing SQLite data: use a DB export/import tool or one-off SQL;
- * this script does not import from SQLite automatically.
+ * and Supabase keys. Apply schema from `database/migrations/` first, then run:
+ *   npx tsx database/seed.ts
  */
-import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
 import { createClient } from "@supabase/supabase-js";
 import { DEMO_PASSWORD, seedDemoWithAuthIds } from "./seed-demo-data";
 import { assertPostgresDatabaseUrl } from "./seed-env";
+import type { DemoAuthIds } from "./seed-demo-data";
 
 assertPostgresDatabaseUrl();
-const prisma = new PrismaClient();
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function createAuthUser(email: string, password: string) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -34,14 +34,11 @@ async function createAuthUser(email: string, password: string) {
 }
 
 async function main() {
-  await prisma.lead.deleteMany();
-  await prisma.salesExecTeamTransfer.deleteMany();
-  await prisma.notification.deleteMany();
-  await prisma.teamWhatsApp.deleteMany();
-  await prisma.team.deleteMany();
-  await prisma.user.deleteMany();
+  await pool.query(
+    `TRUNCATE TABLE "LeadHandoffLog", "Lead", "Notification", "SalesExecTeamTransfer", "TeamWhatsApp", "Team", "User" CASCADE`,
+  );
 
-  const ids = {
+  const ids: DemoAuthIds = {
     superadmin: await createAuthUser("superadmin@demo.local", DEMO_PASSWORD),
     atl: await createAuthUser("atl@demo.local", DEMO_PASSWORD),
     analyst: await createAuthUser("analyst@demo.local", DEMO_PASSWORD),
@@ -50,13 +47,13 @@ async function main() {
     exec2: await createAuthUser("exec2@demo.local", DEMO_PASSWORD),
   };
 
-  await seedDemoWithAuthIds(prisma, ids);
+  await seedDemoWithAuthIds(pool, ids);
 }
 
 main()
-  .then(() => prisma.$disconnect())
+  .then(() => pool.end())
   .catch(async (e) => {
     console.error(e);
-    await prisma.$disconnect();
+    await pool.end();
     process.exit(1);
   });

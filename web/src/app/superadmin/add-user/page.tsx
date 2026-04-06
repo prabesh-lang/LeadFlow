@@ -4,27 +4,55 @@ import { SuperadminDeleteForm } from "@/components/superadmin/superadmin-delete-
 import { SuperadminPasswordForm } from "@/components/superadmin/superadmin-password-form";
 import { superadminRoleLabel } from "@/lib/superadmin-ui";
 import { UserRole } from "@/lib/constants";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 
 export const metadata: Metadata = {
   title: "Add user · Superadmin",
 };
 
 export default async function SuperadminAddUserPage() {
-  const [users, atlas] = await Promise.all([
-    prisma.user.findMany({
-      orderBy: { email: "asc" },
-      include: {
-        manager: { select: { name: true, email: true } },
-        team: { select: { name: true } },
-      },
-    }),
-    prisma.user.findMany({
-      where: { role: UserRole.ANALYST_TEAM_LEAD },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, email: true, analystTeamName: true },
-    }),
+  const [userRows, atlas] = await Promise.all([
+    dbQuery<{
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+      analystTeamName: string | null;
+      mgr_name: string | null;
+      mgr_email: string | null;
+      team_name: string | null;
+    }>(
+      `SELECT u.id, u.email, u.name, u.role, u."analystTeamName",
+        mgr.name AS mgr_name, mgr.email AS mgr_email, tm.name AS team_name
+       FROM "User" u
+       LEFT JOIN "User" mgr ON mgr.id = u."managerId"
+       LEFT JOIN "Team" tm ON tm.id = u."teamId"
+       ORDER BY u.email ASC`,
+    ),
+    dbQuery<{
+      id: string;
+      name: string;
+      email: string;
+      analystTeamName: string | null;
+    }>(
+      `SELECT id, name, email, "analystTeamName" FROM "User"
+       WHERE role = $1 ORDER BY name ASC`,
+      [UserRole.ANALYST_TEAM_LEAD],
+    ),
   ]);
+
+  const users = userRows.map((u) => ({
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    role: u.role,
+    analystTeamName: u.analystTeamName,
+    manager:
+      u.mgr_name && u.mgr_email
+        ? { name: u.mgr_name, email: u.mgr_email }
+        : null,
+    team: u.team_name ? { name: u.team_name } : null,
+  }));
 
   return (
     <div className="space-y-10">

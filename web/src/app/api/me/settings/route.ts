@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQueryOne } from "@/lib/db/pool";
 import {
   canUsePortalSettings,
   runPortalProfileUpdate,
@@ -16,14 +16,18 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.id },
-    select: {
-      name: true,
-      image: true,
-      team: { select: { name: true } },
-    },
-  });
+  const user = await dbQueryOne<{
+    name: string;
+    image: string | null;
+    updatedAt: Date;
+    teamName: string | null;
+  }>(
+    `SELECT u.name, u.image, u."updatedAt", t.name AS "teamName"
+     FROM "User" u
+     LEFT JOIN "Team" t ON t.id = u."teamId"
+     WHERE u.id = $1`,
+    [session.id],
+  );
   if (!user) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
@@ -31,7 +35,8 @@ export async function GET() {
   return NextResponse.json({
     name: user.name,
     image: user.image,
-    teamName: user.team?.name ?? null,
+    teamName: user.teamName,
+    updatedAt: user.updatedAt.toISOString(),
   });
 }
 

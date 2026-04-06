@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQuery, dbQueryOne } from "@/lib/db/pool";
 import { UserRole } from "@/lib/constants";
 import { MtlSalesTeamActionsEntry } from "@/components/mtl/mtl-sales-team-actions-entry";
 import { MtlProvisionedPasswordCell } from "@/components/mtl/mtl-provisioned-password-cell";
@@ -9,45 +9,40 @@ export default async function TeamLeadSalesTeamPage() {
   if (!session) return null;
 
   const team = session.teamId
-    ? await prisma.team.findUnique({
-        where: { id: session.teamId },
-        select: { name: true },
-      })
+    ? await dbQueryOne<{ name: string }>(
+        `SELECT name FROM "Team" WHERE id = $1`,
+        [session.teamId],
+      )
     : null;
 
   const execs =
     session.teamId == null
       ? []
-      : await prisma.user.findMany({
-          where: {
-            teamId: session.teamId,
-            role: UserRole.SALES_EXECUTIVE,
-          },
-          orderBy: { name: "asc" },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        });
+      : await dbQuery<{ id: string; name: string; email: string }>(
+          `SELECT id, name, email FROM "User" WHERE "teamId" = $1 AND role = $2 ORDER BY name ASC`,
+          [session.teamId, UserRole.SALES_EXECUTIVE],
+        );
 
   const otherTeams =
     session.teamId == null
       ? []
-      : await prisma.team.findMany({
-          where: { id: { not: session.teamId } },
-          orderBy: { name: "asc" },
-          select: {
-            id: true,
-            name: true,
-            mainTeamLead: { select: { name: true } },
-          },
-        });
+      : await dbQuery<{
+          id: string;
+          name: string;
+          mtl_name: string;
+        }>(
+          `SELECT t.id, t.name, u.name AS mtl_name
+           FROM "Team" t
+           JOIN "User" u ON u.id = t."mainTeamLeadId"
+           WHERE t.id <> $1
+           ORDER BY t.name ASC`,
+          [session.teamId],
+        );
 
   const transferTeamOptions = otherTeams.map((t) => ({
     id: t.id,
     name: t.name,
-    mainTeamLeadName: t.mainTeamLead.name,
+    mainTeamLeadName: t.mtl_name,
   }));
 
   return (

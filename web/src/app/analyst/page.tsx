@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 import { AnalystHeaderAddButton } from "@/components/analyst/add-lead-modal";
 import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
@@ -9,9 +9,28 @@ import {
   analystRangeParams,
   analystRangeSummaryLabel,
   hrefWithDateRange,
-  leadWhereWithDateRange,
+  leadWhereSql,
 } from "@/lib/analyst-date-range";
 import { buildUnifiedDashboardViewModel } from "@/lib/unified-dashboard-report";
+
+type LeadDashRow = {
+  id: string;
+  leadName: string;
+  source: string;
+  sourceWebsiteName: string | null;
+  sourceMetaProfileName: string | null;
+  qualificationStatus: string;
+  salesStage: string;
+  leadScore: number | null;
+  phone: string | null;
+  country: string | null;
+  city: string | null;
+  createdAt: Date;
+  notes: string | null;
+  lostNotes: string | null;
+  assignedSalesExecId: string | null;
+  se_name: string | null;
+};
 
 export default async function AnalystDashboard({
   searchParams,
@@ -23,14 +42,16 @@ export default async function AnalystDashboard({
 
   const { from, to } = await analystRangeParams(searchParams);
   const rangeLabel = analystRangeSummaryLabel(from, to);
+  const { clause, params } = leadWhereSql(session.id, from, to);
 
-  const leads = await prisma.lead.findMany({
-    where: leadWhereWithDateRange(session.id, from, to),
-    orderBy: { createdAt: "desc" },
-    include: {
-      assignedSalesExec: { select: { name: true } },
-    },
-  });
+  const leads = await dbQuery<LeadDashRow>(
+    `SELECT l.*, se.name AS se_name
+     FROM "Lead" l
+     LEFT JOIN "User" se ON se.id = l."assignedSalesExecId"
+     WHERE ${clause}
+     ORDER BY l."createdAt" DESC`,
+    params,
+  );
 
   const generatedAt = new Date().toISOString();
   const unifiedRows = leads.map((l) => ({
@@ -52,7 +73,7 @@ export default async function AnalystDashboard({
     createdByEmail: session.email,
     createdByName: session.name,
     assignedSalesExecId: l.assignedSalesExecId,
-    assignedRepName: l.assignedSalesExec?.name ?? null,
+    assignedRepName: l.se_name ?? null,
   }));
 
   const vm = buildUnifiedDashboardViewModel(unifiedRows, {

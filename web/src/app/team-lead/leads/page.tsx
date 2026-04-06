@@ -1,11 +1,11 @@
 import { getSession } from "@/lib/auth/session";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
 import {
   analystRangeParams,
   analystRangeSummaryLabel,
 } from "@/lib/analyst-date-range";
-import { mtlLeadWhere } from "@/lib/mtl-leads";
+import { mtlLeadSql } from "@/lib/mtl-leads";
 import { MtlLeadsTableClient } from "@/components/portal-leads/mtl-leads-table-client";
 import { UserRole } from "@/lib/constants";
 
@@ -19,29 +19,42 @@ export default async function TeamLeadLeadsPage({
 
   const { from, to, q } = await analystRangeParams(searchParams);
   const rangeLabel = analystRangeSummaryLabel(from, to);
-  const where = mtlLeadWhere(session.id, from, to);
+  const { clause, params } = mtlLeadSql(session.id, from, to);
 
-  const leads = await prisma.lead.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: {
-      createdBy: { select: { name: true } },
-      assignedSalesExec: { select: { name: true, id: true } },
-    },
-  });
+  const leadRows = await dbQuery<{
+    id: string;
+    leadName: string;
+    phone: string | null;
+    leadEmail: string | null;
+    source: string;
+    notes: string | null;
+    lostNotes: string | null;
+    leadScore: number | null;
+    salesStage: string;
+    execDeadlineAt: Date | null;
+    assignedSalesExecId: string | null;
+    cb_name: string;
+    se_id: string | null;
+    se_name: string | null;
+  }>(
+    `SELECT l.*, cb.name AS cb_name, se.id AS se_id, se.name AS se_name
+     FROM "Lead" l
+     JOIN "User" cb ON cb.id = l."createdById"
+     LEFT JOIN "User" se ON se.id = l."assignedSalesExecId"
+     WHERE ${clause}
+     ORDER BY l."createdAt" DESC`,
+    params,
+  );
 
   const execs =
     session.teamId == null
       ? []
-      : await prisma.user.findMany({
-          where: {
-            teamId: session.teamId,
-            role: UserRole.SALES_EXECUTIVE,
-          },
-          orderBy: { name: "asc" },
-        });
+      : await dbQuery<{ id: string; name: string }>(
+          `SELECT id, name FROM "User" WHERE "teamId" = $1 AND role = $2 ORDER BY name ASC`,
+          [session.teamId, UserRole.SALES_EXECUTIVE],
+        );
 
-  const rows = leads.map((l) => ({
+  const rows = leadRows.map((l) => ({
     id: l.id,
     leadName: l.leadName,
     phone: l.phone,
@@ -53,8 +66,11 @@ export default async function TeamLeadLeadsPage({
     salesStage: l.salesStage,
     execDeadlineAt: l.execDeadlineAt?.toISOString() ?? null,
     assignedSalesExecId: l.assignedSalesExecId,
-    createdBy: l.createdBy,
-    assignedSalesExec: l.assignedSalesExec,
+    createdBy: { name: l.cb_name },
+    assignedSalesExec:
+      l.se_id && l.se_name
+        ? { id: l.se_id, name: l.se_name }
+        : null,
   }));
 
   const execOptions = execs.map((e) => ({ id: e.id, name: e.name }));

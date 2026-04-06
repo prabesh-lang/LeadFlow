@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SuperadminLeadsFiltersBar } from "@/components/superadmin/superadmin-leads-filters";
-import { QualificationStatus, UserRole } from "@/lib/constants";
+import { UserRole } from "@/lib/constants";
 import { getSuperadminLeadsWithJourney } from "@/lib/superadmin-stats";
 import {
-  buildSuperadminLeadsWhere,
+  buildSuperadminLeadsWhereSql,
   parseSuperadminLeadsSearchParams,
   superadminLeadsFilterSummary,
 } from "@/lib/superadmin-leads-filters";
-import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
-import {
-  superadminHandoffLabels,
-  superadminRoleLabel,
-} from "@/lib/superadmin-ui";
-import { LeadSourceDisplay } from "@/components/lead-source-display";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
+import { SuperadminLeadsJourneyClient } from "@/components/superadmin/superadmin-leads-journey-client";
 
 export const metadata: Metadata = {
   title: "Leads · Superadmin",
@@ -54,18 +49,16 @@ export default async function SuperadminLeadsPage({
 }) {
   const sp = await searchParams;
   const parsed = parseSuperadminLeadsSearchParams(sp);
-  const where = buildSuperadminLeadsWhere(parsed);
+  const where = buildSuperadminLeadsWhereSql(parsed);
 
   const [teams, execs, { qualTotals, analystGroups }] = await Promise.all([
-    prisma.team.findMany({
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    }),
-    prisma.user.findMany({
-      where: { role: UserRole.SALES_EXECUTIVE },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, email: true },
-    }),
+    dbQuery<{ id: string; name: string }>(
+      `SELECT id, name FROM "Team" ORDER BY name ASC`,
+    ),
+    dbQuery<{ id: string; name: string; email: string }>(
+      `SELECT id, name, email FROM "User" WHERE role = $1 ORDER BY name ASC`,
+      [UserRole.SALES_EXECUTIVE],
+    ),
     getSuperadminLeadsWithJourney(where),
   ]);
 
@@ -84,6 +77,27 @@ export default async function SuperadminLeadsPage({
     teamName,
     execLabel,
   });
+  const analystGroupsClient = analystGroups.map((group) => ({
+    analyst: group.analyst,
+    leads: group.leads.map((lead) => ({
+      id: lead.id,
+      leadName: lead.leadName,
+      createdAt: lead.createdAt.toISOString(),
+      qualificationStatus: lead.qualificationStatus,
+      source: lead.source,
+      salesStage: lead.salesStage,
+      assignedMainTeamLead: lead.assignedMainTeamLead,
+      team: lead.team,
+      assignedSalesExec: lead.assignedSalesExec,
+      handoffLogs: lead.handoffLogs.map((h) => ({
+        id: h.id,
+        createdAt: h.createdAt.toISOString(),
+        action: h.action,
+        detail: h.detail,
+        actor: h.actor,
+      })),
+    })),
+  }));
 
   const filtersKey = `${parsed.from ?? ""}|${parsed.to ?? ""}|${parsed.dateBasis}|${parsed.scope}|${parsed.teamId ?? ""}|${parsed.execId ?? ""}`;
 
@@ -138,116 +152,7 @@ export default async function SuperadminLeadsPage({
           No leads match these filters.
         </p>
       ) : (
-        analystGroups.map(({ analyst, leads }) => (
-          <section key={analyst.id} className="space-y-4">
-            <div className="border-b border-lf-border pb-2">
-              <h2 className="text-lg font-semibold text-lf-text">{analyst.name}</h2>
-              <p className="text-xs text-lf-subtle">{analyst.email}</p>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-2">
-              {leads.map((lead) => (
-                <div
-                  key={lead.id}
-                  className="rounded-xl border border-lf-border bg-lf-surface/90 p-5"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="font-semibold text-lf-text">
-                        {lead.leadName || "Unnamed lead"}
-                      </p>
-                      <p className="mt-1 text-xs text-lf-subtle">
-                        Created {lead.createdAt.toLocaleString()}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-                        lead.qualificationStatus ===
-                        QualificationStatus.QUALIFIED
-                          ? "bg-lf-success/15 text-lf-success"
-                          : lead.qualificationStatus ===
-                              QualificationStatus.NOT_QUALIFIED
-                            ? "bg-lf-warning/15 text-lf-warning"
-                            : "bg-lf-bg/60 text-lf-text-secondary"
-                      }`}
-                    >
-                      {lead.qualificationStatus.replace(/_/g, " ")}
-                    </span>
-                  </div>
-
-                  <dl className="mt-4 space-y-2 text-xs text-lf-muted">
-                    <div className="flex justify-between gap-4">
-                      <dt>Source</dt>
-                      <dd className="max-w-[min(100%,14rem)] text-right text-lf-text-secondary">
-                        <LeadSourceDisplay source={lead.source} />
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt>Stage</dt>
-                      <dd className="text-right text-lf-text-secondary">
-                        {analystFacingSalesLabel(lead.salesStage)}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt>Main team lead</dt>
-                      <dd className="text-right text-lf-text-secondary">
-                        {lead.assignedMainTeamLead?.name ?? "—"}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt>Team</dt>
-                      <dd className="text-right text-lf-text-secondary">
-                        {lead.team?.name ?? "—"}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <dt>Sales executive</dt>
-                      <dd className="text-right text-lf-text-secondary">
-                        {lead.assignedSalesExec?.name ?? "—"}
-                      </dd>
-                    </div>
-                  </dl>
-
-                  <div className="mt-4 border-t border-lf-border pt-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-lf-subtle">
-                      Journey
-                    </p>
-                    {lead.handoffLogs.length === 0 ? (
-                      <p className="mt-2 text-xs text-lf-subtle">
-                        No handoff events recorded (older leads or pre-log).
-                      </p>
-                    ) : (
-                      <ol className="mt-3 space-y-3">
-                        {lead.handoffLogs.map((h) => (
-                          <li
-                            key={h.id}
-                            className="relative border-l border-lf-border pl-4 text-xs"
-                          >
-                            <span className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-lf-muted" />
-                            <p className="text-lf-subtle">
-                              {h.createdAt.toLocaleString()}
-                            </p>
-                            <p className="mt-0.5 font-medium text-lf-text-secondary">
-                              {superadminHandoffLabels[h.action] ?? h.action}
-                            </p>
-                            {h.actor ? (
-                              <p className="mt-0.5 text-lf-subtle">
-                                {h.actor.name} ·{" "}
-                                {superadminRoleLabel(h.actor.role)}
-                              </p>
-                            ) : null}
-                            {h.detail ? (
-                              <p className="mt-1 text-lf-subtle">{h.detail}</p>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ol>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))
+        <SuperadminLeadsJourneyClient analystGroups={analystGroupsClient} />
       )}
     </div>
   );

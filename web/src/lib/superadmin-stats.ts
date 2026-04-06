@@ -1,8 +1,8 @@
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { dbQuery } from "@/lib/db/pool";
 import { QualificationStatus, SalesStage, UserRole } from "@/lib/constants";
 import { leadCreatedAtRange } from "@/lib/analyst-date-range";
 import { resolveLeadCity, resolveLeadCountry } from "@/lib/phone-location";
+import type { SuperadminLeadsWhereSql } from "@/lib/superadmin-leads-filters";
 
 const ACTIVE_ROLES = [
   UserRole.LEAD_ANALYST,
@@ -13,61 +13,73 @@ const ACTIVE_ROLES = [
 
 export async function getSuperadminDashboardMetrics() {
   const [
-    activeUsers,
-    totalLeads,
-    qualified,
-    notQualified,
-    irrelevant,
+    activeUsersRow,
+    totalLeadsRow,
+    qualifiedRow,
+    notQualifiedRow,
+    irrelevantRow,
     teamGroups,
     execGroups,
   ] = await Promise.all([
-    prisma.user.count({
-      where: { role: { in: [...ACTIVE_ROLES] } },
-    }),
-    prisma.lead.count(),
-    prisma.lead.count({
-      where: { qualificationStatus: QualificationStatus.QUALIFIED },
-    }),
-    prisma.lead.count({
-      where: { qualificationStatus: QualificationStatus.NOT_QUALIFIED },
-    }),
-    prisma.lead.count({
-      where: { qualificationStatus: QualificationStatus.IRRELEVANT },
-    }),
-    prisma.lead.groupBy({
-      by: ["teamId"],
-      where: { teamId: { not: null } },
-      _count: { id: true },
-    }),
-    prisma.lead.groupBy({
-      by: ["assignedSalesExecId"],
-      where: { assignedSalesExecId: { not: null } },
-      _count: { id: true },
-    }),
+    dbQuery<{ c: string }>(
+      `SELECT COUNT(*)::text as c FROM "User" WHERE role = ANY($1::text[])`,
+      [ACTIVE_ROLES],
+    ),
+    dbQuery<{ c: string }>(`SELECT COUNT(*)::text as c FROM "Lead"`),
+    dbQuery<{ c: string }>(
+      `SELECT COUNT(*)::text as c FROM "Lead" WHERE "qualificationStatus" = $1`,
+      [QualificationStatus.QUALIFIED],
+    ),
+    dbQuery<{ c: string }>(
+      `SELECT COUNT(*)::text as c FROM "Lead" WHERE "qualificationStatus" = $1`,
+      [QualificationStatus.NOT_QUALIFIED],
+    ),
+    dbQuery<{ c: string }>(
+      `SELECT COUNT(*)::text as c FROM "Lead" WHERE "qualificationStatus" = $1`,
+      [QualificationStatus.IRRELEVANT],
+    ),
+    dbQuery<{ teamId: string | null; c: string }>(
+      `SELECT "teamId", COUNT(*)::text as c FROM "Lead" WHERE "teamId" IS NOT NULL GROUP BY "teamId"`,
+    ),
+    dbQuery<{ assignedSalesExecId: string | null; c: string }>(
+      `SELECT "assignedSalesExecId", COUNT(*)::text as c FROM "Lead" WHERE "assignedSalesExecId" IS NOT NULL GROUP BY "assignedSalesExecId"`,
+    ),
   ]);
+
+  const activeUsers = Number(activeUsersRow[0]?.c ?? 0);
+  const totalLeads = Number(totalLeadsRow[0]?.c ?? 0);
+  const qualified = Number(qualifiedRow[0]?.c ?? 0);
+  const notQualified = Number(notQualifiedRow[0]?.c ?? 0);
+  const irrelevant = Number(irrelevantRow[0]?.c ?? 0);
 
   const teamIds = teamGroups
     .map((g) => g.teamId)
     .filter((id): id is string => id != null);
-  const teams = await prisma.team.findMany({
-    where: { id: { in: teamIds } },
-    select: { id: true, name: true },
-  });
+  const teams =
+    teamIds.length > 0
+      ? await dbQuery<{ id: string; name: string }>(
+          `SELECT id, name FROM "Team" WHERE id = ANY($1::text[])`,
+          [teamIds],
+        )
+      : [];
   const teamName = new Map(teams.map((t) => [t.id, t.name]));
 
   const leadsByTeam = teamGroups.map((g) => ({
     teamId: g.teamId as string,
     teamName: g.teamId ? teamName.get(g.teamId) ?? "Unknown team" : "—",
-    count: g._count.id,
+    count: Number(g.c),
   }));
 
   const execIds = execGroups
     .map((g) => g.assignedSalesExecId)
     .filter((id): id is string => id != null);
-  const execs = await prisma.user.findMany({
-    where: { id: { in: execIds } },
-    select: { id: true, name: true, email: true },
-  });
+  const execs =
+    execIds.length > 0
+      ? await dbQuery<{ id: string; name: string; email: string }>(
+          `SELECT id, name, email FROM "User" WHERE id = ANY($1::text[])`,
+          [execIds],
+        )
+      : [];
   const execLabel = new Map(
     execs.map((u) => [u.id, `${u.name} (${u.email})`]),
   );
@@ -76,7 +88,7 @@ export async function getSuperadminDashboardMetrics() {
     salesExecId: g.assignedSalesExecId as string,
     label:
       execLabel.get(g.assignedSalesExecId as string) ?? "Unknown executive",
-    count: g._count.id,
+    count: Number(g.c),
   }));
 
   return {
@@ -112,6 +124,29 @@ const SCORE_HIST_ORDER = [
   "No score",
 ] as const;
 
+type LeadReportRow = {
+  id: string;
+  leadName: string;
+  phone: string | null;
+  leadEmail: string | null;
+  country: string | null;
+  city: string | null;
+  source: string;
+  sourceWebsiteName: string | null;
+  sourceMetaProfileName: string | null;
+  notes: string | null;
+  lostNotes: string | null;
+  qualificationStatus: string;
+  leadScore: number | null;
+  salesStage: string;
+  createdAt: Date;
+  createdById: string;
+  assignedSalesExecId: string | null;
+  cb_name: string;
+  cb_email: string;
+  se_name: string | null;
+};
+
 export async function getSuperadminReportAggregates(opts?: {
   from?: string | null;
   to?: string | null;
@@ -120,13 +155,46 @@ export async function getSuperadminReportAggregates(opts?: {
     opts?.from ?? undefined,
     opts?.to ?? undefined,
   );
-  const leads = await prisma.lead.findMany({
-    where: range ? { createdAt: range } : {},
-    include: {
-      createdBy: { select: { id: true, name: true, email: true } },
-      assignedSalesExec: { select: { id: true, name: true } },
+  const rangeSql = range
+    ? `WHERE l."createdAt" >= $1::timestamp AND l."createdAt" <= $2::timestamp`
+    : "";
+  const rangeParams = range ? [range.gte, range.lte] : [];
+
+  const leadRows = await dbQuery<LeadReportRow>(
+    `SELECT l.*, cb.name as cb_name, cb.email as cb_email, se.name as se_name
+     FROM "Lead" l
+     INNER JOIN "User" cb ON cb.id = l."createdById"
+     LEFT JOIN "User" se ON se.id = l."assignedSalesExecId"
+     ${rangeSql}
+     ORDER BY l."createdAt" ASC`,
+    rangeParams,
+  );
+
+  const leads = leadRows.map((l) => ({
+    id: l.id,
+    leadName: l.leadName,
+    phone: l.phone,
+    leadEmail: l.leadEmail,
+    country: l.country,
+    city: l.city,
+    source: l.source,
+    sourceWebsiteName: l.sourceWebsiteName,
+    sourceMetaProfileName: l.sourceMetaProfileName,
+    notes: l.notes,
+    lostNotes: l.lostNotes,
+    qualificationStatus: l.qualificationStatus,
+    leadScore: l.leadScore,
+    salesStage: l.salesStage,
+    createdAt: l.createdAt,
+    createdBy: {
+      id: l.createdById,
+      name: l.cb_name,
+      email: l.cb_email,
     },
-  });
+    assignedSalesExec: l.assignedSalesExecId
+      ? { id: l.assignedSalesExecId, name: l.se_name ?? "" }
+      : null,
+  }));
 
   let closedWon = 0;
   let closedLost = 0;
@@ -179,12 +247,9 @@ export async function getSuperadminReportAggregates(opts?: {
     qualifiedRatio: pct(qualified),
     notQualifiedRatio: pct(notQualified),
     irrelevantRatio: pct(irrelevant),
-    /** Won as % of all leads */
     conversionRatio: pct(closedWon),
-    /** Won as % of closed deals */
     winRateAmongClosed: pctClosed(closedWon),
     lostRateAmongClosed: pctClosed(closedLost),
-    /** Lost as % of all leads (for funnel view) */
     lostRatioOfAll: pct(closedLost),
     countryRows: [...byCountry.entries()]
       .sort((a, b) => b[1] - a[1])
@@ -203,45 +268,196 @@ export async function getSuperadminReportAggregates(opts?: {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 16)
       .map(([country, count]) => ({ label: country, count })),
-    /** Full rows for unified dashboard export (same format as other portals). */
     leads,
   };
 }
 
+type LeadDbRow = {
+  id: string;
+  leadName: string;
+  phone: string | null;
+  leadEmail: string | null;
+  country: string | null;
+  city: string | null;
+  source: string;
+  sourceWebsiteName: string | null;
+  sourceMetaProfileName: string | null;
+  notes: string | null;
+  lostNotes: string | null;
+  qualificationStatus: string;
+  leadScore: number | null;
+  salesStage: string;
+  createdById: string;
+  teamId: string | null;
+  assignedMainTeamLeadId: string | null;
+  assignedSalesExecId: string | null;
+  execAssignedAt: Date | null;
+  execDeadlineAt: Date | null;
+  closedAt: Date | null;
+  internalReassignCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type JourneyLead = LeadDbRow & {
+  createdBy: { id: string; name: string; email: string };
+  team: { name: string } | null;
+  assignedMainTeamLead: { name: string; email: string } | null;
+  assignedSalesExec: { name: string; email: string } | null;
+  handoffLogs: {
+    id: string;
+    createdAt: Date;
+    action: string;
+    detail: string | null;
+    actor: { name: string; email: string; role: string } | null;
+  }[];
+};
+
 export async function getSuperadminLeadsWithJourney(
-  where?: Prisma.LeadWhereInput,
+  where?: SuperadminLeadsWhereSql,
 ) {
-  const leads = await prisma.lead.findMany({
-    ...(where && Object.keys(where).length > 0 ? { where } : {}),
-    orderBy: { updatedAt: "desc" },
-    include: {
-      createdBy: { select: { id: true, name: true, email: true } },
-      team: { select: { name: true } },
-      assignedMainTeamLead: { select: { name: true, email: true } },
-      assignedSalesExec: { select: { name: true, email: true } },
-      handoffLogs: {
-        orderBy: { createdAt: "asc" },
-        include: {
-          actor: { select: { name: true, email: true, role: true } },
-        },
-      },
-    },
+  const clause = where?.clause ?? "TRUE";
+  const baseParams = where?.params ?? [];
+
+  const leadRows = await dbQuery<LeadDbRow>(
+    `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "updatedAt" DESC`,
+    baseParams,
+  );
+
+  if (leadRows.length === 0) {
+    return {
+      qualTotals: { qualified: 0, notQualified: 0, irrelevant: 0 },
+      analystGroups: [] as { analyst: { id: string; name: string; email: string }; leads: JourneyLead[] }[],
+    };
+  }
+
+  const userIds = new Set<string>();
+  const teamIds = new Set<string>();
+  for (const l of leadRows) {
+    userIds.add(l.createdById);
+    if (l.teamId) teamIds.add(l.teamId);
+    if (l.assignedMainTeamLeadId) userIds.add(l.assignedMainTeamLeadId);
+    if (l.assignedSalesExecId) userIds.add(l.assignedSalesExecId);
+  }
+
+  const users = await dbQuery<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  }>(
+    `SELECT id, name, email, role FROM "User" WHERE id = ANY($1::text[])`,
+    [Array.from(userIds)],
+  );
+  const userMap = new Map(users.map((u) => [u.id, u]));
+
+  const teams =
+    teamIds.size > 0
+      ? await dbQuery<{ id: string; name: string }>(
+          `SELECT id, name FROM "Team" WHERE id = ANY($1::text[])`,
+          [Array.from(teamIds)],
+        )
+      : [];
+  const teamMap = new Map(teams.map((t) => [t.id, t]));
+
+  const leadIds = leadRows.map((l) => l.id);
+  const logRows = await dbQuery<{
+    id: string;
+    leadId: string;
+    createdAt: Date;
+    action: string;
+    detail: string | null;
+    actorId: string | null;
+  }>(
+    `SELECT id, "leadId", "createdAt", action, detail, "actorId" FROM "LeadHandoffLog"
+     WHERE "leadId" = ANY($1::text[]) ORDER BY "createdAt" ASC`,
+    [leadIds],
+  );
+
+  for (const log of logRows) {
+    if (log.actorId) userIds.add(log.actorId);
+  }
+  const missingActorIds = [...new Set(logRows.map((l) => l.actorId).filter(Boolean))].filter(
+    (id) => id && !userMap.has(id),
+  ) as string[];
+  if (missingActorIds.length > 0) {
+    const more = await dbQuery<{
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+    }>(
+      `SELECT id, name, email, role FROM "User" WHERE id = ANY($1::text[])`,
+      [missingActorIds],
+    );
+    for (const u of more) userMap.set(u.id, u);
+  }
+
+  const logsByLead = new Map<string, typeof logRows>();
+  for (const log of logRows) {
+    const list = logsByLead.get(log.leadId) ?? [];
+    list.push(log);
+    logsByLead.set(log.leadId, list);
+  }
+
+  const enriched: JourneyLead[] = leadRows.map((l) => {
+    const cb = userMap.get(l.createdById);
+    const mtl = l.assignedMainTeamLeadId
+      ? userMap.get(l.assignedMainTeamLeadId)
+      : null;
+    const se = l.assignedSalesExecId
+      ? userMap.get(l.assignedSalesExecId)
+      : null;
+    const team = l.teamId ? teamMap.get(l.teamId) : null;
+
+    const rawLogs = logsByLead.get(l.id) ?? [];
+    const handoffLogs = rawLogs.map((h) => {
+      const actor = h.actorId ? userMap.get(h.actorId) : null;
+      return {
+        id: h.id,
+        createdAt: h.createdAt,
+        action: h.action,
+        detail: h.detail,
+        actor: actor
+          ? {
+              name: actor.name,
+              email: actor.email,
+              role: actor.role,
+            }
+          : null,
+      };
+    });
+
+    return {
+      ...l,
+      createdBy: cb
+        ? { id: cb.id, name: cb.name, email: cb.email }
+        : { id: l.createdById, name: "?", email: "?" },
+      team: team ? { name: team.name } : null,
+      assignedMainTeamLead: mtl
+        ? { name: mtl.name, email: mtl.email }
+        : null,
+      assignedSalesExec: se
+        ? { name: se.name, email: se.email }
+        : null,
+      handoffLogs,
+    };
   });
 
   const qualTotals = {
-    qualified: leads.filter(
+    qualified: enriched.filter(
       (l) => l.qualificationStatus === QualificationStatus.QUALIFIED,
     ).length,
-    notQualified: leads.filter(
+    notQualified: enriched.filter(
       (l) => l.qualificationStatus === QualificationStatus.NOT_QUALIFIED,
     ).length,
-    irrelevant: leads.filter(
+    irrelevant: enriched.filter(
       (l) => l.qualificationStatus === QualificationStatus.IRRELEVANT,
     ).length,
   };
 
-  const byAnalyst = new Map<string, typeof leads>();
-  for (const l of leads) {
+  const byAnalyst = new Map<string, JourneyLead[]>();
+  for (const l of enriched) {
     const id = l.createdById;
     if (!byAnalyst.has(id)) byAnalyst.set(id, []);
     byAnalyst.get(id)!.push(l);
