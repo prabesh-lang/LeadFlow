@@ -8,34 +8,49 @@ import {
   leadWhereSql,
 } from "@/lib/analyst-date-range";
 import { AnalystAllLeadsTableClient } from "@/components/portal-leads/analyst-all-leads-table-client";
+import { PortalPaginationBar } from "@/components/portal-pagination-bar";
 
 export default async function AnalystAllLeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; q?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; q?: string; page?: string; perPage?: string }>;
 }) {
   const session = await getSession();
   if (!session) return null;
 
-  const { from, to, q } = await analystRangeParams(searchParams);
+  const sp = await searchParams;
+  const { from, to, q } = await analystRangeParams(sp);
+  const pageRaw = Number.parseInt(sp.page ?? "", 10);
+  const perPageRaw = Number.parseInt(sp.perPage ?? "", 10);
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
+  const perPage: 25 | 50 | 100 =
+    perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
+  const offset = (page - 1) * perPage;
   const { clause, params } = leadWhereSql(session.id, from, to);
 
-  const leads = await dbQuery<{
-    id: string;
-    leadName: string;
-    phone: string | null;
-    leadEmail: string | null;
-    source: string;
-    notes: string | null;
-    lostNotes: string | null;
-    qualificationStatus: string;
-    leadScore: number | null;
-    salesStage: string;
-    createdAt: Date;
-  }>(
-    `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC`,
-    params,
-  );
+  const [countRows, leads] = await Promise.all([
+    dbQuery<{ c: string }>(
+      `SELECT COUNT(*)::text AS c FROM "Lead" WHERE ${clause}`,
+      params,
+    ),
+    dbQuery<{
+      id: string;
+      leadName: string;
+      phone: string | null;
+      leadEmail: string | null;
+      source: string;
+      notes: string | null;
+      lostNotes: string | null;
+      qualificationStatus: string;
+      leadScore: number | null;
+      salesStage: string;
+      createdAt: Date;
+    }>(
+      `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, perPage, offset],
+    ),
+  ]);
+  const totalCount = Number(countRows[0]?.c ?? 0);
 
   const rows = leads.map((l) => ({
     id: l.id,
@@ -79,8 +94,16 @@ export default async function AnalystAllLeadsPage({
 
       <AnalystDateRangeBarSuspense />
 
+      <PortalPaginationBar
+        pathname="/analyst/leads"
+        query={{ from, to, q }}
+        page={page}
+        perPage={perPage}
+        totalCount={totalCount}
+      />
+
       <AnalystAllLeadsTableClient
-        key={`${from ?? ""}|${to ?? ""}`}
+        key={`${from ?? ""}|${to ?? ""}|${page}|${perPage}`}
         leads={rows}
         initialQ={q}
         from={from}

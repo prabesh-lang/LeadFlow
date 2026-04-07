@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { SuperadminLeadsFiltersBar } from "@/components/superadmin/superadmin-leads-filters";
 import { UserRole } from "@/lib/constants";
@@ -50,8 +51,11 @@ export default async function SuperadminLeadsPage({
   const sp = await searchParams;
   const parsed = parseSuperadminLeadsSearchParams(sp);
   const where = buildSuperadminLeadsWhereSql(parsed);
+  const page = Math.max(1, parsed.page);
+  const perPage = parsed.perPage;
+  const offset = (page - 1) * perPage;
 
-  const [teams, execs, analysts, { qualTotals, analystGroups }] = await Promise.all([
+  const [teams, execs, analysts, counts, paged] = await Promise.all([
     dbQuery<{ id: string; name: string }>(
       `SELECT id, name FROM "Team" ORDER BY name ASC`,
     ),
@@ -63,8 +67,31 @@ export default async function SuperadminLeadsPage({
       `SELECT id, name, email FROM "User" WHERE role = $1 ORDER BY name ASC`,
       [UserRole.LEAD_ANALYST],
     ),
-    getSuperadminLeadsWithJourney(where),
+    dbQuery<{
+      total: string;
+      qualified: string;
+      notQualified: string;
+      irrelevant: string;
+    }>(
+      `SELECT
+         COUNT(*)::text AS total,
+         COUNT(*) FILTER (WHERE "qualificationStatus" = 'QUALIFIED')::text AS qualified,
+         COUNT(*) FILTER (WHERE "qualificationStatus" = 'NOT_QUALIFIED')::text AS "notQualified",
+         COUNT(*) FILTER (WHERE "qualificationStatus" = 'IRRELEVANT')::text AS irrelevant
+       FROM "Lead"
+       WHERE ${where.clause}`,
+      where.params,
+    ),
+    getSuperadminLeadsWithJourney(where, { limit: perPage, offset }),
   ]);
+  const qualTotals = {
+    qualified: Number(counts[0]?.qualified ?? 0),
+    notQualified: Number(counts[0]?.notQualified ?? 0),
+    irrelevant: Number(counts[0]?.irrelevant ?? 0),
+  };
+  const totalCount = Number(counts[0]?.total ?? 0);
+  const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
+  const analystGroups = paged.analystGroups;
 
   const teamMeta = parsed.teamId
     ? teams.find((t) => t.id === parsed.teamId)
@@ -110,7 +137,29 @@ export default async function SuperadminLeadsPage({
     })),
   }));
 
-  const filtersKey = `${parsed.from ?? ""}|${parsed.to ?? ""}|${parsed.status}|${parsed.analystId ?? ""}|${parsed.teamId ?? ""}|${parsed.execId ?? ""}`;
+  const filtersKey = `${parsed.from ?? ""}|${parsed.to ?? ""}|${parsed.status}|${parsed.analystId ?? ""}|${parsed.teamId ?? ""}|${parsed.execId ?? ""}|${parsed.perPage}|${parsed.page}`;
+  const qp = new URLSearchParams();
+  if (parsed.from) qp.set("from", parsed.from);
+  if (parsed.to) qp.set("to", parsed.to);
+  if (parsed.status) qp.set("status", parsed.status);
+  if (parsed.analystId) qp.set("analystId", parsed.analystId);
+  if (parsed.teamId) qp.set("teamId", parsed.teamId);
+  if (parsed.execId) qp.set("execId", parsed.execId);
+  qp.set("perPage", String(perPage));
+  const prevHref =
+    page > 1
+      ? `/superadmin/leads?${new URLSearchParams({
+          ...Object.fromEntries(qp.entries()),
+          page: String(page - 1),
+        }).toString()}`
+      : null;
+  const nextHref =
+    page < totalPages
+      ? `/superadmin/leads?${new URLSearchParams({
+          ...Object.fromEntries(qp.entries()),
+          page: String(page + 1),
+        }).toString()}`
+      : null;
 
   return (
     <div className="space-y-12">
@@ -157,6 +206,46 @@ export default async function SuperadminLeadsPage({
           count={qualTotals.irrelevant}
           accent="muted"
         />
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-lf-border bg-lf-surface/80 px-4 py-3 text-sm">
+        <p className="text-lf-subtle">
+          Showing{" "}
+          <span className="font-semibold text-lf-text">
+            {totalCount === 0 ? 0 : offset + 1}-
+            {Math.min(offset + perPage, totalCount)}
+          </span>{" "}
+          of <span className="font-semibold text-lf-text">{totalCount}</span> leads
+        </p>
+        <div className="flex items-center gap-2">
+          {prevHref ? (
+            <Link
+              href={prevHref}
+              className="rounded-lg border border-lf-border px-3 py-1.5 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
+            >
+              Previous
+            </Link>
+          ) : (
+            <span className="rounded-lg border border-lf-border px-3 py-1.5 text-xs text-lf-subtle opacity-50">
+              Previous
+            </span>
+          )}
+          <span className="text-xs text-lf-subtle">
+            Page {Math.min(page, totalPages)} of {totalPages}
+          </span>
+          {nextHref ? (
+            <Link
+              href={nextHref}
+              className="rounded-lg border border-lf-border px-3 py-1.5 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
+            >
+              Next
+            </Link>
+          ) : (
+            <span className="rounded-lg border border-lf-border px-3 py-1.5 text-xs text-lf-subtle opacity-50">
+              Next
+            </span>
+          )}
+        </div>
       </div>
 
       {analystGroups.length === 0 ? (

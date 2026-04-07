@@ -12,6 +12,8 @@ export type SuperadminLeadsParsed = {
   analystId: string | null;
   teamId: string | null;
   execId: string | null;
+  page: number;
+  perPage: 25 | 50 | 100;
 };
 
 /** SQL fragment (no leading WHERE) + params for filtering "Lead" rows. */
@@ -33,6 +35,12 @@ function trimOrNull(v: string | undefined): string | null {
   return t ? t : null;
 }
 
+function positiveIntOr(v: string | undefined, fallback: number): number {
+  const n = Number.parseInt(v ?? "", 10);
+  if (!Number.isFinite(n) || n < 1) return fallback;
+  return n;
+}
+
 /** Parse Next.js `searchParams` for superadmin leads filters. */
 export function parseSuperadminLeadsSearchParams(
   sp: Record<string, string | string[] | undefined>,
@@ -45,6 +53,10 @@ export function parseSuperadminLeadsSearchParams(
       ? statusRaw
       : "ALL";
 
+  const perPageRaw = Number.parseInt(first(sp.perPage) ?? "", 10);
+  const perPage: 25 | 50 | 100 =
+    perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
+
   return {
     from: trimOrNull(first(sp.from)),
     to: trimOrNull(first(sp.to)),
@@ -52,6 +64,8 @@ export function parseSuperadminLeadsSearchParams(
     analystId: trimOrNull(first(sp.analystId)),
     teamId: trimOrNull(first(sp.teamId)),
     execId: trimOrNull(first(sp.execId)),
+    page: positiveIntOr(first(sp.page), 1),
+    perPage,
   };
 }
 

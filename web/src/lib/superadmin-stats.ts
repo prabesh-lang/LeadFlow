@@ -315,13 +315,19 @@ export type JourneyLead = LeadDbRow & {
 
 export async function getSuperadminLeadsWithJourney(
   where?: SuperadminLeadsWhereSql,
+  paging?: { limit?: number; offset?: number },
 ) {
   const clause = where?.clause ?? "TRUE";
   const baseParams = where?.params ?? [];
+  const limit = Math.max(1, paging?.limit ?? 0);
+  const offset = Math.max(0, paging?.offset ?? 0);
+  const hasPaging = Boolean(paging?.limit);
 
   const leadRows = await dbQuery<LeadDbRow>(
-    `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "updatedAt" DESC`,
-    baseParams,
+    hasPaging
+      ? `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "updatedAt" DESC LIMIT $${baseParams.length + 1} OFFSET $${baseParams.length + 2}`
+      : `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "updatedAt" DESC`,
+    hasPaging ? [...baseParams, limit, offset] : baseParams,
   );
 
   if (leadRows.length === 0) {

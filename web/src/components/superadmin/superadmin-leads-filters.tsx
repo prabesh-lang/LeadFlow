@@ -30,6 +30,7 @@ export function SuperadminLeadsFiltersBar({
   const [analystId, setAnalystId] = useState(initial.analystId ?? "");
   const [teamId, setTeamId] = useState(initial.teamId ?? "");
   const [execId, setExecId] = useState(initial.execId ?? "");
+  const [perPage, setPerPage] = useState<25 | 50 | 100>(initial.perPage);
 
   const apply = useCallback(() => {
     const p = new URLSearchParams(searchParams.toString());
@@ -44,6 +45,8 @@ export function SuperadminLeadsFiltersBar({
     setOrDel("analystId", analystId.trim());
     setOrDel("teamId", teamId.trim());
     setOrDel("execId", execId.trim());
+    p.set("perPage", String(perPage));
+    p.set("page", "1");
     p.delete("dateBasis");
     p.delete("scope");
 
@@ -54,6 +57,7 @@ export function SuperadminLeadsFiltersBar({
     execId,
     from,
     pathname,
+    perPage,
     router,
     searchParams,
     status,
@@ -92,7 +96,7 @@ export function SuperadminLeadsFiltersBar({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
         <label className="block text-xs font-medium text-lf-subtle">
           From
           <input
@@ -167,6 +171,21 @@ export function SuperadminLeadsFiltersBar({
                 {e.name} ({e.email})
               </option>
             ))}
+          </select>
+        </label>
+        <label className="block text-xs font-medium text-lf-subtle">
+          Leads per page
+          <select
+            value={String(perPage)}
+            onChange={(e) => {
+              const v = Number.parseInt(e.target.value, 10);
+              setPerPage(v === 50 || v === 100 ? v : 25);
+            }}
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
+          >
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
           </select>
         </label>
       </div>

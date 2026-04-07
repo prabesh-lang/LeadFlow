@@ -13,16 +13,24 @@ import {
   type MtlOption,
 } from "@/components/portal-leads/atl-all-leads-table-client";
 import { LeadHandoffAction, UserRole } from "@/lib/constants";
+import { PortalPaginationBar } from "@/components/portal-pagination-bar";
 
 export default async function AnalystTeamLeadLeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; q?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; q?: string; page?: string; perPage?: string }>;
 }) {
   const session = await getSession();
   if (!session) return null;
 
-  const { from, to, q } = await analystRangeParams(searchParams);
+  const sp = await searchParams;
+  const { from, to, q } = await analystRangeParams(sp);
+  const pageRaw = Number.parseInt(sp.page ?? "", 10);
+  const perPageRaw = Number.parseInt(sp.perPage ?? "", 10);
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
+  const perPage: 25 | 50 | 100 =
+    perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
+  const offset = (page - 1) * perPage;
 
   const analysts = await dbQuery<{ id: string }>(
     `SELECT id FROM "User" WHERE "managerId" = $1 AND role = $2`,
@@ -31,10 +39,14 @@ export default async function AnalystTeamLeadLeadsPage({
   const analystIds = analysts.map((a) => a.id);
 
   const { clause, params } = atlLeadSql(analystIds, from, to);
-  const leadRows =
-    analystIds.length === 0
-      ? []
-      : await dbQuery<{
+  const [countRows, leadRows] = await (analystIds.length === 0
+    ? Promise.resolve([[] as { c: string }[], [] as never[]])
+    : Promise.all([
+        dbQuery<{ c: string }>(
+          `SELECT COUNT(*)::text AS c FROM "Lead" l WHERE ${clause}`,
+          params,
+        ),
+        dbQuery<{
           id: string;
           leadName: string;
           phone: string | null;
@@ -60,9 +72,12 @@ export default async function AnalystTeamLeadLeadsPage({
            LEFT JOIN "User" mtl ON mtl.id = l."assignedMainTeamLeadId"
            LEFT JOIN "User" se ON se.id = l."assignedSalesExecId"
            WHERE ${clause}
-           ORDER BY l."createdAt" DESC`,
-          params,
-        );
+           ORDER BY l."createdAt" DESC
+           LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+          [...params, perPage, offset],
+        ),
+      ]));
+  const totalCount = Number(countRows[0]?.c ?? 0);
 
   const mtlRows = await dbQuery<{
     id: string;
@@ -211,8 +226,16 @@ export default async function AnalystTeamLeadLeadsPage({
 
       <AnalystDateRangeBarSuspense />
 
+      <PortalPaginationBar
+        pathname="/analyst-team-lead/leads"
+        query={{ from, to, q }}
+        page={page}
+        perPage={perPage}
+        totalCount={totalCount}
+      />
+
       <AtlAllLeadsTableClient
-        key={`${from ?? ""}|${to ?? ""}`}
+        key={`${from ?? ""}|${to ?? ""}|${page}|${perPage}`}
         leads={rowsWithTimeline}
         initialQ={q}
         from={from}
