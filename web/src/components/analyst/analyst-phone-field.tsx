@@ -1,6 +1,7 @@
 "use client";
 
 import PhoneInput from "react-phone-number-input";
+import flags from "react-phone-number-input/flags";
 import "react-phone-number-input/style.css";
 
 export function AnalystPhoneField({
@@ -14,6 +15,7 @@ export function AnalystPhoneField({
     <PhoneInput
       international
       defaultCountry="US"
+      flags={flags}
       name="phone"
       required
       value={value}
