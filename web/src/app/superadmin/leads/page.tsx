@@ -16,6 +16,66 @@ export const metadata: Metadata = {
   title: "Leads · Superadmin",
 };
 
+function PaginationBar({
+  totalCount,
+  offset,
+  perPage,
+  page,
+  totalPages,
+  prevHref,
+  nextHref,
+}: {
+  totalCount: number;
+  offset: number;
+  perPage: number;
+  page: number;
+  totalPages: number;
+  prevHref: string | null;
+  nextHref: string | null;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-lf-border bg-lf-surface/80 px-4 py-3 text-sm">
+      <p className="text-lf-subtle">
+        Showing{" "}
+        <span className="font-semibold text-lf-text">
+          {totalCount === 0 ? 0 : offset + 1}-
+          {Math.min(offset + perPage, totalCount)}
+        </span>{" "}
+        of <span className="font-semibold text-lf-text">{totalCount}</span> leads
+      </p>
+      <div className="flex items-center gap-2">
+        {prevHref ? (
+          <Link
+            href={prevHref}
+            className="rounded-lg border border-lf-border px-3 py-1.5 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
+          >
+            Previous
+          </Link>
+        ) : (
+          <span className="rounded-lg border border-lf-border px-3 py-1.5 text-xs text-lf-subtle opacity-50">
+            Previous
+          </span>
+        )}
+        <span className="text-xs text-lf-subtle">
+          Page {Math.min(page, totalPages)} of {totalPages}
+        </span>
+        {nextHref ? (
+          <Link
+            href={nextHref}
+            className="rounded-lg border border-lf-border px-3 py-1.5 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
+          >
+            Next
+          </Link>
+        ) : (
+          <span className="rounded-lg border border-lf-border px-3 py-1.5 text-xs text-lf-subtle opacity-50">
+            Next
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function QualSummaryCard({
   title,
   count,
@@ -208,55 +268,33 @@ export default async function SuperadminLeadsPage({
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-lf-border bg-lf-surface/80 px-4 py-3 text-sm">
-        <p className="text-lf-subtle">
-          Showing{" "}
-          <span className="font-semibold text-lf-text">
-            {totalCount === 0 ? 0 : offset + 1}-
-            {Math.min(offset + perPage, totalCount)}
-          </span>{" "}
-          of <span className="font-semibold text-lf-text">{totalCount}</span> leads
-        </p>
-        <div className="flex items-center gap-2">
-          {prevHref ? (
-            <Link
-              href={prevHref}
-              className="rounded-lg border border-lf-border px-3 py-1.5 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
-            >
-              Previous
-            </Link>
-          ) : (
-            <span className="rounded-lg border border-lf-border px-3 py-1.5 text-xs text-lf-subtle opacity-50">
-              Previous
-            </span>
-          )}
-          <span className="text-xs text-lf-subtle">
-            Page {Math.min(page, totalPages)} of {totalPages}
-          </span>
-          {nextHref ? (
-            <Link
-              href={nextHref}
-              className="rounded-lg border border-lf-border px-3 py-1.5 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
-            >
-              Next
-            </Link>
-          ) : (
-            <span className="rounded-lg border border-lf-border px-3 py-1.5 text-xs text-lf-subtle opacity-50">
-              Next
-            </span>
-          )}
-        </div>
-      </div>
+      <PaginationBar
+        totalCount={totalCount}
+        offset={offset}
+        perPage={perPage}
+        page={page}
+        totalPages={totalPages}
+        prevHref={prevHref}
+        nextHref={nextHref}
+      />
 
       {analystGroups.length === 0 ? (
         <p className="text-sm text-lf-subtle">
           No leads match these filters.
         </p>
       ) : (
-        <SuperadminLeadsJourneyClient
-          analystGroups={analystGroupsClient}
-          listTitle={parsed.analystId ? analystLabel : null}
-        />
+        <>
+          <SuperadminLeadsJourneyClient analystGroups={analystGroupsClient} />
+          <PaginationBar
+            totalCount={totalCount}
+            offset={offset}
+            perPage={perPage}
+            page={page}
+            totalPages={totalPages}
+            prevHref={prevHref}
+            nextHref={nextHref}
+          />
+        </>
       )}
     </div>
   );
