@@ -51,13 +51,17 @@ export default async function SuperadminLeadsPage({
   const parsed = parseSuperadminLeadsSearchParams(sp);
   const where = buildSuperadminLeadsWhereSql(parsed);
 
-  const [teams, execs, { qualTotals, analystGroups }] = await Promise.all([
+  const [teams, execs, analysts, { qualTotals, analystGroups }] = await Promise.all([
     dbQuery<{ id: string; name: string }>(
       `SELECT id, name FROM "Team" ORDER BY name ASC`,
     ),
     dbQuery<{ id: string; name: string; email: string }>(
       `SELECT id, name, email FROM "User" WHERE role = $1 ORDER BY name ASC`,
       [UserRole.SALES_EXECUTIVE],
+    ),
+    dbQuery<{ id: string; name: string; email: string }>(
+      `SELECT id, name, email FROM "User" WHERE role = $1 ORDER BY name ASC`,
+      [UserRole.LEAD_ANALYST],
     ),
     getSuperadminLeadsWithJourney(where),
   ]);
@@ -73,7 +77,14 @@ export default async function SuperadminLeadsPage({
     ? `${execUser.name} (${execUser.email})`
     : null;
 
+  const analystUser = parsed.analystId
+    ? analysts.find((a) => a.id === parsed.analystId)
+    : null;
+  const analystLabel = analystUser
+    ? `${analystUser.name} (${analystUser.email})`
+    : null;
   const filterSummary = superadminLeadsFilterSummary(parsed, {
+    analystLabel,
     teamName,
     execLabel,
   });
@@ -99,7 +110,7 @@ export default async function SuperadminLeadsPage({
     })),
   }));
 
-  const filtersKey = `${parsed.from ?? ""}|${parsed.to ?? ""}|${parsed.dateBasis}|${parsed.scope}|${parsed.teamId ?? ""}|${parsed.execId ?? ""}`;
+  const filtersKey = `${parsed.from ?? ""}|${parsed.to ?? ""}|${parsed.status}|${parsed.analystId ?? ""}|${parsed.teamId ?? ""}|${parsed.execId ?? ""}`;
 
   return (
     <div className="space-y-12">
@@ -110,8 +121,8 @@ export default async function SuperadminLeadsPage({
         <p className="mt-2 max-w-2xl text-sm text-lf-muted">
           Every lead grouped by the Lead Analyst who created it, with
           qualification status, current stage, and the recorded journey
-          (handoff log). Filter by date range, assignment date, team, or sales
-          executive.
+          (handoff log). Filter by date range, lead status, lead analyst, team,
+          or sales executive.
         </p>
         <p className="mt-2 text-xs text-lf-subtle">{filterSummary}</p>
       </div>
@@ -124,6 +135,7 @@ export default async function SuperadminLeadsPage({
         <SuperadminLeadsFiltersBar
           key={filtersKey}
           initial={parsed}
+          analysts={analysts}
           teams={teams}
           execs={execs}
         />

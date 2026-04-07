@@ -1,22 +1,22 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
-import type {
-  SuperadminLeadsDateBasis,
-  SuperadminLeadsParsed,
-  SuperadminLeadsScope,
-} from "@/lib/superadmin-leads-filters";
+import { useCallback, useState } from "react";
+import { QualificationStatus } from "@/lib/constants";
+import type { SuperadminLeadsParsed, SuperadminLeadsStatus } from "@/lib/superadmin-leads-filters";
 
 type TeamOpt = { id: string; name: string };
 type ExecOpt = { id: string; name: string; email: string };
+type AnalystOpt = { id: string; name: string; email: string };
 
 export function SuperadminLeadsFiltersBar({
   initial,
+  analysts,
   teams,
   execs,
 }: {
   initial: SuperadminLeadsParsed;
+  analysts: AnalystOpt[];
   teams: TeamOpt[];
   execs: ExecOpt[];
 }) {
@@ -26,10 +26,8 @@ export function SuperadminLeadsFiltersBar({
 
   const [from, setFrom] = useState(initial.from ?? "");
   const [to, setTo] = useState(initial.to ?? "");
-  const [dateBasis, setDateBasis] = useState<SuperadminLeadsDateBasis>(
-    initial.dateBasis,
-  );
-  const [scope, setScope] = useState<SuperadminLeadsScope>(initial.scope);
+  const [status, setStatus] = useState<SuperadminLeadsStatus>(initial.status);
+  const [analystId, setAnalystId] = useState(initial.analystId ?? "");
   const [teamId, setTeamId] = useState(initial.teamId ?? "");
   const [execId, setExecId] = useState(initial.execId ?? "");
 
@@ -42,30 +40,23 @@ export function SuperadminLeadsFiltersBar({
 
     setOrDel("from", from.trim());
     setOrDel("to", to.trim());
-    p.set("dateBasis", dateBasis);
-    p.set("scope", scope);
-
-    if (scope === "team") {
-      setOrDel("teamId", teamId.trim());
-      p.delete("execId");
-    } else if (scope === "exec") {
-      setOrDel("execId", execId.trim());
-      p.delete("teamId");
-    } else {
-      p.delete("teamId");
-      p.delete("execId");
-    }
+    p.set("status", status);
+    setOrDel("analystId", analystId.trim());
+    setOrDel("teamId", teamId.trim());
+    setOrDel("execId", execId.trim());
+    p.delete("dateBasis");
+    p.delete("scope");
 
     const q = p.toString();
     router.push(q ? `${pathname}?${q}` : pathname);
   }, [
-    dateBasis,
+    analystId,
     execId,
     from,
     pathname,
     router,
-    scope,
     searchParams,
+    status,
     teamId,
     to,
   ]);
@@ -74,16 +65,6 @@ export function SuperadminLeadsFiltersBar({
     router.push(pathname);
   }, [pathname, router]);
 
-  const teamDisabled = scope !== "team";
-  const execDisabled = scope !== "exec";
-
-  const summaryHint = useMemo(() => {
-    if (dateBasis === "assigned") {
-      return "Uses exec assignment time (leads not yet assigned to an exec are hidden when a date range is set).";
-    }
-    return "Uses lead created time.";
-  }, [dateBasis]);
-
   return (
     <div className="rounded-xl border border-lf-border bg-lf-surface/90 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -91,7 +72,7 @@ export function SuperadminLeadsFiltersBar({
           <p className="text-xs font-semibold uppercase tracking-wide text-lf-subtle">
             Filters
           </p>
-          <p className="mt-1 text-xs text-lf-subtle">{summaryHint}</p>
+          <p className="mt-1 text-xs text-lf-subtle">Uses lead created time.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -131,42 +112,39 @@ export function SuperadminLeadsFiltersBar({
           />
         </label>
         <label className="block text-xs font-medium text-lf-subtle">
-          Date applies to
+          Lead status
           <select
-            value={dateBasis}
-            onChange={(e) =>
-              setDateBasis(e.target.value as SuperadminLeadsDateBasis)
-            }
+            value={status}
+            onChange={(e) => setStatus(e.target.value as SuperadminLeadsStatus)}
             className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
           >
-            <option value="created">Lead created</option>
-            <option value="assigned">Exec assigned</option>
+            <option value="ALL">All</option>
+            <option value={QualificationStatus.QUALIFIED}>Qualified</option>
+            <option value={QualificationStatus.NOT_QUALIFIED}>Not qualified</option>
+            <option value={QualificationStatus.IRRELEVANT}>Irrelevant</option>
           </select>
         </label>
         <label className="block text-xs font-medium text-lf-subtle">
-          Filter mode
+          Lead analyst
           <select
-            value={scope}
-            onChange={(e) => {
-              const v = e.target.value as SuperadminLeadsScope;
-              setScope(v);
-              if (v !== "team") setTeamId("");
-              if (v !== "exec") setExecId("");
-            }}
+            value={analystId}
+            onChange={(e) => setAnalystId(e.target.value)}
             className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
           >
-            <option value="all">All leads</option>
-            <option value="team">By sales team</option>
-            <option value="exec">By sales executive</option>
+            <option value="">Select lead analyst…</option>
+            {analysts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name} ({a.email})
+              </option>
+            ))}
           </select>
         </label>
         <label className="block text-xs font-medium text-lf-subtle">
           Team
           <select
             value={teamId}
-            disabled={teamDisabled}
             onChange={(e) => setTeamId(e.target.value)}
-            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
           >
             <option value="">Select team…</option>
             {teams.map((t) => (
@@ -180,9 +158,8 @@ export function SuperadminLeadsFiltersBar({
           Sales executive
           <select
             value={execId}
-            disabled={execDisabled}
             onChange={(e) => setExecId(e.target.value)}
-            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
           >
             <option value="">Select executive…</option>
             {execs.map((e) => (

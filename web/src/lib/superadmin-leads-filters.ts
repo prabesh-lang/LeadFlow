@@ -1,13 +1,15 @@
 import { leadCreatedAtRange } from "@/lib/analyst-date-range";
+import { QualificationStatus } from "@/lib/constants";
 
-export type SuperadminLeadsScope = "all" | "team" | "exec";
-export type SuperadminLeadsDateBasis = "created" | "assigned";
+export type SuperadminLeadsStatus =
+  | (typeof QualificationStatus)[keyof typeof QualificationStatus]
+  | "ALL";
 
 export type SuperadminLeadsParsed = {
   from: string | null;
   to: string | null;
-  dateBasis: SuperadminLeadsDateBasis;
-  scope: SuperadminLeadsScope;
+  status: SuperadminLeadsStatus;
+  analystId: string | null;
   teamId: string | null;
   execId: string | null;
 };
@@ -35,18 +37,19 @@ function trimOrNull(v: string | undefined): string | null {
 export function parseSuperadminLeadsSearchParams(
   sp: Record<string, string | string[] | undefined>,
 ): SuperadminLeadsParsed {
-  const dateBasis: SuperadminLeadsDateBasis =
-    first(sp.dateBasis) === "assigned" ? "assigned" : "created";
-
-  const scopeRaw = first(sp.scope);
-  const scope: SuperadminLeadsScope =
-    scopeRaw === "team" || scopeRaw === "exec" ? scopeRaw : "all";
+  const statusRaw = first(sp.status);
+  const status: SuperadminLeadsStatus =
+    statusRaw === QualificationStatus.QUALIFIED ||
+    statusRaw === QualificationStatus.NOT_QUALIFIED ||
+    statusRaw === QualificationStatus.IRRELEVANT
+      ? statusRaw
+      : "ALL";
 
   return {
     from: trimOrNull(first(sp.from)),
     to: trimOrNull(first(sp.to)),
-    dateBasis,
-    scope,
+    status,
+    analystId: trimOrNull(first(sp.analystId)),
     teamId: trimOrNull(first(sp.teamId)),
     execId: trimOrNull(first(sp.execId)),
   };
@@ -62,16 +65,7 @@ export function buildSuperadminLeadsWhereSql(
 
   const range = leadCreatedAtRange(p.from, p.to);
 
-  if (p.dateBasis === "assigned") {
-    parts.push(`"execAssignedAt" IS NOT NULL`);
-    if (range) {
-      parts.push(
-        `"execAssignedAt" >= $${n}::timestamp AND "execAssignedAt" <= $${n + 1}::timestamp`,
-      );
-      params.push(range.gte, range.lte);
-      n += 2;
-    }
-  } else if (range) {
+  if (range) {
     parts.push(
       `"createdAt" >= $${n}::timestamp AND "createdAt" <= $${n + 1}::timestamp`,
     );
@@ -79,12 +73,24 @@ export function buildSuperadminLeadsWhereSql(
     n += 2;
   }
 
-  if (p.scope === "team" && p.teamId) {
+  if (p.status !== "ALL") {
+    parts.push(`"qualificationStatus" = $${n}`);
+    params.push(p.status);
+    n += 1;
+  }
+
+  if (p.analystId) {
+    parts.push(`"createdById" = $${n}`);
+    params.push(p.analystId);
+    n += 1;
+  }
+
+  if (p.teamId) {
     parts.push(`"teamId" = $${n}`);
     params.push(p.teamId);
     n += 1;
   }
-  if (p.scope === "exec" && p.execId) {
+  if (p.execId) {
     parts.push(`"assignedSalesExecId" = $${n}`);
     params.push(p.execId);
     n += 1;
@@ -106,24 +112,28 @@ function fmtShort(d: Date) {
 
 export function superadminLeadsFilterSummary(
   p: SuperadminLeadsParsed,
-  opts: { teamName?: string | null; execLabel?: string | null },
+  opts: {
+    analystLabel?: string | null;
+    teamName?: string | null;
+    execLabel?: string | null;
+  },
 ): string {
   const range = leadCreatedAtRange(p.from, p.to);
   const rangeText = range
     ? `${fmtShort(range.gte)} – ${fmtShort(range.lte)}`
     : "All time";
 
-  const basisText =
-    p.dateBasis === "assigned"
-      ? "Date = when assigned to sales exec"
-      : "Date = when lead was created";
+  const statusText =
+    p.status === "ALL" ? "Status: All" : `Status: ${p.status.replace(/_/g, " ")}`;
+  const analystText = p.analystId
+    ? `Lead analyst: ${opts.analystLabel?.trim() || p.analystId}`
+    : "Lead analyst: All";
+  const teamText = p.teamId
+    ? `Team: ${opts.teamName?.trim() || p.teamId}`
+    : "Team: All";
+  const execText = p.execId
+    ? `Sales executive: ${opts.execLabel?.trim() || p.execId}`
+    : "Sales executive: All";
 
-  let scopeText = "Everyone";
-  if (p.scope === "team" && p.teamId) {
-    scopeText = `Team: ${opts.teamName?.trim() || p.teamId}`;
-  } else if (p.scope === "exec" && p.execId) {
-    scopeText = `Sales executive: ${opts.execLabel?.trim() || p.execId}`;
-  }
-
-  return `${rangeText} · ${basisText} · ${scopeText}`;
+  return `${rangeText} · ${statusText} · ${analystText} · ${teamText} · ${execText}`;
 }
