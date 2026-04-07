@@ -176,8 +176,10 @@ export async function runPortalPasswordUpdate(
   }
 
   await dbQuery(
-    `UPDATE "User" SET "mustResetPassword" = false, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $1`,
-    [session.id],
+    `UPDATE "User"
+     SET "passwordHash" = $1, "mustResetPassword" = false, "updatedAt" = CURRENT_TIMESTAMP
+     WHERE id = $2`,
+    [nextPassword, session.id],
   );
 
   try {

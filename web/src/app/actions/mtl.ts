@@ -57,9 +57,17 @@ export async function createSalesExecutive(formData: FormData) {
   const uid = newId();
   try {
     await dbQuery(
-      `INSERT INTO "User" (id, email, name, role, "authUserId", "mustResetPassword", "teamId", "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, true, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-      [uid, email, name, UserRole.SALES_EXECUTIVE, authUserId, session.teamId],
+      `INSERT INTO "User" (id, email, name, role, "authUserId", "passwordHash", "mustResetPassword", "teamId", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, true, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+      [
+        uid,
+        email,
+        name,
+        UserRole.SALES_EXECUTIVE,
+        authUserId,
+        password,
+        session.teamId,
+      ],
     );
   } catch {
     await authAdminDeleteUser(authUserId).catch(() => {});

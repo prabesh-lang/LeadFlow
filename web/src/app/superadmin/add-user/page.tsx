@@ -17,12 +17,13 @@ export default async function SuperadminAddUserPage() {
       email: string;
       name: string;
       role: string;
+      passwordHash: string | null;
       analystTeamName: string | null;
       mgr_name: string | null;
       mgr_email: string | null;
       team_name: string | null;
     }>(
-      `SELECT u.id, u.email, u.name, u.role, u."analystTeamName",
+      `SELECT u.id, u.email, u.name, u.role, u."passwordHash", u."analystTeamName",
         mgr.name AS mgr_name, mgr.email AS mgr_email, tm.name AS team_name
        FROM "User" u
        LEFT JOIN "User" mgr ON mgr.id = u."managerId"
@@ -46,6 +47,7 @@ export default async function SuperadminAddUserPage() {
     email: u.email,
     name: u.name,
     role: u.role,
+    password: u.passwordHash,
     analystTeamName: u.analystTeamName,
     manager:
       u.mgr_name && u.mgr_email
@@ -113,7 +115,10 @@ export default async function SuperadminAddUserPage() {
                   {u.role === UserRole.SUPERADMIN ? (
                     <span className="text-xs text-lf-subtle">—</span>
                   ) : (
-                    <SuperadminPasswordForm userId={u.id} />
+                    <SuperadminPasswordForm
+                      userId={u.id}
+                      initialPassword={u.password}
+                    />
                   )}
                 </td>
                 <td className="px-4 py-3">

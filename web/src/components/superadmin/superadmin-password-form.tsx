@@ -1,24 +1,86 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { superadminSetPasswordFormAction } from "@/app/actions/superadmin";
 
 const inputClass =
   "min-h-10 w-full min-w-[140px] max-w-[200px] rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2";
 
-export function SuperadminPasswordForm({ userId }: { userId: string }) {
+export function SuperadminPasswordForm({
+  userId,
+  initialPassword,
+}: {
+  userId: string;
+  initialPassword?: string | null;
+}) {
+  const [visible, setVisible] = useState(false);
+  const [savedPassword, setSavedPassword] = useState(initialPassword ?? "");
+  const [copied, setCopied] = useState(false);
   const [state, action, pending] = useActionState(
     superadminSetPasswordFormAction,
     undefined,
   );
+  useEffect(() => {
+    if (state?.password) setSavedPassword(state.password);
+  }, [state?.password]);
+  useEffect(() => {
+    if (!copied) return;
+    const t = window.setTimeout(() => setCopied(false), 1200);
+    return () => window.clearTimeout(t);
+  }, [copied]);
+  const shownPassword = useMemo(() => {
+    if (!savedPassword) return "Not set";
+    if (visible) return savedPassword;
+    return "•".repeat(Math.max(savedPassword.length, 8));
+  }, [savedPassword, visible]);
+
+  async function copyPassword() {
+    if (!savedPassword) return;
+    try {
+      await navigator.clipboard.writeText(savedPassword);
+      setCopied(true);
+    } catch {
+      // Keep UI quiet if clipboard permission is blocked.
+    }
+  }
 
   return (
     <form action={action} className="space-y-2">
       <input type="hidden" name="userId" value={userId} />
+      <div className="rounded-md border border-lf-border bg-lf-bg px-2 py-1.5">
+        <p className="text-[10px] uppercase tracking-wide text-lf-subtle">
+          Current password
+        </p>
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <span className="font-mono text-xs text-lf-text-secondary">
+            {shownPassword}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={copyPassword}
+              disabled={!savedPassword}
+              className="rounded border border-lf-border px-2 py-0.5 text-[10px] text-lf-text-secondary hover:bg-lf-bg/50 disabled:opacity-50"
+            >
+              {copied ? "Copied" : "Copy"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setVisible((v) => !v)}
+              className="rounded border border-lf-border px-2 py-0.5 text-[10px] text-lf-text-secondary hover:bg-lf-bg/50"
+            >
+              {visible ? "Hide" : "Show"}
+            </button>
+          </div>
+        </div>
+      </div>
       {state?.error ? (
         <p className="text-xs text-lf-danger" role="alert">
           {state.error}
         </p>
+      ) : null}
+      {state?.password ? (
+        <p className="text-xs text-lf-success">Password updated and saved.</p>
       ) : null}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <input

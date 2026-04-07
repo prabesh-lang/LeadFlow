@@ -60,14 +60,15 @@ export async function createLeadAnalystMember(formData: FormData) {
   const uid = newId();
   try {
     await dbQuery(
-      `INSERT INTO "User" (id, email, name, role, "authUserId", "mustResetPassword", "managerId", "analystTeamName", "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, true, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+      `INSERT INTO "User" (id, email, name, role, "authUserId", "passwordHash", "mustResetPassword", "managerId", "analystTeamName", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
       [
         uid,
         email,
         name,
         UserRole.LEAD_ANALYST,
         authUserId,
+        password,
         session.id,
         analystTeamName,
       ],
@@ -124,9 +125,9 @@ export async function createMainTeamLeadAndTeam(formData: FormData) {
   try {
     await withTransaction(async (c) => {
       await c.query(
-        `INSERT INTO "User" (id, email, name, role, "authUserId", "mustResetPassword", "createdAt", "updatedAt")
-         VALUES ($1, $2, $3, $4, $5, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-        [mtlId, email, leadName, UserRole.MAIN_TEAM_LEAD, authUserId],
+        `INSERT INTO "User" (id, email, name, role, "authUserId", "passwordHash", "mustResetPassword", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, $6, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        [mtlId, email, leadName, UserRole.MAIN_TEAM_LEAD, authUserId, password],
       );
       await c.query(
         `INSERT INTO "Team" (id, name, "mainTeamLeadId", "createdAt", "updatedAt")

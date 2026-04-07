@@ -74,14 +74,15 @@ export async function superadminCreateUser(formData: FormData) {
       }
 
       await dbQuery(
-        `INSERT INTO "User" (id, email, name, role, "authUserId", "mustResetPassword", "managerId", "analystTeamName", "createdAt", "updatedAt")
-         VALUES ($1, $2, $3, $4, $5, true, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        `INSERT INTO "User" (id, email, name, role, "authUserId", "passwordHash", "mustResetPassword", "managerId", "analystTeamName", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, $6, true, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
         [
           uid,
           email,
           name,
           UserRole.LEAD_ANALYST,
           authUserId,
+          password,
           managerId,
           analystTeamName,
         ],
@@ -95,14 +96,15 @@ export async function superadminCreateUser(formData: FormData) {
         return { error: "Team name is required for Analyst Team Lead." };
       }
       await dbQuery(
-        `INSERT INTO "User" (id, email, name, role, "authUserId", "mustResetPassword", "analystTeamName", "createdAt", "updatedAt")
-         VALUES ($1, $2, $3, $4, $5, true, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        `INSERT INTO "User" (id, email, name, role, "authUserId", "passwordHash", "mustResetPassword", "analystTeamName", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, $6, true, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
         [
           uid,
           email,
           name,
           UserRole.ANALYST_TEAM_LEAD,
           authUserId,
+          password,
           analystTeamName,
         ],
       );
@@ -165,20 +167,23 @@ export async function superadminSetUserPassword(formData: FormData) {
   }
 
   await dbQuery(
-    `UPDATE "User" SET "mustResetPassword" = false, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $1`,
-    [userId],
+    `UPDATE "User"
+     SET "passwordHash" = $1, "mustResetPassword" = false, "updatedAt" = CURRENT_TIMESTAMP
+     WHERE id = $2`,
+    [password, userId],
   );
 
   revalidatePath("/superadmin");
-  return { ok: true as const };
+  return { ok: true as const, password };
 }
 
 export async function superadminSetPasswordFormAction(
-  _prev: { error?: string } | undefined,
+  _prev: { error?: string; password?: string } | undefined,
   formData: FormData,
-): Promise<{ error?: string } | undefined> {
+): Promise<{ error?: string; password?: string } | undefined> {
   const r = await superadminSetUserPassword(formData);
   if (r && "error" in r) return { error: r.error };
+  if (r && "ok" in r && r.ok && "password" in r) return { password: r.password };
   return undefined;
 }
 
