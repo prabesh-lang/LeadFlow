@@ -37,7 +37,8 @@ type AnalystGroup = {
   leads: JourneyLead[];
 };
 
-function fmtDateTime(value: string) {
+function fmtDateTime(value: string | null) {
+  if (!value) return "—";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
   return d.toLocaleString();
