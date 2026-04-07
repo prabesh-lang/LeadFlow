@@ -12,6 +12,30 @@ function parseYmd(s: string): { y: number; m: number; d: number } | null {
   return { y, m: mo, d };
 }
 
+function toYmd(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+export function normalizeYmdOrNull(v?: string | null): string | null {
+  const t = v?.trim();
+  if (!t) return null;
+  const p = parseYmd(t);
+  if (!p) return null;
+  const d = new Date(p.y, p.m - 1, p.d);
+  // Reject impossible dates like 2026-02-31 that JS normalizes.
+  if (
+    d.getFullYear() !== p.y ||
+    d.getMonth() !== p.m - 1 ||
+    d.getDate() !== p.d
+  ) {
+    return null;
+  }
+  return toYmd(d);
+}
+
 function endOfToday(): Date {
   const now = new Date();
   return new Date(
@@ -113,9 +137,21 @@ export async function analystRangeParams(
     | { from?: string; to?: string; q?: string },
 ): Promise<{ from: string | null; to: string | null; q: string | null }> {
   const sp = await Promise.resolve(searchParams);
+  const from = normalizeYmdOrNull(sp.from);
+  const to = normalizeYmdOrNull(sp.to);
+  if (from && to) {
+    const range = leadCreatedAtRange(from, to);
+    if (range) {
+      return {
+        from: toYmd(range.gte),
+        to: toYmd(range.lte),
+        q: normalizeClientSearchQuery(sp.q),
+      };
+    }
+  }
   return {
-    from: sp.from?.trim() || null,
-    to: sp.to?.trim() || null,
+    from,
+    to,
     q: normalizeClientSearchQuery(sp.q),
   };
 }

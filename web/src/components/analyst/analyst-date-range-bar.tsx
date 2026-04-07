@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { normalizeYmdOrNull } from "@/lib/analyst-date-range";
 
 function toYmd(d: Date): string {
   const y = d.getFullYear();
@@ -90,12 +91,17 @@ export default function AnalystDateRangeBar() {
   const pushQuery = useCallback(
     (from: string, to: string) => {
       const p = new URLSearchParams(searchParams.toString());
-      if (from && to) {
-        p.set("from", from);
-        p.set("to", to);
+      const fromSafe = normalizeYmdOrNull(from);
+      const toSafe = normalizeYmdOrNull(to);
+      if (fromSafe && toSafe) {
+        // Always reset to page 1 when date range changes.
+        p.set("from", fromSafe);
+        p.set("to", toSafe);
+        p.set("page", "1");
       } else {
         p.delete("from");
         p.delete("to");
+        p.delete("page");
       }
       const q = p.toString();
       router.push(q ? `${pathname}?${q}` : pathname);
