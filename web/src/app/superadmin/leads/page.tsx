@@ -253,7 +253,10 @@ export default async function SuperadminLeadsPage({
           No leads match these filters.
         </p>
       ) : (
-        <SuperadminLeadsJourneyClient analystGroups={analystGroupsClient} />
+        <SuperadminLeadsJourneyClient
+          analystGroups={analystGroupsClient}
+          listTitle={parsed.analystId ? analystLabel : null}
+        />
       )}
     </div>
   );

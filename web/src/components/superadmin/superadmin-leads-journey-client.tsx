@@ -70,8 +70,10 @@ function fmtGap(fromIso: string | null, toIso: string | null) {
 
 export function SuperadminLeadsJourneyClient({
   analystGroups,
+  listTitle,
 }: {
   analystGroups: AnalystGroup[];
+  listTitle?: string | null;
 }) {
   const router = useRouter();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
@@ -138,12 +140,22 @@ export function SuperadminLeadsJourneyClient({
   return (
     <>
       <div className="space-y-8">
+        {listTitle ? (
+          <div className="rounded-xl border border-lf-border bg-lf-surface/70 px-4 py-2.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-lf-subtle">
+              Lead list
+            </p>
+            <p className="mt-1 text-sm text-lf-text-secondary">{listTitle}</p>
+          </div>
+        ) : null}
         {analystGroups.map(({ analyst, leads }) => (
           <section key={analyst.id} className="space-y-4">
-            <div className="border-b border-lf-border pb-2">
-              <h2 className="text-lg font-semibold text-lf-text">{analyst.name}</h2>
-              <p className="text-xs text-lf-subtle">{analyst.email}</p>
-            </div>
+            {!listTitle ? (
+              <div className="border-b border-lf-border pb-2">
+                <h2 className="text-lg font-semibold text-lf-text">{analyst.name}</h2>
+                <p className="text-xs text-lf-subtle">{analyst.email}</p>
+              </div>
+            ) : null}
             <div className="overflow-x-auto rounded-xl border border-lf-border bg-lf-surface/90 shadow-sm">
               <table className="min-w-[980px] w-full table-fixed divide-y divide-lf-border text-sm">
                 <thead className="bg-lf-bg/70 text-left text-xs uppercase tracking-wide text-lf-subtle">
