@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AssignToMtlForm } from "@/components/atl/assign-to-mtl-form";
+import { AssignDirectToExecForm } from "@/components/atl/assign-direct-to-exec-form";
 import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
 import ExecLostNotesReadonly from "@/components/exec-lost-notes-readonly";
 import { PortalLeadSearchLiveField } from "@/components/portal-lead-search-live-field";
@@ -32,7 +33,18 @@ export type AtlLeadRow = {
   assignedSalesExec: { name: string } | null;
 };
 
-export type MtlOption = { id: string; name: string; teamName: string };
+export type MtlOption = {
+  id: string;
+  name: string;
+  teamId: string;
+  teamName: string;
+};
+export type ExecOption = {
+  id: string;
+  name: string;
+  email: string;
+  teamId: string;
+};
 
 export function AtlAllLeadsTableClient({
   leads,
@@ -41,6 +53,7 @@ export function AtlAllLeadsTableClient({
   to,
   analystIdsEmpty,
   mtlOptions,
+  execOptions,
 }: {
   leads: AtlLeadRow[];
   initialQ: string | null;
@@ -48,6 +61,7 @@ export function AtlAllLeadsTableClient({
   to: string | null;
   analystIdsEmpty: boolean;
   mtlOptions: MtlOption[];
+  execOptions: ExecOption[];
 }) {
   const [query, setQuery] = useState(initialQ ?? "");
   useDebouncedLeadSearchUrl(query);
@@ -123,6 +137,7 @@ export function AtlAllLeadsTableClient({
                     l.qualificationStatus === QualificationStatus.QUALIFIED &&
                     l.salesStage === SalesStage.PRE_SALES &&
                     mtlOptions.length > 0;
+                  const canDirectAssign = canAssign && execOptions.length > 0;
                   const hasMainRoute =
                     Boolean(l.teamId || l.assignedMainTeamLeadId);
                   const teamLabel = l.team?.name ?? null;
@@ -207,9 +222,23 @@ export function AtlAllLeadsTableClient({
                         )}
                       </td>
                       <td className="px-4 py-3 align-top text-xs text-lf-text-secondary">
-                        {l.assignedSalesExec ? (
+                        {canDirectAssign ? (
+                          <AssignDirectToExecForm
+                            leadId={l.id}
+                            mainTeamLeads={mtlOptions}
+                            execOptions={execOptions}
+                          />
+                        ) : l.assignedSalesExec ? (
                           <span className="font-medium text-lf-text">
                             {l.assignedSalesExec.name}
+                          </span>
+                        ) : l.qualificationStatus ===
+                            QualificationStatus.QUALIFIED &&
+                          l.salesStage === SalesStage.PRE_SALES &&
+                          mtlOptions.length > 0 &&
+                          execOptions.length === 0 ? (
+                          <span className="text-lf-subtle">
+                            Add sales executives under Team
                           </span>
                         ) : (
                           <span className="text-lf-subtle">—</span>

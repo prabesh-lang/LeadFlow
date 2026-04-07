@@ -7,7 +7,11 @@ import {
   hrefWithDateRange,
 } from "@/lib/analyst-date-range";
 import { atlLeadSql } from "@/lib/atl-leads";
-import { AtlAllLeadsTableClient } from "@/components/portal-leads/atl-all-leads-table-client";
+import {
+  AtlAllLeadsTableClient,
+  type ExecOption,
+  type MtlOption,
+} from "@/components/portal-leads/atl-all-leads-table-client";
 import { UserRole } from "@/lib/constants";
 
 export default async function AnalystTeamLeadLeadsPage({
@@ -63,19 +67,44 @@ export default async function AnalystTeamLeadLeadsPage({
   const mtlRows = await dbQuery<{
     id: string;
     name: string;
+    team_id: string;
     team_name: string;
   }>(
-    `SELECT u.id, u.name, t.name AS team_name
+    `SELECT u.id, u.name, t.id AS team_id, t.name AS team_name
      FROM "User" u
      INNER JOIN "Team" t ON t."mainTeamLeadId" = u.id
      WHERE u.role = $1`,
     [UserRole.MAIN_TEAM_LEAD],
   );
-  const mtlOptions = mtlRows.map((u) => ({
+  const mtlOptions: MtlOption[] = mtlRows.map((u) => ({
     id: u.id,
     name: u.name,
+    teamId: u.team_id,
     teamName: u.team_name,
   }));
+
+  const execRows = await dbQuery<{
+    id: string;
+    name: string;
+    email: string;
+    team_id: string | null;
+  }>(
+    `SELECT id, name, email, "teamId" AS team_id
+     FROM "User"
+     WHERE role = $1
+     ORDER BY name ASC`,
+    [UserRole.SALES_EXECUTIVE],
+  );
+  const execOptions: ExecOption[] = execRows
+    .filter((u): u is { id: string; name: string; email: string; team_id: string } =>
+      Boolean(u.team_id),
+    )
+    .map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      teamId: u.team_id,
+    }));
 
   const rows = leadRows.map((l) => ({
     id: l.id,
@@ -126,6 +155,7 @@ export default async function AnalystTeamLeadLeadsPage({
         to={to}
         analystIdsEmpty={analystIds.length === 0}
         mtlOptions={mtlOptions}
+        execOptions={execOptions}
       />
     </div>
   );
