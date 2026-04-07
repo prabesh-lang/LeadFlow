@@ -12,7 +12,7 @@ import {
   type ExecOption,
   type MtlOption,
 } from "@/components/portal-leads/atl-all-leads-table-client";
-import { UserRole } from "@/lib/constants";
+import { LeadHandoffAction, UserRole } from "@/lib/constants";
 
 export default async function AnalystTeamLeadLeadsPage({
   searchParams,
@@ -126,6 +126,70 @@ export default async function AnalystTeamLeadLeadsPage({
     assignedSalesExec: l.se_name ? { name: l.se_name } : null,
   }));
 
+  const leadIds = leadRows.map((l) => l.id);
+  const handoffRows =
+    leadIds.length === 0
+      ? []
+      : await dbQuery<{
+          lead_id: string;
+          created_at: Date;
+          action: string;
+        }>(
+          `SELECT "leadId" AS lead_id, "createdAt" AS created_at, action
+           FROM "LeadHandoffLog"
+           WHERE "leadId" = ANY($1::text[])
+             AND action = ANY($2::text[])
+           ORDER BY "createdAt" ASC`,
+          [
+            leadIds,
+            [
+              LeadHandoffAction.ROUTED_TO_MAIN_TEAM,
+              LeadHandoffAction.ASSIGNED_TO_EXECUTIVE,
+              LeadHandoffAction.DIRECT_ASSIGNED_TO_EXECUTIVE_BY_ATL,
+            ],
+          ],
+        );
+
+  const timelineByLead = new Map<
+    string,
+    {
+      routedToMainTeamAt?: Date;
+      assignedToExecutiveAt?: Date;
+      directAssignedToExecutiveByAtlAt?: Date;
+    }
+  >();
+  for (const h of handoffRows) {
+    const t = timelineByLead.get(h.lead_id) ?? {};
+    if (
+      h.action === LeadHandoffAction.ROUTED_TO_MAIN_TEAM &&
+      !t.routedToMainTeamAt
+    ) {
+      t.routedToMainTeamAt = h.created_at;
+    } else if (
+      h.action === LeadHandoffAction.ASSIGNED_TO_EXECUTIVE &&
+      !t.assignedToExecutiveAt
+    ) {
+      t.assignedToExecutiveAt = h.created_at;
+    } else if (
+      h.action === LeadHandoffAction.DIRECT_ASSIGNED_TO_EXECUTIVE_BY_ATL &&
+      !t.directAssignedToExecutiveByAtlAt
+    ) {
+      t.directAssignedToExecutiveByAtlAt = h.created_at;
+    }
+    timelineByLead.set(h.lead_id, t);
+  }
+
+  const rowsWithTimeline = rows.map((r) => {
+    const t = timelineByLead.get(r.id);
+    return {
+      ...r,
+      routedToMainTeamAt: t?.routedToMainTeamAt?.toISOString() ?? null,
+      assignedToExecutiveAt: t?.assignedToExecutiveAt?.toISOString() ?? null,
+      directAssignedToExecutiveByAtlAt:
+        t?.directAssignedToExecutiveByAtlAt?.toISOString() ?? null,
+    };
+  });
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -149,7 +213,7 @@ export default async function AnalystTeamLeadLeadsPage({
 
       <AtlAllLeadsTableClient
         key={`${from ?? ""}|${to ?? ""}`}
-        leads={rows}
+        leads={rowsWithTimeline}
         initialQ={q}
         from={from}
         to={to}

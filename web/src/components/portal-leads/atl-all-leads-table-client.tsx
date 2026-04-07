@@ -31,6 +31,9 @@ export type AtlLeadRow = {
   team: { name: string } | null;
   assignedMainTeamLead: { name: string } | null;
   assignedSalesExec: { name: string } | null;
+  routedToMainTeamAt: string | null;
+  assignedToExecutiveAt: string | null;
+  directAssignedToExecutiveByAtlAt: string | null;
 };
 
 export type MtlOption = {
@@ -73,6 +76,27 @@ export function AtlAllLeadsTableClient({
 
   const hasQuery = query.trim().length > 0;
 
+  const fmtDateTime = (iso: string | null) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleString();
+  };
+
+  const fmtGap = (fromIso: string | null, toIso: string | null) => {
+    if (!fromIso || !toIso) return "—";
+    const from = new Date(fromIso).getTime();
+    const to = new Date(toIso).getTime();
+    if (!Number.isFinite(from) || !Number.isFinite(to) || to < from) return "—";
+    const mins = Math.floor((to - from) / 60000);
+    const days = Math.floor(mins / (60 * 24));
+    const hours = Math.floor((mins % (60 * 24)) / 60);
+    const minutes = mins % 60;
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+
   return (
     <>
       <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
@@ -100,13 +124,14 @@ export function AtlAllLeadsTableClient({
                 <th className="px-4 py-3 font-medium">Added</th>
                 <th className="px-4 py-3 font-medium">Route TL</th>
                 <th className="px-4 py-3 font-medium">Route SE</th>
+                <th className="px-4 py-3 font-medium">Pass timeline / gap</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-lf-divide">
               {leads.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={13}
+                    colSpan={14}
                     className="px-4 py-12 text-center text-lf-subtle"
                   >
                     {from || to
@@ -119,7 +144,7 @@ export function AtlAllLeadsTableClient({
               ) : filtered.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={13}
+                    colSpan={14}
                     className="px-4 py-12 text-center text-lf-subtle"
                   >
                     {hasQuery
@@ -243,6 +268,56 @@ export function AtlAllLeadsTableClient({
                         ) : (
                           <span className="text-lf-subtle">—</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        <div className="min-w-[260px] space-y-1 text-xs text-lf-text-secondary">
+                          <p>
+                            <span className="text-lf-subtle">Lead analyst: </span>
+                            {fmtDateTime(l.createdAt)}
+                          </p>
+                          <p>
+                            <span className="text-lf-subtle">ATL pass: </span>
+                            {fmtDateTime(
+                              l.directAssignedToExecutiveByAtlAt ??
+                                l.routedToMainTeamAt,
+                            )}
+                          </p>
+                          <p>
+                            <span className="text-lf-subtle">Main TL pass: </span>
+                            {l.directAssignedToExecutiveByAtlAt
+                              ? "— (direct ATL→SE)"
+                              : fmtDateTime(l.assignedToExecutiveAt)}
+                          </p>
+                          <p>
+                            <span className="text-lf-subtle">Sales executive: </span>
+                            {fmtDateTime(
+                              l.assignedToExecutiveAt ??
+                                l.directAssignedToExecutiveByAtlAt,
+                            )}
+                          </p>
+                          <div className="mt-1 border-t border-lf-border pt-1 text-[11px] text-lf-muted">
+                            <p>
+                              LA → ATL:{" "}
+                              {fmtGap(
+                                l.createdAt,
+                                l.directAssignedToExecutiveByAtlAt ??
+                                  l.routedToMainTeamAt,
+                              )}
+                            </p>
+                            <p>
+                              ATL → Main TL:{" "}
+                              {l.directAssignedToExecutiveByAtlAt
+                                ? "Skipped (direct ATL→SE)"
+                                : "Instant at routing"}
+                            </p>
+                            <p>
+                              Main TL → SE:{" "}
+                              {l.directAssignedToExecutiveByAtlAt
+                                ? "Direct by ATL"
+                                : fmtGap(l.routedToMainTeamAt, l.assignedToExecutiveAt)}
+                            </p>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   );

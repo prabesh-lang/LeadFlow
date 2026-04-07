@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { superadminDeleteLeadFormAction } from "@/app/actions/superadmin";
-import { QualificationStatus } from "@/lib/constants";
+import { LeadHandoffAction, QualificationStatus } from "@/lib/constants";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
 import { LeadSourceDisplay } from "@/components/lead-source-display";
 import {
@@ -53,6 +53,20 @@ function statusPillClass(status: string) {
   return "bg-lf-bg/60 text-lf-text-secondary";
 }
 
+function fmtGap(fromIso: string | null, toIso: string | null) {
+  if (!fromIso || !toIso) return "—";
+  const from = new Date(fromIso).getTime();
+  const to = new Date(toIso).getTime();
+  if (!Number.isFinite(from) || !Number.isFinite(to) || to < from) return "—";
+  const mins = Math.floor((to - from) / 60000);
+  const days = Math.floor(mins / (60 * 24));
+  const hours = Math.floor((mins % (60 * 24)) / 60);
+  const minutes = mins % 60;
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
 export function SuperadminLeadsJourneyClient({
   analystGroups,
 }: {
@@ -74,6 +88,36 @@ export function SuperadminLeadsJourneyClient({
     }
     return null;
   }, [analystGroups, selectedLeadId]);
+
+  const timeline = useMemo(() => {
+    if (!selected) return null;
+    let routedToMainTeamAt: string | null = null;
+    let assignedToExecutiveAt: string | null = null;
+    let directAssignedToExecutiveByAtlAt: string | null = null;
+    for (const h of selected.lead.handoffLogs) {
+      if (
+        h.action === LeadHandoffAction.ROUTED_TO_MAIN_TEAM &&
+        !routedToMainTeamAt
+      ) {
+        routedToMainTeamAt = h.createdAt;
+      } else if (
+        h.action === LeadHandoffAction.ASSIGNED_TO_EXECUTIVE &&
+        !assignedToExecutiveAt
+      ) {
+        assignedToExecutiveAt = h.createdAt;
+      } else if (
+        h.action === LeadHandoffAction.DIRECT_ASSIGNED_TO_EXECUTIVE_BY_ATL &&
+        !directAssignedToExecutiveByAtlAt
+      ) {
+        directAssignedToExecutiveByAtlAt = h.createdAt;
+      }
+    }
+    return {
+      routedToMainTeamAt,
+      assignedToExecutiveAt,
+      directAssignedToExecutiveByAtlAt,
+    };
+  }, [selected]);
 
   const closeModal = () => {
     if (pending) return;
@@ -244,6 +288,64 @@ export function SuperadminLeadsJourneyClient({
             </dl>
 
             <div className="border-t border-lf-border pt-4">
+              {timeline ? (
+                <div className="mb-4 rounded-lg border border-lf-border bg-lf-bg/40 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-lf-subtle">
+                    Pass timeline / gap
+                  </p>
+                  <div className="mt-2 space-y-1 text-xs text-lf-text-secondary">
+                    <p>
+                      <span className="text-lf-subtle">Lead analyst: </span>
+                      {fmtDateTime(selected.lead.createdAt)}
+                    </p>
+                    <p>
+                      <span className="text-lf-subtle">ATL pass: </span>
+                      {fmtDateTime(
+                        timeline.directAssignedToExecutiveByAtlAt ??
+                          timeline.routedToMainTeamAt,
+                      )}
+                    </p>
+                    <p>
+                      <span className="text-lf-subtle">Main TL pass: </span>
+                      {timeline.directAssignedToExecutiveByAtlAt
+                        ? "— (direct ATL→SE)"
+                        : fmtDateTime(timeline.assignedToExecutiveAt)}
+                    </p>
+                    <p>
+                      <span className="text-lf-subtle">Sales executive: </span>
+                      {fmtDateTime(
+                        timeline.assignedToExecutiveAt ??
+                          timeline.directAssignedToExecutiveByAtlAt,
+                      )}
+                    </p>
+                  </div>
+                  <div className="mt-2 border-t border-lf-border pt-2 text-[11px] text-lf-muted">
+                    <p>
+                      LA → ATL:{" "}
+                      {fmtGap(
+                        selected.lead.createdAt,
+                        timeline.directAssignedToExecutiveByAtlAt ??
+                          timeline.routedToMainTeamAt,
+                      )}
+                    </p>
+                    <p>
+                      ATL → Main TL:{" "}
+                      {timeline.directAssignedToExecutiveByAtlAt
+                        ? "Skipped (direct ATL→SE)"
+                        : "Instant at routing"}
+                    </p>
+                    <p>
+                      Main TL → SE:{" "}
+                      {timeline.directAssignedToExecutiveByAtlAt
+                        ? "Direct by ATL"
+                        : fmtGap(
+                            timeline.routedToMainTeamAt,
+                            timeline.assignedToExecutiveAt,
+                          )}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
               <p className="text-sm font-semibold uppercase tracking-wide text-lf-subtle">
                 Journey
               </p>
