@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { normalizeYmdOrNull } from "@/lib/analyst-date-range";
 
 function DateRangeForm({
@@ -75,36 +75,38 @@ export default function AnalystDateRangeBar() {
   const fromUrl = searchParams.get("from") ?? "";
   const toUrl = searchParams.get("to") ?? "";
 
-  const pushQuery = useCallback(
-    (from: string, to: string) => {
-      const p = new URLSearchParams(searchParams.toString());
-      const fromSafe = normalizeYmdOrNull(from);
-      const toSafe = normalizeYmdOrNull(to);
-      if (fromSafe && toSafe) {
-        p.set("from", fromSafe);
-        p.set("to", toSafe);
-        p.set("page", "1");
-      } else {
-        p.delete("from");
-        p.delete("to");
-        p.delete("page");
-      }
-      const q = p.toString();
-      router.push(q ? `${pathname}?${q}` : pathname);
-    },
-    [pathname, router, searchParams],
-  );
+  const pushQuery = (from: string, to: string) => {
+    const p = new URLSearchParams(searchParams.toString());
+    let fromSafe = normalizeYmdOrNull(from);
+    let toSafe = normalizeYmdOrNull(to);
+    if (fromSafe && toSafe && fromSafe > toSafe) {
+      const x = fromSafe;
+      fromSafe = toSafe;
+      toSafe = x;
+    }
+    if (fromSafe && toSafe) {
+      p.set("from", fromSafe);
+      p.set("to", toSafe);
+      p.set("page", "1");
+    } else {
+      p.delete("from");
+      p.delete("to");
+      p.delete("page");
+    }
+    const q = p.toString();
+    router.push(q ? `${pathname}?${q}` : pathname);
+  };
 
-  const clearRange = useCallback(() => {
+  const clearRange = () => {
     pushQuery("", "");
-  }, [pushQuery]);
+  };
 
   const hasActiveRange = Boolean(fromUrl.trim() || toUrl.trim());
 
   return (
     <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
       <DateRangeForm
-        key={`${fromUrl}\0${toUrl}`}
+        key={`${fromUrl}|${toUrl}`}
         fromUrl={fromUrl}
         toUrl={toUrl}
         onApply={pushQuery}
