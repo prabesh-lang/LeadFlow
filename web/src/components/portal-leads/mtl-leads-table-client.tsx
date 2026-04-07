@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
 import ExecLostNotesReadonly from "@/components/exec-lost-notes-readonly";
 import { AssignToExecForm } from "@/components/mtl/assign-to-exec-form";
-import { LeadSourceDisplay } from "@/components/lead-source-display";
+import { LeadSourcePill } from "@/components/lead-source-display";
 import { PortalLeadSearchLiveField } from "@/components/portal-lead-search-live-field";
 import { DashboardReportExport } from "@/components/dashboard-report-export";
 import { SalesStage } from "@/lib/constants";
@@ -69,22 +69,23 @@ export function MtlLeadsTableClient({
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-lf-border bg-lf-surface">
-        <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-lf-border text-xs uppercase tracking-wide text-lf-subtle">
+      <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface shadow-sm">
+        <div className="overflow-x-auto">
+        <table className="min-w-[1400px] w-full table-fixed text-left text-sm">
+          <thead className="border-b border-lf-border bg-lf-bg/70 text-xs uppercase tracking-wide text-lf-subtle">
             <tr>
-              <th className="px-4 py-3 font-semibold">Name</th>
-              <th className="px-4 py-3 font-semibold">Phone</th>
-              <th className="px-4 py-3 font-semibold">Email</th>
-              <th className="px-4 py-3 font-semibold">Source</th>
-              <th className="px-4 py-3 font-semibold">Analyst</th>
-              <th className="px-4 py-3 font-semibold">Score</th>
-              <th className="px-4 py-3 font-semibold">Stage</th>
-              <th className="px-4 py-3 font-semibold">Analyst notes</th>
-              <th className="px-4 py-3 font-semibold">Executive notes</th>
-              <th className="px-4 py-3 font-semibold">Rep</th>
-              <th className="px-4 py-3 font-semibold">Deadline</th>
-              <th className="px-4 py-3 font-semibold">Assign</th>
+              <th className="w-[150px] px-4 py-3 font-semibold">Name</th>
+              <th className="w-[130px] px-4 py-3 font-semibold">Phone</th>
+              <th className="w-[190px] px-4 py-3 font-semibold">Email</th>
+              <th className="w-[240px] px-4 py-3 font-semibold">Source</th>
+              <th className="w-[120px] px-4 py-3 font-semibold">Analyst</th>
+              <th className="w-[80px] px-4 py-3 font-semibold">Score</th>
+              <th className="w-[130px] px-4 py-3 font-semibold">Stage</th>
+              <th className="w-[230px] px-4 py-3 font-semibold">Analyst notes</th>
+              <th className="w-[230px] px-4 py-3 font-semibold">Executive notes</th>
+              <th className="w-[120px] px-4 py-3 font-semibold">Rep</th>
+              <th className="w-[150px] px-4 py-3 font-semibold">Deadline</th>
+              <th className="w-[170px] px-4 py-3 font-semibold">Assign</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-lf-divide">
@@ -114,7 +115,7 @@ export function MtlLeadsTableClient({
                   lead.salesStage !== SalesStage.CLOSED_WON &&
                   lead.salesStage !== SalesStage.CLOSED_LOST;
                 return (
-                  <tr key={lead.id} className="align-top bg-lf-bg/40">
+                  <tr key={lead.id} className="align-top odd:bg-lf-bg/[0.16] hover:bg-lf-bg/[0.28]">
                     <td className="px-4 py-3 font-medium text-lf-text">
                       {lead.leadName || "—"}
                     </td>
@@ -125,7 +126,7 @@ export function MtlLeadsTableClient({
                       {lead.leadEmail || "—"}
                     </td>
                     <td className="px-4 py-3 text-lf-text-secondary">
-                      <LeadSourceDisplay source={lead.source} />
+                      <LeadSourcePill source={lead.source} />
                     </td>
                     <td className="px-4 py-3 text-lf-muted">
                       {lead.createdBy.name}
@@ -134,7 +135,9 @@ export function MtlLeadsTableClient({
                       {lead.leadScore ?? "—"}
                     </td>
                     <td className="px-4 py-3 text-lf-muted">
-                      {lead.salesStage.replaceAll("_", " ")}
+                      <span className="rounded-full bg-lf-bg px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-lf-text-secondary">
+                        {lead.salesStage.replaceAll("_", " ")}
+                      </span>
                     </td>
                     <td className="px-4 py-3 align-top">
                       <AnalystNotesReadonly notes={lead.notes} />
@@ -167,6 +170,7 @@ export function MtlLeadsTableClient({
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </>
   );

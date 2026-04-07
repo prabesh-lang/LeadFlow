@@ -8,11 +8,11 @@ export default function ExecLostNotesReadonly({
     return <span className="text-lf-subtle">—</span>;
   }
   return (
-    <p
-      className="max-w-[260px] whitespace-pre-wrap break-words text-xs leading-relaxed text-lf-text-secondary"
+    <div
+      className="max-h-28 max-w-[280px] overflow-auto rounded-lg border border-lf-border bg-lf-bg/50 px-2.5 py-2 text-xs leading-relaxed text-lf-text-secondary"
       title={notes}
     >
-      {notes}
-    </p>
+      <p className="whitespace-pre-wrap break-words">{notes}</p>
+    </div>
   );
 }

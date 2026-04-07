@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { superadminDeleteLeadFormAction } from "@/app/actions/superadmin";
 import { LeadHandoffAction, QualificationStatus } from "@/lib/constants";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
-import { LeadSourceDisplay } from "@/components/lead-source-display";
+import { LeadSourceDisplay, LeadSourcePill } from "@/components/lead-source-display";
 import {
   superadminHandoffLabels,
   superadminRoleLabel,
@@ -144,16 +144,16 @@ export function SuperadminLeadsJourneyClient({
               <h2 className="text-lg font-semibold text-lf-text">{analyst.name}</h2>
               <p className="text-xs text-lf-subtle">{analyst.email}</p>
             </div>
-            <div className="overflow-x-auto rounded-xl border border-lf-border bg-lf-surface/90">
-              <table className="min-w-full divide-y divide-lf-border text-sm">
-                <thead className="bg-lf-bg/50 text-left text-xs uppercase tracking-wide text-lf-subtle">
+            <div className="overflow-x-auto rounded-xl border border-lf-border bg-lf-surface/90 shadow-sm">
+              <table className="min-w-[980px] w-full table-fixed divide-y divide-lf-border text-sm">
+                <thead className="bg-lf-bg/70 text-left text-xs uppercase tracking-wide text-lf-subtle">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">Lead</th>
-                    <th className="px-4 py-3 font-semibold">Source</th>
-                    <th className="px-4 py-3 font-semibold">Status</th>
-                    <th className="px-4 py-3 font-semibold">Stage</th>
-                    <th className="px-4 py-3 font-semibold">Team</th>
-                    <th className="px-4 py-3 font-semibold">Sales executive</th>
+                    <th className="w-[240px] px-4 py-3 font-semibold">Lead</th>
+                    <th className="w-[240px] px-4 py-3 font-semibold">Source</th>
+                    <th className="w-[120px] px-4 py-3 font-semibold">Status</th>
+                    <th className="w-[150px] px-4 py-3 font-semibold">Stage</th>
+                    <th className="w-[130px] px-4 py-3 font-semibold">Team</th>
+                    <th className="w-[160px] px-4 py-3 font-semibold">Sales executive</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-lf-border">
@@ -169,7 +169,7 @@ export function SuperadminLeadsJourneyClient({
                           openLead(lead.id);
                         }
                       }}
-                      className="cursor-pointer align-top text-lf-text-secondary transition hover:bg-lf-bg/35 focus:outline-none focus:ring-2 focus:ring-lf-brand/30"
+                      className="cursor-pointer align-top text-lf-text-secondary transition odd:bg-lf-bg/[0.16] hover:bg-lf-bg/[0.28] focus:outline-none focus:ring-2 focus:ring-lf-brand/30"
                     >
                       <td className="px-4 py-3">
                         <p className="font-semibold text-lf-text">
@@ -180,7 +180,7 @@ export function SuperadminLeadsJourneyClient({
                         </p>
                       </td>
                       <td className="px-4 py-3">
-                        <LeadSourceDisplay source={lead.source} />
+                        <LeadSourcePill source={lead.source} />
                       </td>
                       <td className="px-4 py-3">
                         <span
