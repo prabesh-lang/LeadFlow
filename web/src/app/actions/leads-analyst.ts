@@ -17,6 +17,10 @@ import {
   LEAD_SOURCE_OPTIONS,
   resolveLeadSourceLabel,
 } from "@/lib/lead-sources";
+import {
+  isAllowedQualificationReason,
+  joinNotesWithQualificationReason,
+} from "@/lib/qualification-reasons";
 
 const SOURCE_VALUES = new Set(
   LEAD_SOURCE_OPTIONS.map((o) => o.value as LeadSourceValue),
@@ -81,6 +85,8 @@ export async function createLeadAnalyst(formData: FormData) {
     sourceMetaProfileName = null;
   }
   const notes = String(formData.get("notes") ?? "").trim() || null;
+  const qualificationReason =
+    String(formData.get("qualificationReason") ?? "").trim() || null;
   const qualificationStatus = String(
     formData.get("qualificationStatus") ?? "",
   ) as (typeof QualificationStatus)[keyof typeof QualificationStatus];
@@ -112,6 +118,9 @@ export async function createLeadAnalyst(formData: FormData) {
   ) {
     return { error: "Invalid qualification." };
   }
+  if (!isAllowedQualificationReason(qualificationStatus, qualificationReason)) {
+    return { error: "Select a valid reason for this qualification status." };
+  }
   if (
     leadScore !== null &&
     (Number.isNaN(leadScore) || leadScore < 0 || leadScore > 100)
@@ -136,6 +145,7 @@ export async function createLeadAnalyst(formData: FormData) {
     metaProfileName: sourceMetaProfileName,
   });
   const country = countryNameFromPhone(phone) ?? "Unknown";
+  const storedNotes = joinNotesWithQualificationReason(qualificationReason, notes);
 
   const leadId = newId();
 
@@ -158,7 +168,7 @@ export async function createLeadAnalyst(formData: FormData) {
         source,
         sourceWebsiteName,
         sourceMetaProfileName,
-        notes,
+        storedNotes,
         qualificationStatus,
         leadScore,
         SalesStage.PRE_SALES,
@@ -185,7 +195,7 @@ export async function createLeadAnalyst(formData: FormData) {
         source,
         sourceWebsiteName,
         sourceMetaProfileName,
-        notes,
+        storedNotes,
         qualificationStatus,
         leadScore,
         SalesStage.PRE_SALES,

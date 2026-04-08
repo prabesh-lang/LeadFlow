@@ -15,6 +15,7 @@ import {
 } from "@/lib/analyst-ui";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
 import { QualificationStatus, SalesStage } from "@/lib/constants";
+import { extractQualificationReason } from "@/lib/qualification-reasons";
 
 export type UnifiedPortalKind =
   | "lead_analyst"
@@ -65,6 +66,12 @@ export type SalesExecOutcomeRow = {
   withRepOpen: number;
   closedWon: number;
   closedLost: number;
+};
+
+export type QualificationReasonRow = {
+  status: string;
+  reason: string;
+  count: number;
 };
 
 export function buildLeadAnalystQualBreakdown(
@@ -252,6 +259,7 @@ export type UnifiedDashboardViewModel = {
   conversionBySource: ConversionDimRow[];
   leadAnalystBreakdown: LeadAnalystQualBreakdownRow[];
   salesExecOutcomes: SalesExecOutcomeRow[];
+  qualificationReasonRows: QualificationReasonRow[];
 };
 
 function leadForAnalytics(l: UnifiedLeadRow) {
@@ -350,6 +358,27 @@ export function buildUnifiedDashboardViewModel(
 
   const leadAnalystBreakdown = buildLeadAnalystQualBreakdown(leads);
   const salesExecOutcomes = buildSalesExecOutcomeRows(leads);
+  const byQualificationReason = new Map<string, number>();
+  for (const l of leads) {
+    const reason = extractQualificationReason(l.notes);
+    if (!reason) continue;
+    if (
+      l.qualificationStatus !== QualificationStatus.NOT_QUALIFIED &&
+      l.qualificationStatus !== QualificationStatus.IRRELEVANT
+    ) {
+      continue;
+    }
+    const key = `${l.qualificationStatus}:::${reason}`;
+    byQualificationReason.set(key, (byQualificationReason.get(key) ?? 0) + 1);
+  }
+  const qualificationReasonRows: QualificationReasonRow[] = [
+    ...byQualificationReason.entries(),
+  ]
+    .map(([key, count]) => {
+      const [status, reason] = key.split(":::");
+      return { status, reason, count };
+    })
+    .sort((a, b) => b.count - a.count || a.reason.localeCompare(b.reason));
 
   const countryRows = buildCountryQualRows(leads);
   const cityRows = buildAnalystCityRows(leads);
@@ -440,6 +469,7 @@ export function buildUnifiedDashboardViewModel(
     conversionBySource,
     leadAnalystBreakdown,
     salesExecOutcomes,
+    qualificationReasonRows,
   );
 
   const showQualifiedPassedBlock =
@@ -489,6 +519,7 @@ export function buildUnifiedDashboardViewModel(
     conversionBySource,
     leadAnalystBreakdown,
     salesExecOutcomes,
+    qualificationReasonRows,
   };
 }
 
@@ -527,6 +558,7 @@ function buildUnifiedExportPayload(
   conversionBySource: ConversionDimRow[],
   leadAnalystBreakdown: LeadAnalystQualBreakdownRow[],
   salesExecOutcomes: SalesExecOutcomeRow[],
+  qualificationReasonRows: QualificationReasonRow[],
 ): DashboardExportPayload {
   const summaryRows: { label: string; value: string | number }[] = [
     { label: "Portal", value: meta.kind.replace(/_/g, " ") },
@@ -626,6 +658,15 @@ function buildUnifiedExportPayload(
         r.withRepOpen,
         r.closedWon,
         r.closedLost,
+      ]),
+    },
+    {
+      title: "Qualification reasons",
+      headers: ["Status", "Reason", "Count"],
+      rows: qualificationReasonRows.map((r) => [
+        r.status.replaceAll("_", " "),
+        r.reason,
+        r.count,
       ]),
     },
     {

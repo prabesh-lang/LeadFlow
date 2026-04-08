@@ -145,6 +145,7 @@ export function UnifiedPortalReportSections({
     conversionBySource,
     leadAnalystBreakdown,
     salesExecOutcomes,
+    qualificationReasonRows,
   } = vm;
 
   const overallConversion =
@@ -338,6 +339,45 @@ export function UnifiedPortalReportSections({
           </div>
         </Card>
       </div>
+
+      <Card>
+        <h2 className="text-base font-semibold text-lf-text">
+          Not qualified / Irrelevant reasons
+        </h2>
+        <p className="mt-1 text-sm text-lf-muted">
+          Distribution of selected reasons in this range.
+        </p>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[420px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-lf-border text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+                <th className="pb-3 pr-3 font-medium">Status</th>
+                <th className="pb-3 pr-3 font-medium">Reason</th>
+                <th className="pb-3 font-medium">Count</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-lf-divide text-lf-muted">
+              {qualificationReasonRows.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="py-6 text-center text-lf-subtle">
+                    No reason data in range.
+                  </td>
+                </tr>
+              ) : (
+                qualificationReasonRows.map((r) => (
+                  <tr key={`${r.status}-${r.reason}`}>
+                    <td className="py-3 pr-3 font-medium text-lf-text-secondary">
+                      {r.status.replaceAll("_", " ")}
+                    </td>
+                    <td className="py-3 pr-3">{r.reason}</td>
+                    <td className="py-3 tabular-nums text-lf-text">{r.count}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {atlPassed ? (
         <Card>

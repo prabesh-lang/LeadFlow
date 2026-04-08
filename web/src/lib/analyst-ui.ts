@@ -3,6 +3,7 @@ import {
   SalesStage,
 } from "@/lib/constants";
 import { formatLeadSourceDisplay } from "@/lib/lead-sources";
+import { stripQualificationReasonFromNotes } from "@/lib/qualification-reasons";
 
 export function initialsFromName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -78,7 +79,8 @@ export function pipelineNoteForLead(
     if (exec) return exec;
     return "No loss reason recorded";
   }
-  if (notes?.trim()) return notes.trim();
+  const cleanNotes = stripQualificationReasonFromNotes(notes);
+  if (cleanNotes?.trim()) return cleanNotes.trim();
   if (q !== QualificationStatus.QUALIFIED) return "—";
   switch (stage) {
     case SalesStage.PRE_SALES:

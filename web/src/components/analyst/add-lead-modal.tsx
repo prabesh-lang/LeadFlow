@@ -15,6 +15,7 @@ import { QualificationStatus } from "@/lib/constants";
 import { AnalystPhoneField } from "@/components/analyst/analyst-phone-field";
 import { LEAD_SOURCE_OPTIONS } from "@/lib/lead-sources";
 import { countryNameFromPhone } from "@/lib/phone-location";
+import { QUALIFICATION_REASON_BY_STATUS } from "@/lib/qualification-reasons";
 
 export const ANALYST_OPEN_ADD_LEAD_EVENT = "leadflow:analyst-open-add-lead";
 
@@ -64,6 +65,7 @@ function AddLeadModalInner({
     LEAD_SOURCE_OPTIONS[0].value,
   );
   const [phone, setPhone] = useState<string | undefined>();
+  const [qualificationReason, setQualificationReason] = useState("");
 
   const countryLabel = useMemo(
     () => countryNameFromPhone(phone) ?? null,
@@ -267,7 +269,10 @@ function AddLeadModalInner({
                   <button
                     key={v}
                     type="button"
-                    onClick={() => setQual(v)}
+                    onClick={() => {
+                      setQual(v);
+                      setQualificationReason("");
+                    }}
                     className={`flex min-h-[2.75rem] items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lf-brand/50 ${
                       active
                         ? "border-lf-success/80 bg-lf-success/10 text-lf-success"
@@ -279,6 +284,28 @@ function AddLeadModalInner({
                 );
               })}
             </div>
+            {qual === QualificationStatus.NOT_QUALIFIED ||
+            qual === QualificationStatus.IRRELEVANT ? (
+              <label className="mt-4 flex flex-col">
+                <FieldLabel required>Reason</FieldLabel>
+                <select
+                  name="qualificationReason"
+                  required
+                  value={qualificationReason}
+                  onChange={(e) => setQualificationReason(e.target.value)}
+                  className="rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2"
+                >
+                  <option value="">Select reason</option>
+                  {QUALIFICATION_REASON_BY_STATUS[qual].map((reason) => (
+                    <option key={reason} value={reason}>
+                      {reason}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <input type="hidden" name="qualificationReason" value="" />
+            )}
           </div>
 
           <div className="mt-6">
