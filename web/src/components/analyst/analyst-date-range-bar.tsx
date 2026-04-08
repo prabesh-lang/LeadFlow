@@ -72,8 +72,10 @@ export default function AnalystDateRangeBar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const fromUrl = searchParams.get("from") ?? "";
-  const toUrl = searchParams.get("to") ?? "";
+  // Only bind YYYY-MM-DD that pass the same checks as the server; invalid
+  // query values break controlled <input type="date"> in some browsers/React.
+  const fromUrl = normalizeYmdOrNull(searchParams.get("from")) ?? "";
+  const toUrl = normalizeYmdOrNull(searchParams.get("to")) ?? "";
 
   const pushQuery = (from: string, to: string) => {
     const p = new URLSearchParams(searchParams.toString());
