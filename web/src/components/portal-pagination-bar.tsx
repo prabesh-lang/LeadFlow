@@ -22,12 +22,15 @@ export function PortalPaginationBar({
   page,
   perPage,
   totalCount,
+  countNoun = "leads",
 }: {
   pathname: string;
   query: Record<string, QVal>;
   page: number;
   perPage: 25 | 50 | 100;
   totalCount: number;
+  /** Plural label after total count, e.g. "events" for transfer log. */
+  countNoun?: string;
 }) {
   const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
   const safePage = Math.min(Math.max(1, page), totalPages);
@@ -50,7 +53,8 @@ export function PortalPaginationBar({
         <span className="font-semibold text-lf-text">
           {start}-{end}
         </span>{" "}
-        of <span className="font-semibold text-lf-text">{totalCount}</span> leads
+        of <span className="font-semibold text-lf-text">{totalCount}</span>{" "}
+        {countNoun}
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs text-lf-subtle">Per page:</span>

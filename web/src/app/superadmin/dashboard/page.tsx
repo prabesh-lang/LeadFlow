@@ -1,10 +1,28 @@
 import type { Metadata } from "next";
 import { dbQuery } from "@/lib/db/pool";
+import { PortalPaginationBar } from "@/components/portal-pagination-bar";
 import {
   superadminHandoffLabels,
   superadminRoleLabel,
 } from "@/lib/superadmin-ui";
 import { getSuperadminDashboardMetrics } from "@/lib/superadmin-stats";
+
+function first(sp: string | string[] | undefined): string | undefined {
+  if (Array.isArray(sp)) return sp[0];
+  return sp;
+}
+
+function parseHandoffPaging(sp: Record<string, string | string[] | undefined>): {
+  page: number;
+  perPage: 25 | 50 | 100;
+} {
+  const pageRaw = Number.parseInt(first(sp.page) ?? "", 10);
+  const perPageRaw = Number.parseInt(first(sp.perPage) ?? "", 10);
+  const perPage: 25 | 50 | 100 =
+    perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
+  return { page, perPage };
+}
 
 export const metadata: Metadata = {
   title: "Dashboard · Superadmin",
@@ -57,18 +75,17 @@ type TransferRow = {
   tb_email: string;
 };
 
-export default async function SuperadminDashboardPage() {
-  const [metrics, handoffRows, transferRows] = await Promise.all([
+export default async function SuperadminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const { page: pageRaw, perPage } = parseHandoffPaging(sp);
+
+  const [metrics, handoffCountRow, transferRows] = await Promise.all([
     getSuperadminDashboardMetrics(),
-    dbQuery<HandoffRow>(
-      `SELECT h.id, h."createdAt", h.action, h.detail,
-        l.id AS lead_id, l."leadName" AS lead_leadName,
-        a.name AS actor_name, a.email AS actor_email, a.role AS actor_role
-       FROM "LeadHandoffLog" h
-       LEFT JOIN "Lead" l ON l.id = h."leadId"
-       LEFT JOIN "User" a ON a.id = h."actorId"
-       ORDER BY h."createdAt" DESC LIMIT 80`,
-    ),
+    dbQuery<{ c: string }>(`SELECT COUNT(*)::text AS c FROM "LeadHandoffLog"`),
     dbQuery<TransferRow>(
       `SELECT t.id, t."createdAt",
         se.name AS se_name, se.email AS se_email,
@@ -83,6 +100,23 @@ export default async function SuperadminDashboardPage() {
        ORDER BY t."createdAt" DESC LIMIT 40`,
     ),
   ]);
+
+  const totalHandoffs = Number(handoffCountRow[0]?.c ?? 0);
+  const totalPages = Math.max(1, Math.ceil(totalHandoffs / perPage));
+  const page = Math.min(pageRaw, totalPages);
+  const offset = (page - 1) * perPage;
+
+  const handoffRows = await dbQuery<HandoffRow>(
+    `SELECT h.id, h."createdAt", h.action, h.detail,
+        l.id AS lead_id, l."leadName" AS lead_leadName,
+        a.name AS actor_name, a.email AS actor_email, a.role AS actor_role
+       FROM "LeadHandoffLog" h
+       LEFT JOIN "Lead" l ON l.id = h."leadId"
+       LEFT JOIN "User" a ON a.id = h."actorId"
+       ORDER BY h."createdAt" DESC
+       LIMIT $1 OFFSET $2`,
+    [perPage, offset],
+  );
 
   const handoffs = handoffRows.map((h) => ({
     id: h.id,
@@ -225,6 +259,14 @@ export default async function SuperadminDashboardPage() {
         <p className="text-sm text-lf-subtle">
           Recent routing and close events (newest first).
         </p>
+        <PortalPaginationBar
+          pathname="/superadmin/dashboard"
+          query={{ perPage: String(perPage) }}
+          page={page}
+          perPage={perPage}
+          totalCount={totalHandoffs}
+          countNoun="events"
+        />
         <div className="overflow-x-auto rounded-xl border border-lf-border">
           <table className="w-full min-w-[800px] text-left text-sm">
             <thead className="border-b border-lf-border bg-lf-bg/90 text-xs uppercase tracking-wide text-lf-subtle">
@@ -281,6 +323,14 @@ export default async function SuperadminDashboardPage() {
             </tbody>
           </table>
         </div>
+        <PortalPaginationBar
+          pathname="/superadmin/dashboard"
+          query={{ perPage: String(perPage) }}
+          page={page}
+          perPage={perPage}
+          totalCount={totalHandoffs}
+          countNoun="events"
+        />
       </section>
 
       <section className="space-y-4">
