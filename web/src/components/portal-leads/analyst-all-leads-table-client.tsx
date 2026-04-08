@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PortalLeadsExportBar } from "@/components/portal-leads-export-bar";
 import AnalystQualificationSelect from "@/components/analyst/analyst-qualification-select";
 import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
 import ExecLostNotesReadonly from "@/components/exec-lost-notes-readonly";
@@ -10,6 +11,8 @@ import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
 import { LeadSourcePill } from "@/components/lead-source-display";
 import { formatAnalystDate } from "@/lib/analyst-ui";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
+import { buildAnalystLeadsExportPayload } from "@/lib/portal-all-leads-export-payloads";
+import type { PortalAnalystLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
 
 export type AnalystAllLeadsRow = {
   id: string;
@@ -30,11 +33,19 @@ export function AnalystAllLeadsTableClient({
   initialQ,
   from,
   to,
+  rangeLabel,
+  exportLeads,
+  rangeTotalCount,
+  exportRowCount,
 }: {
   leads: AnalystAllLeadsRow[];
   initialQ: string | null;
   from: string | null;
   to: string | null;
+  rangeLabel: string;
+  exportLeads: PortalAnalystLeadExportRow[];
+  rangeTotalCount: number;
+  exportRowCount: number;
 }) {
   const [query, setQuery] = useState(initialQ ?? "");
   useDebouncedLeadSearchUrl(query);
@@ -42,6 +53,22 @@ export function AnalystAllLeadsTableClient({
   const filtered = useMemo(
     () => filterLeadsByNameOrPhone(leads, query),
     [leads, query],
+  );
+
+  const filteredExport = useMemo(
+    () => filterLeadsByNameOrPhone(exportLeads, query),
+    [exportLeads, query],
+  );
+
+  const exportPayload = useMemo(
+    () =>
+      buildAnalystLeadsExportPayload(filteredExport, {
+        rangeLabel,
+        searchQuery: query,
+        rangeTotalCount,
+        exportRowCount,
+      }),
+    [filteredExport, rangeLabel, query, rangeTotalCount, exportRowCount],
   );
 
   const hasQuery = query.trim().length > 0;
@@ -54,6 +81,8 @@ export function AnalystAllLeadsTableClient({
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
       </div>
+
+      <PortalLeadsExportBar payload={exportPayload} />
 
       <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface">
         <div className="overflow-x-auto">

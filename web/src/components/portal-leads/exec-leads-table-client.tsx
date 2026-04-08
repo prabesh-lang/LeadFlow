@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PortalLeadsExportBar } from "@/components/portal-leads-export-bar";
 import { LeadSourceDisplay } from "@/components/lead-source-display";
 import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
 import { ExecLostNotesEditor } from "@/components/exec/exec-lost-notes-editor";
@@ -9,6 +10,8 @@ import { PortalLeadSearchLiveField } from "@/components/portal-lead-search-live-
 import { SalesStage } from "@/lib/constants";
 import { filterLeadsByNameOrPhone } from "@/lib/lead-client-search";
 import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
+import { buildExecLeadsExportPayload } from "@/lib/portal-all-leads-export-payloads";
+import type { PortalExecLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
 
 export type ExecLeadRow = {
   id: string;
@@ -27,9 +30,17 @@ export type ExecLeadRow = {
 export function ExecLeadsTableClient({
   leads,
   initialQ,
+  rangeLabel,
+  exportLeads,
+  rangeTotalCount,
+  exportRowCount,
 }: {
   leads: ExecLeadRow[];
   initialQ: string | null;
+  rangeLabel: string;
+  exportLeads: PortalExecLeadExportRow[];
+  rangeTotalCount: number;
+  exportRowCount: number;
 }) {
   const [query, setQuery] = useState(initialQ ?? "");
   useDebouncedLeadSearchUrl(query);
@@ -37,6 +48,22 @@ export function ExecLeadsTableClient({
   const filtered = useMemo(
     () => filterLeadsByNameOrPhone(leads, query),
     [leads, query],
+  );
+
+  const filteredExport = useMemo(
+    () => filterLeadsByNameOrPhone(exportLeads, query),
+    [exportLeads, query],
+  );
+
+  const exportPayload = useMemo(
+    () =>
+      buildExecLeadsExportPayload(filteredExport, {
+        rangeLabel,
+        searchQuery: query,
+        rangeTotalCount,
+        exportRowCount,
+      }),
+    [filteredExport, rangeLabel, query, rangeTotalCount, exportRowCount],
   );
 
   const hasQuery = query.trim().length > 0;
@@ -49,6 +76,8 @@ export function ExecLeadsTableClient({
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
       </div>
+
+      <PortalLeadsExportBar payload={exportPayload} />
 
       <div className="overflow-x-auto rounded-2xl border border-lf-border bg-lf-surface">
         <table className="min-w-full text-left text-sm">

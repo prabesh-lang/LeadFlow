@@ -11,6 +11,10 @@ import {
 } from "@/lib/superadmin-leads-filters";
 import { dbQuery } from "@/lib/db/pool";
 import { SuperadminLeadsJourneyClient } from "@/components/superadmin/superadmin-leads-journey-client";
+import { PortalLeadsExportBar } from "@/components/portal-leads-export-bar";
+import { flattenSuperadminJourneyGroupsForExport } from "@/lib/superadmin-leads-export-map";
+import { buildSuperadminLeadsExportPayload } from "@/lib/portal-all-leads-export-payloads";
+import { PORTAL_LEADS_EXPORT_ROW_CAP } from "@/lib/portal-leads-export-cap";
 
 export const metadata: Metadata = {
   title: "Leads · Superadmin",
@@ -115,7 +119,7 @@ export default async function SuperadminLeadsPage({
   const perPage = parsed.perPage;
   const offset = (page - 1) * perPage;
 
-  const [teams, execs, analysts, counts, paged] = await Promise.all([
+  const [teams, execs, analysts, counts, paged, exportPack] = await Promise.all([
     dbQuery<{ id: string; name: string }>(
       `SELECT id, name FROM "Team" ORDER BY name ASC`,
     ),
@@ -143,6 +147,10 @@ export default async function SuperadminLeadsPage({
       where.params,
     ),
     getSuperadminLeadsWithJourney(where, { limit: perPage, offset }),
+    getSuperadminLeadsWithJourney(where, {
+      limit: PORTAL_LEADS_EXPORT_ROW_CAP,
+      offset: 0,
+    }),
   ]);
   const qualTotals = {
     qualified: Number(counts[0]?.qualified ?? 0),
@@ -175,6 +183,18 @@ export default async function SuperadminLeadsPage({
     teamName,
     execLabel,
   });
+  const superadminExportRows = flattenSuperadminJourneyGroupsForExport(
+    exportPack.analystGroups,
+  );
+  const superadminExportPayload = buildSuperadminLeadsExportPayload(
+    superadminExportRows,
+    {
+      filterSummary,
+      rangeTotalCount: totalCount,
+      exportRowCount: superadminExportRows.length,
+    },
+  );
+
   const analystGroupsClient = analystGroups.map((group) => ({
     analyst: group.analyst,
     leads: group.leads.map((lead) => ({
@@ -267,6 +287,11 @@ export default async function SuperadminLeadsPage({
           accent="muted"
         />
       </div>
+
+      <PortalLeadsExportBar
+        payload={superadminExportPayload}
+        description="PDF, Excel, or CSV for every lead matching the filters and date range above (up to the export row limit in the summary)."
+      />
 
       <PaginationBar
         totalCount={totalCount}

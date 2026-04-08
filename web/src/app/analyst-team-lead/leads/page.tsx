@@ -4,16 +4,105 @@ import { dbQuery } from "@/lib/db/pool";
 import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
 import {
   analystRangeParams,
+  analystRangeSummaryLabel,
   hrefWithDateRange,
 } from "@/lib/analyst-date-range";
 import { atlLeadSql } from "@/lib/atl-leads";
+import { fetchAtlRoutingTimelines } from "@/lib/atl-routing-timeline";
 import {
   AtlAllLeadsTableClient,
   type ExecOption,
   type MtlOption,
 } from "@/components/portal-leads/atl-all-leads-table-client";
-import { LeadHandoffAction, UserRole } from "@/lib/constants";
+import { UserRole } from "@/lib/constants";
 import { PortalPaginationBar } from "@/components/portal-pagination-bar";
+import { PORTAL_LEADS_EXPORT_ROW_CAP } from "@/lib/portal-leads-export-cap";
+import type { PortalAtlLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
+
+type AtlJoinedRow = {
+  id: string;
+  leadName: string;
+  phone: string | null;
+  leadEmail: string | null;
+  source: string;
+  notes: string | null;
+  lostNotes: string | null;
+  qualificationStatus: string;
+  leadScore: number | null;
+  salesStage: string;
+  createdAt: Date;
+  teamId: string | null;
+  assignedMainTeamLeadId: string | null;
+  cb_name: string;
+  team_name: string | null;
+  mtl_name: string | null;
+  se_name: string | null;
+};
+
+function mapAtlRowsWithTimeline(
+  leadRows: AtlJoinedRow[],
+  timelineByLead: Awaited<ReturnType<typeof fetchAtlRoutingTimelines>>,
+) {
+  const rows = leadRows.map((l) => ({
+    id: l.id,
+    leadName: l.leadName,
+    phone: l.phone,
+    leadEmail: l.leadEmail,
+    source: l.source,
+    notes: l.notes,
+    lostNotes: l.lostNotes,
+    qualificationStatus: l.qualificationStatus,
+    leadScore: l.leadScore,
+    salesStage: l.salesStage,
+    createdAt: l.createdAt.toISOString(),
+    teamId: l.teamId,
+    assignedMainTeamLeadId: l.assignedMainTeamLeadId,
+    createdBy: { name: l.cb_name },
+    team: l.team_name ? { name: l.team_name } : null,
+    assignedMainTeamLead: l.mtl_name ? { name: l.mtl_name } : null,
+    assignedSalesExec: l.se_name ? { name: l.se_name } : null,
+  }));
+
+  return rows.map((r) => {
+    const t = timelineByLead.get(r.id);
+    return {
+      ...r,
+      routedToMainTeamAt: t?.routedToMainTeamAt?.toISOString() ?? null,
+      assignedToExecutiveAt: t?.assignedToExecutiveAt?.toISOString() ?? null,
+      directAssignedToExecutiveByAtlAt:
+        t?.directAssignedToExecutiveByAtlAt?.toISOString() ?? null,
+    };
+  });
+}
+
+function toAtlExportRows(
+  leadRows: AtlJoinedRow[],
+  timelineByLead: Awaited<ReturnType<typeof fetchAtlRoutingTimelines>>,
+): PortalAtlLeadExportRow[] {
+  return leadRows.map((l) => {
+    const t = timelineByLead.get(l.id);
+    return {
+      leadName: l.leadName,
+      phone: l.phone,
+      leadEmail: l.leadEmail,
+      source: l.source,
+      notes: l.notes,
+      lostNotes: l.lostNotes,
+      qualificationStatus: l.qualificationStatus,
+      leadScore: l.leadScore,
+      salesStage: l.salesStage,
+      createdAt: l.createdAt.toISOString(),
+      analystName: l.cb_name,
+      teamName: l.team_name,
+      mtlName: l.mtl_name,
+      repName: l.se_name,
+      routedToMainTeamAt: t?.routedToMainTeamAt?.toISOString() ?? null,
+      assignedToExecutiveAt: t?.assignedToExecutiveAt?.toISOString() ?? null,
+      directAssignedToExecutiveByAtlAt:
+        t?.directAssignedToExecutiveByAtlAt?.toISOString() ?? null,
+    };
+  });
+}
 
 export default async function AnalystTeamLeadLeadsPage({
   searchParams,
@@ -31,6 +120,7 @@ export default async function AnalystTeamLeadLeadsPage({
   const perPage: 25 | 50 | 100 =
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
   const offset = (page - 1) * perPage;
+  const rangeLabel = analystRangeSummaryLabel(from, to);
 
   const analysts = await dbQuery<{ id: string }>(
     `SELECT id FROM "User" WHERE "managerId" = $1 AND role = $2`,
@@ -39,42 +129,31 @@ export default async function AnalystTeamLeadLeadsPage({
   const analystIds = analysts.map((a) => a.id);
 
   const { clause, params } = atlLeadSql(analystIds, from, to);
-  const [countRows, leadRows] = await (analystIds.length === 0
-    ? Promise.resolve([[] as { c: string }[], [] as never[]])
-    : Promise.all([
-        dbQuery<{ c: string }>(
-          `SELECT COUNT(*)::text AS c FROM "Lead" l WHERE ${clause}`,
-          params,
-        ),
-        dbQuery<{
-          id: string;
-          leadName: string;
-          phone: string | null;
-          leadEmail: string | null;
-          source: string;
-          notes: string | null;
-          lostNotes: string | null;
-          qualificationStatus: string;
-          leadScore: number | null;
-          salesStage: string;
-          createdAt: Date;
-          teamId: string | null;
-          assignedMainTeamLeadId: string | null;
-          cb_name: string;
-          team_name: string | null;
-          mtl_name: string | null;
-          se_name: string | null;
-        }>(
-          `SELECT l.*, cb.name AS cb_name, tm.name AS team_name, mtl.name AS mtl_name, se.name AS se_name
+  const atlSelect = `SELECT l.*, cb.name AS cb_name, tm.name AS team_name, mtl.name AS mtl_name, se.name AS se_name
            FROM "Lead" l
            JOIN "User" cb ON cb.id = l."createdById"
            LEFT JOIN "Team" tm ON tm.id = l."teamId"
            LEFT JOIN "User" mtl ON mtl.id = l."assignedMainTeamLeadId"
            LEFT JOIN "User" se ON se.id = l."assignedSalesExecId"
            WHERE ${clause}
-           ORDER BY l."createdAt" DESC
+           ORDER BY l."createdAt" DESC`;
+
+  const [countRows, leadRows, exportLeadRows] = await (analystIds.length === 0
+    ? Promise.resolve([[] as { c: string }[], [] as AtlJoinedRow[], [] as AtlJoinedRow[]])
+    : Promise.all([
+        dbQuery<{ c: string }>(
+          `SELECT COUNT(*)::text AS c FROM "Lead" l WHERE ${clause}`,
+          params,
+        ),
+        dbQuery<AtlJoinedRow>(
+          `${atlSelect}
            LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
           [...params, perPage, offset],
+        ),
+        dbQuery<AtlJoinedRow>(
+          `${atlSelect}
+           LIMIT $${params.length + 1}`,
+          [...params, PORTAL_LEADS_EXPORT_ROW_CAP],
         ),
       ]));
   const totalCount = Number(countRows[0]?.c ?? 0);
@@ -121,89 +200,13 @@ export default async function AnalystTeamLeadLeadsPage({
       teamId: u.team_id,
     }));
 
-  const rows = leadRows.map((l) => ({
-    id: l.id,
-    leadName: l.leadName,
-    phone: l.phone,
-    leadEmail: l.leadEmail,
-    source: l.source,
-    notes: l.notes,
-    lostNotes: l.lostNotes,
-    qualificationStatus: l.qualificationStatus,
-    leadScore: l.leadScore,
-    salesStage: l.salesStage,
-    createdAt: l.createdAt.toISOString(),
-    teamId: l.teamId,
-    assignedMainTeamLeadId: l.assignedMainTeamLeadId,
-    createdBy: { name: l.cb_name },
-    team: l.team_name ? { name: l.team_name } : null,
-    assignedMainTeamLead: l.mtl_name ? { name: l.mtl_name } : null,
-    assignedSalesExec: l.se_name ? { name: l.se_name } : null,
-  }));
+  const [pagedTimeline, exportTimeline] = await Promise.all([
+    fetchAtlRoutingTimelines(leadRows.map((l) => l.id)),
+    fetchAtlRoutingTimelines(exportLeadRows.map((l) => l.id)),
+  ]);
 
-  const leadIds = leadRows.map((l) => l.id);
-  const handoffRows =
-    leadIds.length === 0
-      ? []
-      : await dbQuery<{
-          lead_id: string;
-          created_at: Date;
-          action: string;
-        }>(
-          `SELECT "leadId" AS lead_id, "createdAt" AS created_at, action
-           FROM "LeadHandoffLog"
-           WHERE "leadId" = ANY($1::text[])
-             AND action = ANY($2::text[])
-           ORDER BY "createdAt" ASC`,
-          [
-            leadIds,
-            [
-              LeadHandoffAction.ROUTED_TO_MAIN_TEAM,
-              LeadHandoffAction.ASSIGNED_TO_EXECUTIVE,
-              LeadHandoffAction.DIRECT_ASSIGNED_TO_EXECUTIVE_BY_ATL,
-            ],
-          ],
-        );
-
-  const timelineByLead = new Map<
-    string,
-    {
-      routedToMainTeamAt?: Date;
-      assignedToExecutiveAt?: Date;
-      directAssignedToExecutiveByAtlAt?: Date;
-    }
-  >();
-  for (const h of handoffRows) {
-    const t = timelineByLead.get(h.lead_id) ?? {};
-    if (
-      h.action === LeadHandoffAction.ROUTED_TO_MAIN_TEAM &&
-      !t.routedToMainTeamAt
-    ) {
-      t.routedToMainTeamAt = h.created_at;
-    } else if (
-      h.action === LeadHandoffAction.ASSIGNED_TO_EXECUTIVE &&
-      !t.assignedToExecutiveAt
-    ) {
-      t.assignedToExecutiveAt = h.created_at;
-    } else if (
-      h.action === LeadHandoffAction.DIRECT_ASSIGNED_TO_EXECUTIVE_BY_ATL &&
-      !t.directAssignedToExecutiveByAtlAt
-    ) {
-      t.directAssignedToExecutiveByAtlAt = h.created_at;
-    }
-    timelineByLead.set(h.lead_id, t);
-  }
-
-  const rowsWithTimeline = rows.map((r) => {
-    const t = timelineByLead.get(r.id);
-    return {
-      ...r,
-      routedToMainTeamAt: t?.routedToMainTeamAt?.toISOString() ?? null,
-      assignedToExecutiveAt: t?.assignedToExecutiveAt?.toISOString() ?? null,
-      directAssignedToExecutiveByAtlAt:
-        t?.directAssignedToExecutiveByAtlAt?.toISOString() ?? null,
-    };
-  });
+  const rowsWithTimeline = mapAtlRowsWithTimeline(leadRows, pagedTimeline);
+  const atlExportLeads = toAtlExportRows(exportLeadRows, exportTimeline);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -243,6 +246,10 @@ export default async function AnalystTeamLeadLeadsPage({
         analystIdsEmpty={analystIds.length === 0}
         mtlOptions={mtlOptions}
         execOptions={execOptions}
+        rangeLabel={rangeLabel}
+        exportLeads={atlExportLeads}
+        rangeTotalCount={totalCount}
+        exportRowCount={exportLeadRows.length}
       />
     </div>
   );

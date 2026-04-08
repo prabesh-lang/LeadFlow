@@ -4,9 +4,12 @@ import { dbQuery } from "@/lib/db/pool";
 import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
 import {
   analystRangeParams,
+  analystRangeSummaryLabel,
   hrefWithDateRange,
   leadWhereSql,
 } from "@/lib/analyst-date-range";
+import { PORTAL_LEADS_EXPORT_ROW_CAP } from "@/lib/portal-leads-export-cap";
+import type { PortalAnalystLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
 import { AnalystAllLeadsTableClient } from "@/components/portal-leads/analyst-all-leads-table-client";
 import { PortalPaginationBar } from "@/components/portal-pagination-bar";
 
@@ -26,9 +29,10 @@ export default async function AnalystAllLeadsPage({
   const perPage: 25 | 50 | 100 =
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
   const offset = (page - 1) * perPage;
+  const rangeLabel = analystRangeSummaryLabel(from, to);
   const { clause, params } = leadWhereSql(session.id, from, to);
 
-  const [countRows, leads] = await Promise.all([
+  const [countRows, leads, exportLeads] = await Promise.all([
     dbQuery<{ c: string }>(
       `SELECT COUNT(*)::text AS c FROM "Lead" WHERE ${clause}`,
       params,
@@ -49,6 +53,22 @@ export default async function AnalystAllLeadsPage({
       `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
       [...params, perPage, offset],
     ),
+    dbQuery<{
+      id: string;
+      leadName: string;
+      phone: string | null;
+      leadEmail: string | null;
+      source: string;
+      notes: string | null;
+      lostNotes: string | null;
+      qualificationStatus: string;
+      leadScore: number | null;
+      salesStage: string;
+      createdAt: Date;
+    }>(
+      `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC LIMIT $${params.length + 1}`,
+      [...params, PORTAL_LEADS_EXPORT_ROW_CAP],
+    ),
   ]);
   const totalCount = Number(countRows[0]?.c ?? 0);
 
@@ -65,6 +85,21 @@ export default async function AnalystAllLeadsPage({
     salesStage: l.salesStage,
     createdAt: l.createdAt.toISOString(),
   }));
+
+  const analystExportLeads: PortalAnalystLeadExportRow[] = exportLeads.map(
+    (l) => ({
+      leadName: l.leadName,
+      phone: l.phone,
+      leadEmail: l.leadEmail,
+      source: l.source,
+      notes: l.notes,
+      lostNotes: l.lostNotes,
+      qualificationStatus: l.qualificationStatus,
+      leadScore: l.leadScore,
+      salesStage: l.salesStage,
+      createdAt: l.createdAt.toISOString(),
+    }),
+  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -108,6 +143,10 @@ export default async function AnalystAllLeadsPage({
         initialQ={q}
         from={from}
         to={to}
+        rangeLabel={rangeLabel}
+        exportLeads={analystExportLeads}
+        rangeTotalCount={totalCount}
+        exportRowCount={exportLeads.length}
       />
     </div>
   );

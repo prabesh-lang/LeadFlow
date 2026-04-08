@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PortalLeadsExportBar } from "@/components/portal-leads-export-bar";
 import { AssignToMtlForm } from "@/components/atl/assign-to-mtl-form";
 import { AssignDirectToExecForm } from "@/components/atl/assign-direct-to-exec-form";
 import AnalystNotesReadonly from "@/components/analyst-notes-readonly";
@@ -12,6 +13,8 @@ import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
 import { LeadSourcePill } from "@/components/lead-source-display";
 import { formatAnalystDate } from "@/lib/analyst-ui";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
+import { buildAtlLeadsExportPayload } from "@/lib/portal-all-leads-export-payloads";
+import type { PortalAtlLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
 
 export type AtlLeadRow = {
   id: string;
@@ -57,6 +60,10 @@ export function AtlAllLeadsTableClient({
   analystIdsEmpty,
   mtlOptions,
   execOptions,
+  rangeLabel,
+  exportLeads,
+  rangeTotalCount,
+  exportRowCount,
 }: {
   leads: AtlLeadRow[];
   initialQ: string | null;
@@ -65,6 +72,10 @@ export function AtlAllLeadsTableClient({
   analystIdsEmpty: boolean;
   mtlOptions: MtlOption[];
   execOptions: ExecOption[];
+  rangeLabel: string;
+  exportLeads: PortalAtlLeadExportRow[];
+  rangeTotalCount: number;
+  exportRowCount: number;
 }) {
   const [query, setQuery] = useState(initialQ ?? "");
   useDebouncedLeadSearchUrl(query);
@@ -72,6 +83,22 @@ export function AtlAllLeadsTableClient({
   const filtered = useMemo(
     () => filterLeadsByNameOrPhone(leads, query),
     [leads, query],
+  );
+
+  const filteredExport = useMemo(
+    () => filterLeadsByNameOrPhone(exportLeads, query),
+    [exportLeads, query],
+  );
+
+  const exportPayload = useMemo(
+    () =>
+      buildAtlLeadsExportPayload(filteredExport, {
+        rangeLabel,
+        searchQuery: query,
+        rangeTotalCount,
+        exportRowCount,
+      }),
+    [filteredExport, rangeLabel, query, rangeTotalCount, exportRowCount],
   );
 
   const hasQuery = query.trim().length > 0;
@@ -105,6 +132,8 @@ export function AtlAllLeadsTableClient({
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
       </div>
+
+      <PortalLeadsExportBar payload={exportPayload} />
 
       <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface shadow-sm">
         <div className="overflow-x-auto">
