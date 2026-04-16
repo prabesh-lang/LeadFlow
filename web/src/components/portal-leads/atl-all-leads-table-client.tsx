@@ -15,6 +15,8 @@ import { formatAnalystDate } from "@/lib/analyst-ui";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
 import { buildAtlLeadsExportPayload } from "@/lib/portal-all-leads-export-payloads";
 import type { PortalAtlLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
+import { portalDataTableScrollClass } from "@/lib/app-shell-ui";
+import { PortalLeadsTableScrollHint } from "@/components/portal-leads/portal-leads-table-scroll-hint";
 
 export type AtlLeadRow = {
   id: string;
@@ -126,7 +128,7 @@ export function AtlAllLeadsTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm ring-1 ring-black/[0.03] sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
@@ -135,25 +137,32 @@ export function AtlAllLeadsTableClient({
 
       <PortalLeadsExportBar payload={exportPayload} />
 
-      <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1560px] table-fixed text-left text-sm">
+      <PortalLeadsTableScrollHint />
+      <div
+        className={`rounded-2xl border border-lf-border bg-lf-surface shadow-sm ring-1 ring-black/[0.04] ${portalDataTableScrollClass}`}
+        role="region"
+        aria-label="Team leads table"
+        tabIndex={0}
+      >
+        <table className="w-max min-w-[1560px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-lf-border bg-lf-bg/70 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
-                <th className="w-[140px] px-4 py-3 font-medium">Name</th>
-                <th className="w-[130px] px-4 py-3 font-medium">Analyst</th>
-                <th className="w-[130px] px-4 py-3 font-medium">Phone</th>
-                <th className="w-[180px] px-4 py-3 font-medium">Email</th>
-                <th className="w-[240px] px-4 py-3 font-medium">Source</th>
-                <th className="w-[230px] px-4 py-3 font-medium">Analyst notes</th>
-                <th className="w-[120px] px-4 py-3 font-medium">Qualification</th>
-                <th className="w-[80px] px-4 py-3 font-medium">Score</th>
-                <th className="w-[120px] px-4 py-3 font-medium">Sales status</th>
-                <th className="w-[230px] px-4 py-3 font-medium">Executive notes</th>
-                <th className="w-[130px] px-4 py-3 font-medium">Added</th>
-                <th className="w-[180px] px-4 py-3 font-medium">Route TL</th>
-                <th className="w-[220px] px-4 py-3 font-medium">Route SE</th>
-                <th className="w-[280px] px-4 py-3 font-medium">Pass timeline / gap</th>
+              <tr className="border-b border-lf-border bg-lf-bg/80 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+                <th className="sticky left-0 z-10 min-w-[140px] bg-lf-bg px-4 py-3.5 font-medium shadow-[3px_0_12px_-4px_rgba(0,0,0,0.08)]">
+                  Name
+                </th>
+                <th className="min-w-[120px] px-4 py-3.5 font-medium">Analyst</th>
+                <th className="min-w-[120px] px-4 py-3.5 font-medium">Phone</th>
+                <th className="min-w-[180px] px-4 py-3.5 font-medium">Email</th>
+                <th className="min-w-[200px] px-4 py-3.5 font-medium">Source</th>
+                <th className="min-w-[220px] px-4 py-3.5 font-medium">Analyst notes</th>
+                <th className="min-w-[120px] px-4 py-3.5 font-medium">Qualification</th>
+                <th className="min-w-[72px] px-4 py-3.5 font-medium">Score</th>
+                <th className="min-w-[128px] px-4 py-3.5 font-medium">Sales status</th>
+                <th className="min-w-[200px] px-4 py-3.5 font-medium">Executive notes</th>
+                <th className="min-w-[120px] px-4 py-3.5 font-medium">Added</th>
+                <th className="min-w-[168px] px-4 py-3.5 font-medium">Route TL</th>
+                <th className="min-w-[200px] px-4 py-3.5 font-medium">Route SE</th>
+                <th className="min-w-[260px] px-4 py-3.5 font-medium">Pass timeline / gap</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-lf-divide">
@@ -218,21 +227,35 @@ export function AtlAllLeadsTableClient({
                       </div>
                     ) : null;
                   return (
-                    <tr key={l.id} className="align-top text-lf-muted odd:bg-lf-bg/[0.16] hover:bg-lf-bg/[0.28]">
-                      <td className="px-4 py-3 font-semibold text-lf-text">
+                    <tr
+                      key={l.id}
+                      className="group align-top text-lf-muted transition-colors hover:bg-lf-bg/20"
+                    >
+                      <td className="sticky left-0 z-[1] min-w-[140px] bg-lf-surface px-4 py-3 font-semibold text-lf-text shadow-[3px_0_12px_-4px_rgba(0,0,0,0.06)] group-hover:bg-lf-bg/20">
                         {l.leadName || "—"}
                       </td>
-                      <td className="px-4 py-3 text-lf-text-secondary">{l.createdBy.name}</td>
-                      <td className="px-4 py-3 text-lf-text-secondary">{l.phone || "—"}</td>
-                      <td className="px-4 py-3 text-lf-text-secondary">{l.leadEmail || "—"}</td>
-                      <td className="px-4 py-3">
+                      <td className="min-w-0 px-4 py-3 text-lf-text-secondary">
+                        {l.createdBy.name}
+                      </td>
+                      <td className="min-w-0 whitespace-nowrap px-4 py-3 text-lf-text-secondary">
+                        {l.phone || "—"}
+                      </td>
+                      <td className="min-w-0 max-w-[220px] px-4 py-3 text-lf-text-secondary">
+                        <span
+                          className="block truncate"
+                          title={l.leadEmail ?? undefined}
+                        >
+                          {l.leadEmail || "—"}
+                        </span>
+                      </td>
+                      <td className="min-w-0 max-w-[260px] px-4 py-3 align-top">
                         <LeadSourcePill source={l.source} />
                       </td>
                       <td className="px-4 py-3 align-top">
                         <AnalystNotesReadonly notes={l.notes} />
                       </td>
-                      <td className="px-4 py-3 text-lf-text-secondary">
-                        <span className="rounded-full bg-lf-bg px-2 py-1 text-[11px] font-semibold uppercase tracking-wide">
+                      <td className="min-w-0 px-4 py-3 text-lf-text-secondary">
+                        <span className="inline-block whitespace-nowrap rounded-full bg-lf-bg px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide">
                           {l.qualificationStatus.replaceAll("_", " ")}
                         </span>
                       </td>
@@ -356,7 +379,6 @@ export function AtlAllLeadsTableClient({
               )}
             </tbody>
           </table>
-        </div>
       </div>
     </>
   );

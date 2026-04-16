@@ -1,7 +1,12 @@
 /** Shared layout / a11y classes for all role app shells (same theme everywhere). */
 
+/** No overflow-x-hidden — it blocks touch/scroll on wide tables inside main. */
 export const appMainContentClass =
-  "w-full min-w-0 flex-1 max-w-none overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-10";
+  "w-full min-w-0 flex-1 max-w-none px-4 py-6 sm:px-6 sm:py-8 lg:px-10";
+
+/** Wide lead tables: reliable horizontal scroll (incl. iOS) + touch pan. */
+export const portalDataTableScrollClass =
+  "w-full min-w-0 overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch] touch-pan-x scroll-smooth";
 
 /** Keyboard focus ring — brand blue (distinct from red primary CTAs). */
 export function navFocusRing() {

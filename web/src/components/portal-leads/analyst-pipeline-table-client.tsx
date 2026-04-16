@@ -13,6 +13,8 @@ import {
 import { SalesStage } from "@/lib/constants";
 import { filterLeadsByNameOrPhone } from "@/lib/lead-client-search";
 import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
+import { portalDataTableScrollClass } from "@/lib/app-shell-ui";
+import { PortalLeadsTableScrollHint } from "@/components/portal-leads/portal-leads-table-scroll-hint";
 
 export type PipelineLeadRow = {
   id: string;
@@ -50,23 +52,29 @@ export function AnalystPipelineTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm ring-1 ring-black/[0.03] sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
         <PortalLeadSearchLiveField value={query} onChange={setQuery} />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface">
-        <div className="border-b border-lf-border px-5 py-4">
+      <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface shadow-sm ring-1 ring-black/[0.04]">
+        <div className="border-b border-lf-border bg-lf-bg/40 px-5 py-4">
           <h2 className="text-base font-semibold text-lf-text">
             All qualified leads — pipeline view
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[880px] text-left text-sm">
+        <PortalLeadsTableScrollHint />
+        <div
+          className={`px-1 pb-1 ${portalDataTableScrollClass}`}
+          role="region"
+          aria-label="Pipeline table"
+          tabIndex={0}
+        >
+          <table className="w-max min-w-[880px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-lf-border text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-lf-border bg-lf-bg/60 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="px-5 py-3 font-medium">Lead</th>
                 <th className="px-5 py-3 font-medium">Source</th>
                 <th className="px-5 py-3 font-medium">Notes</th>
@@ -108,11 +116,14 @@ export function AnalystPipelineTableClient({
                   );
                   const s = l.leadScore;
                   return (
-                    <tr key={l.id} className="text-lf-muted">
+                    <tr
+                      key={l.id}
+                      className="text-lf-muted transition-colors hover:bg-lf-bg/20"
+                    >
                       <td className="px-5 py-3 font-semibold text-lf-text">
                         {l.leadName || "—"}
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="min-w-0 max-w-[260px] px-5 py-3 align-top">
                         <LeadSourcePill source={l.source} />
                       </td>
                       <td className="px-5 py-3 align-top">

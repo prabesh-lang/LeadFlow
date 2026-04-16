@@ -13,6 +13,8 @@ import { buildMtlLeadsExportPayloadFromPortalRows } from "@/lib/portal-all-leads
 import type { PortalMtlLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
 import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
 import type { MtlLeadRow } from "@/lib/mtl-lead-row";
+import { portalDataTableScrollClass } from "@/lib/app-shell-ui";
+import { PortalLeadsTableScrollHint } from "@/components/portal-leads/portal-leads-table-scroll-hint";
 
 export type { MtlLeadRow };
 
@@ -61,7 +63,7 @@ export function MtlLeadsTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm ring-1 ring-black/[0.03] sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
@@ -70,23 +72,28 @@ export function MtlLeadsTableClient({
 
       <PortalLeadsExportBar payload={exportPayload} />
 
-      <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface shadow-sm">
-        <div className="overflow-x-auto">
-        <table className="min-w-[1400px] w-full table-fixed text-left text-sm">
-          <thead className="border-b border-lf-border bg-lf-bg/70 text-xs uppercase tracking-wide text-lf-subtle">
+      <PortalLeadsTableScrollHint />
+      <div
+        className={`rounded-2xl border border-lf-border bg-lf-surface shadow-sm ring-1 ring-black/[0.04] ${portalDataTableScrollClass}`}
+        role="region"
+        aria-label="Team leads table"
+        tabIndex={0}
+      >
+        <table className="w-max min-w-[1400px] border-collapse text-left text-sm">
+          <thead className="border-b border-lf-border bg-lf-bg/80 text-xs uppercase tracking-wide text-lf-subtle">
             <tr>
-              <th className="w-[150px] px-4 py-3 font-semibold">Name</th>
-              <th className="w-[130px] px-4 py-3 font-semibold">Phone</th>
-              <th className="w-[190px] px-4 py-3 font-semibold">Email</th>
-              <th className="w-[240px] px-4 py-3 font-semibold">Source</th>
-              <th className="w-[120px] px-4 py-3 font-semibold">Analyst</th>
-              <th className="w-[80px] px-4 py-3 font-semibold">Score</th>
-              <th className="w-[130px] px-4 py-3 font-semibold">Stage</th>
-              <th className="w-[230px] px-4 py-3 font-semibold">Analyst notes</th>
-              <th className="w-[230px] px-4 py-3 font-semibold">Executive notes</th>
-              <th className="w-[120px] px-4 py-3 font-semibold">Rep</th>
-              <th className="w-[150px] px-4 py-3 font-semibold">Deadline</th>
-              <th className="w-[170px] px-4 py-3 font-semibold">Assign</th>
+              <th className="min-w-[140px] px-4 py-3 font-semibold">Name</th>
+              <th className="min-w-[120px] px-4 py-3 font-semibold">Phone</th>
+              <th className="min-w-[180px] px-4 py-3 font-semibold">Email</th>
+              <th className="min-w-[200px] px-4 py-3 font-semibold">Source</th>
+              <th className="min-w-[110px] px-4 py-3 font-semibold">Analyst</th>
+              <th className="min-w-[72px] px-4 py-3 font-semibold">Score</th>
+              <th className="min-w-[120px] px-4 py-3 font-semibold">Stage</th>
+              <th className="min-w-[200px] px-4 py-3 font-semibold">Analyst notes</th>
+              <th className="min-w-[200px] px-4 py-3 font-semibold">Executive notes</th>
+              <th className="min-w-[110px] px-4 py-3 font-semibold">Rep</th>
+              <th className="min-w-[140px] px-4 py-3 font-semibold">Deadline</th>
+              <th className="min-w-[160px] px-4 py-3 font-semibold">Assign</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-lf-divide">
@@ -116,17 +123,25 @@ export function MtlLeadsTableClient({
                   lead.salesStage !== SalesStage.CLOSED_WON &&
                   lead.salesStage !== SalesStage.CLOSED_LOST;
                 return (
-                  <tr key={lead.id} className="align-top odd:bg-lf-bg/[0.16] hover:bg-lf-bg/[0.28]">
+                  <tr
+                    key={lead.id}
+                    className="group align-top transition-colors hover:bg-lf-bg/20"
+                  >
                     <td className="px-4 py-3 font-medium text-lf-text">
                       {lead.leadName || "—"}
                     </td>
-                    <td className="px-4 py-3 text-lf-muted">
+                    <td className="whitespace-nowrap px-4 py-3 text-lf-muted">
                       {lead.phone || "—"}
                     </td>
-                    <td className="px-4 py-3 text-lf-muted">
-                      {lead.leadEmail || "—"}
+                    <td className="max-w-[220px] min-w-0 px-4 py-3 text-lf-muted">
+                      <span
+                        className="block truncate"
+                        title={lead.leadEmail ?? undefined}
+                      >
+                        {lead.leadEmail || "—"}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-lf-text-secondary">
+                    <td className="min-w-0 max-w-[260px] px-4 py-3 align-top text-lf-text-secondary">
                       <LeadSourcePill source={lead.source} />
                     </td>
                     <td className="px-4 py-3 text-lf-muted">
@@ -135,8 +150,8 @@ export function MtlLeadsTableClient({
                     <td className="px-4 py-3 text-lf-muted">
                       {lead.leadScore ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-lf-muted">
-                      <span className="rounded-full bg-lf-bg px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-lf-text-secondary">
+                    <td className="min-w-0 px-4 py-3 text-lf-muted">
+                      <span className="inline-block whitespace-nowrap rounded-full bg-lf-bg px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-lf-text-secondary">
                         {lead.salesStage.replaceAll("_", " ")}
                       </span>
                     </td>
@@ -171,7 +186,6 @@ export function MtlLeadsTableClient({
             )}
           </tbody>
         </table>
-        </div>
       </div>
     </>
   );

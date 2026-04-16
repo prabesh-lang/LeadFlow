@@ -12,6 +12,8 @@ import { filterLeadsByNameOrPhone } from "@/lib/lead-client-search";
 import { useDebouncedLeadSearchUrl } from "@/lib/use-debounced-lead-search-url";
 import { buildExecLeadsExportPayload } from "@/lib/portal-all-leads-export-payloads";
 import type { PortalExecLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
+import { portalDataTableScrollClass } from "@/lib/app-shell-ui";
+import { PortalLeadsTableScrollHint } from "@/components/portal-leads/portal-leads-table-scroll-hint";
 
 export type ExecLeadRow = {
   id: string;
@@ -70,7 +72,7 @@ export function ExecLeadsTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm ring-1 ring-black/[0.03] sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
@@ -79,9 +81,15 @@ export function ExecLeadsTableClient({
 
       <PortalLeadsExportBar payload={exportPayload} />
 
-      <div className="overflow-x-auto rounded-2xl border border-lf-border bg-lf-surface">
-        <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-lf-border text-xs uppercase tracking-wide text-lf-subtle">
+      <PortalLeadsTableScrollHint />
+      <div
+        className={`rounded-2xl border border-lf-border bg-lf-surface shadow-sm ring-1 ring-black/[0.04] ${portalDataTableScrollClass}`}
+        role="region"
+        aria-label="My leads table"
+        tabIndex={0}
+      >
+        <table className="w-max min-w-[1100px] border-collapse text-left text-sm">
+          <thead className="border-b border-lf-border bg-lf-bg/80 text-xs uppercase tracking-wide text-lf-subtle">
             <tr>
               <th className="px-4 py-3 font-semibold">Name</th>
               <th className="px-4 py-3 font-semibold">Phone</th>
@@ -122,17 +130,25 @@ export function ExecLeadsTableClient({
                 const active = lead.salesStage === SalesStage.WITH_EXECUTIVE;
                 const isLost = lead.salesStage === SalesStage.CLOSED_LOST;
                 return (
-                  <tr key={lead.id} className="align-top bg-lf-bg/40">
+                  <tr
+                    key={lead.id}
+                    className="align-top transition-colors hover:bg-lf-bg/25"
+                  >
                     <td className="px-4 py-3 font-medium text-lf-text">
                       {lead.leadName || "—"}
                     </td>
-                    <td className="px-4 py-3 text-lf-muted">
+                    <td className="whitespace-nowrap px-4 py-3 text-lf-muted">
                       {lead.phone || "—"}
                     </td>
-                    <td className="px-4 py-3 text-lf-muted">
-                      {lead.leadEmail || "—"}
+                    <td className="max-w-[220px] min-w-0 px-4 py-3 text-lf-muted">
+                      <span
+                        className="block truncate"
+                        title={lead.leadEmail ?? undefined}
+                      >
+                        {lead.leadEmail || "—"}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-lf-text-secondary">
+                    <td className="min-w-0 max-w-[240px] px-4 py-3 align-top text-lf-text-secondary">
                       <LeadSourceDisplay source={lead.source} />
                     </td>
                     <td className="px-4 py-3 text-lf-muted">

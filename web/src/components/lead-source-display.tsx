@@ -7,7 +7,7 @@ export function LeadSourceDisplay({ source }: { source: string }) {
   const s = formatLeadSourceDisplay(source);
   return (
     <span
-      className="inline-block max-w-[min(100%,22rem)] truncate align-top"
+      className="block min-w-0 max-w-full truncate align-top text-left"
       title={s}
     >
       {s}
@@ -20,7 +20,7 @@ export function LeadSourcePill({ source }: { source: string }) {
   const s = formatLeadSourceDisplay(source);
   return (
     <span
-      className="inline-flex max-w-[min(100%,22rem)] truncate rounded-full bg-lf-brand/10 px-2.5 py-0.5 text-xs font-medium text-lf-text-secondary ring-1 ring-lf-brand/20"
+      className="block min-w-0 max-w-full truncate rounded-full bg-lf-brand/10 px-2.5 py-0.5 text-left text-xs font-medium leading-snug text-lf-text-secondary ring-1 ring-lf-brand/20"
       title={s}
     >
       {s}

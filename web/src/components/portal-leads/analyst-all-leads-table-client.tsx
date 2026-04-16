@@ -13,6 +13,8 @@ import { formatAnalystDate } from "@/lib/analyst-ui";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
 import { buildAnalystLeadsExportPayload } from "@/lib/portal-all-leads-export-payloads";
 import type { PortalAnalystLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
+import { portalDataTableScrollClass } from "@/lib/app-shell-ui";
+import { PortalLeadsTableScrollHint } from "@/components/portal-leads/portal-leads-table-scroll-hint";
 
 export type AnalystAllLeadsRow = {
   id: string;
@@ -75,7 +77,7 @@ export function AnalystAllLeadsTableClient({
 
   return (
     <>
-      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+      <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm ring-1 ring-black/[0.03] sm:px-5 sm:py-5">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-lf-subtle">
           Find a client
         </p>
@@ -84,11 +86,16 @@ export function AnalystAllLeadsTableClient({
 
       <PortalLeadsExportBar payload={exportPayload} />
 
-      <div className="overflow-hidden rounded-2xl border border-lf-border bg-lf-surface">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1000px] text-left text-sm">
+      <PortalLeadsTableScrollHint />
+      <div
+        className={`rounded-2xl border border-lf-border bg-lf-surface shadow-sm ring-1 ring-black/[0.04] ${portalDataTableScrollClass}`}
+        role="region"
+        aria-label="Your leads table"
+        tabIndex={0}
+      >
+          <table className="w-max min-w-[1000px] border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-lf-border bg-lf-bg/50 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
+              <tr className="border-b border-lf-border bg-lf-bg/80 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
                 <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Phone</th>
                 <th className="px-4 py-3 font-medium">Email</th>
@@ -128,13 +135,25 @@ export function AnalystAllLeadsTableClient({
                 </tr>
               ) : (
                 filtered.map((l) => (
-                  <tr key={l.id} className="text-lf-muted">
+                  <tr
+                    key={l.id}
+                    className="text-lf-muted transition-colors hover:bg-lf-bg/20"
+                  >
                     <td className="px-4 py-3 font-semibold text-lf-text">
                       {l.leadName || "—"}
                     </td>
-                    <td className="px-4 py-3">{l.phone || "—"}</td>
-                    <td className="px-4 py-3">{l.leadEmail || "—"}</td>
-                    <td className="px-4 py-3">
+                    <td className="whitespace-nowrap px-4 py-3">
+                      {l.phone || "—"}
+                    </td>
+                    <td className="max-w-[220px] min-w-0 px-4 py-3">
+                      <span
+                        className="block truncate"
+                        title={l.leadEmail ?? undefined}
+                      >
+                        {l.leadEmail || "—"}
+                      </span>
+                    </td>
+                    <td className="min-w-0 max-w-[260px] px-4 py-3 align-top">
                       <LeadSourcePill source={l.source} />
                     </td>
                     <td className="px-4 py-3 align-middle">
@@ -163,7 +182,6 @@ export function AnalystAllLeadsTableClient({
               )}
             </tbody>
           </table>
-        </div>
       </div>
     </>
   );
