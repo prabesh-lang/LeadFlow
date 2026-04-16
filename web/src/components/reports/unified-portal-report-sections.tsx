@@ -50,7 +50,9 @@ function ConversionTable({
                   <td className="py-2 pr-3 tabular-nums">{r.total}</td>
                   <td className="py-2 pr-3 tabular-nums">{r.won}</td>
                   <td className="py-2 tabular-nums text-lf-text">
-                    {r.conversionPct.toFixed(1)}%
+                    {Number.isFinite(r.conversionPct)
+                      ? `${r.conversionPct.toFixed(1)}%`
+                      : "—"}
                   </td>
                 </tr>
               ))
@@ -367,7 +369,7 @@ export function UnifiedPortalReportSections({
                 qualificationReasonRows.map((r) => (
                   <tr key={`${r.status}-${r.reason}`}>
                     <td className="py-3 pr-3 font-medium text-lf-text-secondary">
-                      {r.status.replaceAll("_", " ")}
+                      {String(r.status ?? "").replaceAll("_", " ") || "—"}
                     </td>
                     <td className="py-3 pr-3">{r.reason}</td>
                     <td className="py-3 tabular-nums text-lf-text">{r.count}</td>

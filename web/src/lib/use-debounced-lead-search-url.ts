@@ -1,15 +1,13 @@
 "use client";
 
-import { startTransition, useEffect } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 /**
  * Keeps `?q=` in sync after typing pauses (shareable URL, preserves with date bar).
- *
- * Does not use `useSearchParams()` — that hook requires a parent `<Suspense>`
- * boundary in the App Router. We read `window.location.search` inside the effect
- * only. Updates run inside `startTransition` to avoid React concurrent-mode issues
- * with `router.replace`.
+ * Does not use `useSearchParams()` (requires Suspense). Reads `window.location.search`
+ * inside the effect only. Avoid `router.refresh()` fallbacks — they can throw and
+ * hit the root error boundary during concurrent updates.
  */
 export function useDebouncedLeadSearchUrl(query: string, delayMs = 400) {
   const router = useRouter();
@@ -28,16 +26,7 @@ export function useDebouncedLeadSearchUrl(query: string, delayMs = 400) {
       else params.delete("q");
       const qs = params.toString();
       const href = qs ? `${pathname}?${qs}` : pathname;
-      startTransition(() => {
-        try {
-          router.replace(href);
-        } catch {
-          if (typeof window !== "undefined") {
-            window.history.replaceState(null, "", href);
-            router.refresh();
-          }
-        }
-      });
+      void router.replace(href);
     }, delayMs);
     return () => clearTimeout(t);
   }, [query, delayMs, pathname, router]);

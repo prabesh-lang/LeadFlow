@@ -375,10 +375,17 @@ export function buildUnifiedDashboardViewModel(
     ...byQualificationReason.entries(),
   ]
     .map(([key, count]) => {
-      const [status, reason] = key.split(":::");
+      const sep = ":::";
+      const i = key.indexOf(sep);
+      const status = i === -1 ? key : key.slice(0, i);
+      const reason = i === -1 ? "" : key.slice(i + sep.length);
       return { status, reason, count };
     })
-    .sort((a, b) => b.count - a.count || a.reason.localeCompare(b.reason));
+    .sort((a, b) => {
+      const byCount = b.count - a.count;
+      if (byCount !== 0) return byCount;
+      return String(a.reason ?? "").localeCompare(String(b.reason ?? ""));
+    });
 
   const countryRows = buildCountryQualRows(leads);
   const cityRows = buildAnalystCityRows(leads);
@@ -561,12 +568,17 @@ function buildUnifiedExportPayload(
   qualificationReasonRows: QualificationReasonRow[],
 ): DashboardExportPayload {
   const summaryRows: { label: string; value: string | number }[] = [
-    { label: "Portal", value: meta.kind.replace(/_/g, " ") },
-    { label: "Scope", value: meta.reportSubtitle },
+    {
+      label: "Portal",
+      value: String(meta.kind ?? "portal").replace(/_/g, " "),
+    },
+    { label: "Scope", value: meta.reportSubtitle ?? "—" },
     { label: "Total leads", value: metrics.total },
     {
       label: "Qualification rate %",
-      value: metrics.qualRate.toFixed(1),
+      value: Number.isFinite(metrics.qualRate)
+        ? metrics.qualRate.toFixed(1)
+        : "—",
     },
     { label: "Qualified", value: metrics.qualified },
     { label: "Not qualified", value: metrics.notQ },
@@ -577,7 +589,9 @@ function buildUnifiedExportPayload(
     },
     {
       label: "Closed won rate % (won / all leads)",
-      value: analytics.kpis.closedWonRatePct.toFixed(1),
+      value: Number.isFinite(analytics.kpis.closedWonRatePct)
+        ? analytics.kpis.closedWonRatePct.toFixed(1)
+        : "—",
     },
     { label: "Routed (beyond pre-sales)", value: metrics.routed },
     { label: "With team lead", value: metrics.assigned },
@@ -588,7 +602,10 @@ function buildUnifiedExportPayload(
     { label: "Qualified → still pre-sales", value: metrics.qualifiedInternal },
     {
       label: "Qualified passed %",
-      value: metrics.qualified ? metrics.passedPct.toFixed(1) : "—",
+      value:
+        metrics.qualified && Number.isFinite(metrics.passedPct)
+          ? metrics.passedPct.toFixed(1)
+          : "—",
     },
     {
       label: "Passed → with team lead",
@@ -622,7 +639,7 @@ function buildUnifiedExportPayload(
     r.label,
     r.total,
     r.won,
-    r.conversionPct.toFixed(1),
+    Number.isFinite(r.conversionPct) ? r.conversionPct.toFixed(1) : "—",
   ];
 
   const tables: DashboardExportPayload["tables"] = [
@@ -664,8 +681,8 @@ function buildUnifiedExportPayload(
       title: "Qualification reasons",
       headers: ["Status", "Reason", "Count"],
       rows: qualificationReasonRows.map((r) => [
-        String(r.status ?? "").replaceAll("_", " "),
-        r.reason,
+        String(r.status ?? "").replaceAll("_", " ") || "—",
+        String(r.reason ?? ""),
         r.count,
       ]),
     },
