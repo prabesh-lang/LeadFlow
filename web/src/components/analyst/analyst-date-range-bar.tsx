@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { startTransition, useState } from "react";
 import { normalizeYmdOrNull } from "@/lib/analyst-date-range";
 
 function DateRangeForm({
@@ -96,7 +96,10 @@ export default function AnalystDateRangeBar() {
       p.delete("page");
     }
     const q = p.toString();
-    router.push(q ? `${pathname}?${q}` : pathname);
+    const href = q ? `${pathname}?${q}` : pathname;
+    startTransition(() => {
+      router.replace(href, { scroll: false });
+    });
   };
 
   const clearRange = () => {

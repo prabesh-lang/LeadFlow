@@ -16,11 +16,16 @@ type CountryQual = { q: number; nq: number; ir: number };
 export function countryLabelForIso(iso: string): string {
   if (iso === "__none__") return "No phone";
   if (iso === "__invalid__") return "Invalid / unknown number";
+  // Intl.DisplayNames.of throws RangeError for some inputs (e.g. single char) in V8/Node.
+  if (!/^[A-Za-z]{2}$/.test(iso.trim())) {
+    return iso.trim() || "—";
+  }
+  const code = iso.trim().toUpperCase();
   try {
-    const name = new Intl.DisplayNames(["en"], { type: "region" }).of(iso);
-    return name ? `${name} (${iso})` : iso;
+    const name = new Intl.DisplayNames(["en"], { type: "region" }).of(code);
+    return name ? `${name} (${code})` : code;
   } catch {
-    return iso;
+    return code;
   }
 }
 

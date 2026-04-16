@@ -96,8 +96,21 @@ export function pipelineNoteForLead(
   }
 }
 
-export function formatAnalystDate(d: Date) {
-  return d.toLocaleDateString("en-GB", {
+/** Coerce pg rows or RSC-serialized values to a valid Date. */
+export function parseDbDate(value: unknown): Date | null {
+  if (value == null) return null;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+  if (typeof value === "string" || typeof value === "number") {
+    const d = new Date(value);
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  return null;
+}
+
+export function formatAnalystDate(d: Date | string | number | null | undefined) {
+  const date = parseDbDate(d);
+  if (!date) return "—";
+  return date.toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",

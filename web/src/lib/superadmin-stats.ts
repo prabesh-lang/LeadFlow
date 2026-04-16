@@ -1,3 +1,4 @@
+import { parseDbDate } from "@/lib/analyst-ui";
 import { dbQuery } from "@/lib/db/pool";
 import { QualificationStatus, SalesStage, UserRole } from "@/lib/constants";
 import { leadCreatedAtRange } from "@/lib/analyst-date-range";
@@ -102,8 +103,10 @@ export async function getSuperadminDashboardMetrics() {
   };
 }
 
-function monthKeyYmd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+function monthKeyYmd(d: unknown): string {
+  const v = parseDbDate(d);
+  if (!v) return "unknown";
+  return `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, "0")}`;
 }
 
 function scoreHistogramBucket(s: number | null | undefined): string {
