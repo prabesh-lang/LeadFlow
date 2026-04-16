@@ -1,19 +1,25 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
-/** Keeps `?q=` in sync after typing pauses (shareable URL, preserves with date bar). */
+/**
+ * Keeps `?q=` in sync after typing pauses (shareable URL, preserves with date bar).
+ *
+ * Does not use `useSearchParams()` — that hook requires a parent `<Suspense>`
+ * boundary in the App Router; without it, client navigations (e.g. after applying
+ * a date range) can crash. We read `window.location.search` inside the effect only.
+ */
 export function useDebouncedLeadSearchUrl(query: string, delayMs = 400) {
   const router = useRouter();
   const pathname = usePathname();
-  const sp = useSearchParams();
-  const searchSnapshot = sp.toString();
 
   useEffect(() => {
     const t = setTimeout(() => {
       const tq = query.trim().slice(0, 200);
-      const params = new URLSearchParams(searchSnapshot);
+      const params = new URLSearchParams(
+        typeof window !== "undefined" ? window.location.search.slice(1) : "",
+      );
       const currentQ = params.get("q") ?? "";
       if (tq === currentQ) return;
 
@@ -23,5 +29,5 @@ export function useDebouncedLeadSearchUrl(query: string, delayMs = 400) {
       router.replace(qs ? `${pathname}?${qs}` : pathname);
     }, delayMs);
     return () => clearTimeout(t);
-  }, [query, delayMs, pathname, router, searchSnapshot]);
+  }, [query, delayMs, pathname, router]);
 }

@@ -23,7 +23,9 @@ export default function AnalystDateRangeBar({
   defaultTo,
   preservedEntries,
 }: AnalystDateRangeBarProps) {
-  const hasActiveRange = Boolean(defaultFrom.trim() || defaultTo.trim());
+  const hasActiveRange = Boolean(
+    (defaultFrom ?? "").trim() || (defaultTo ?? "").trim(),
+  );
 
   function buildClearHref(): string {
     const p = new URLSearchParams();
