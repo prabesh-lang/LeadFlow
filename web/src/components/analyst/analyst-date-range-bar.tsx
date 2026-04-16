@@ -1,81 +1,71 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, type FormEvent } from "react";
+import { type FormEvent } from "react";
 import { normalizeYmdOrNull } from "@/lib/analyst-date-range";
 
-/** Copy query params except date-range keys (used for Apply + Clear). */
-function preservedSearchParamEntries(
-  searchParams: ReturnType<typeof useSearchParams>,
-): [string, string][] {
-  const out: [string, string][] = [];
-  const skip = new Set(["from", "to", "page"]);
-  searchParams.forEach((value, key) => {
-    if (!skip.has(key)) out.push([key, value]);
-  });
-  return out;
-}
-
-function buildClearHref(
-  pathname: string,
-  searchParams: ReturnType<typeof useSearchParams>,
-): string {
-  const p = new URLSearchParams();
-  for (const [k, v] of preservedSearchParamEntries(searchParams)) {
-    p.append(k, v);
-  }
-  const q = p.toString();
-  return q ? `${pathname}?${q}` : pathname;
-}
+export type AnalystDateRangeBarProps = {
+  /** Current route pathname, e.g. `/analyst-team-lead` */
+  pathname: string;
+  defaultFrom: string;
+  defaultTo: string;
+  /** Params to preserve (e.g. `q`, `perPage`) — excludes from/to/page. */
+  preservedEntries: [string, string][];
+};
 
 /**
- * Uses `window.location.assign` for Apply / Clear so navigation is a full
- * document load. This avoids Next.js App Router 16.2.x soft-navigation issues
- * with `router.push` / `router.replace` and cached `useSearchParams` state.
+ * Date filter UI: props come from the server page (no `useSearchParams`) so we
+ * avoid Suspense + client navigation bugs with Next.js App Router.
+ * Apply/Clear use `location.assign` for a reliable full navigation.
  */
-export default function AnalystDateRangeBar() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const fromUrl = normalizeYmdOrNull(searchParams.get("from")) ?? "";
-  const toUrl = normalizeYmdOrNull(searchParams.get("to")) ?? "";
-  const hasActiveRange = Boolean(fromUrl.trim() || toUrl.trim());
-  const clearHref = buildClearHref(pathname, searchParams);
+export default function AnalystDateRangeBar({
+  pathname,
+  defaultFrom,
+  defaultTo,
+  preservedEntries,
+}: AnalystDateRangeBarProps) {
+  const hasActiveRange = Boolean(defaultFrom.trim() || defaultTo.trim());
 
-  const onSubmit = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const fd = new FormData(e.currentTarget);
-      let fromSafe = normalizeYmdOrNull(String(fd.get("from") ?? ""));
-      let toSafe = normalizeYmdOrNull(String(fd.get("to") ?? ""));
-      if (!fromSafe || !toSafe) return;
-      if (fromSafe > toSafe) {
-        const tmp = fromSafe;
-        fromSafe = toSafe;
-        toSafe = tmp;
-      }
-      const p = new URLSearchParams();
-      for (const [k, v] of preservedSearchParamEntries(searchParams)) {
-        p.append(k, v);
-      }
-      p.set("from", fromSafe);
-      p.set("to", toSafe);
-      p.set("page", "1");
-      const q = p.toString();
-      const href = q ? `${pathname}?${q}` : pathname;
-      window.location.assign(href);
-    },
-    [pathname, searchParams],
-  );
+  function buildClearHref(): string {
+    const p = new URLSearchParams();
+    for (const [k, v] of preservedEntries) {
+      p.append(k, v);
+    }
+    const q = p.toString();
+    return q ? `${pathname}?${q}` : pathname;
+  }
 
-  const onClear = useCallback(() => {
-    window.location.assign(clearHref);
-  }, [clearHref]);
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    let fromSafe = normalizeYmdOrNull(String(fd.get("from") ?? ""));
+    let toSafe = normalizeYmdOrNull(String(fd.get("to") ?? ""));
+    if (!fromSafe || !toSafe) return;
+    if (fromSafe > toSafe) {
+      const tmp = fromSafe;
+      fromSafe = toSafe;
+      toSafe = tmp;
+    }
+    const p = new URLSearchParams();
+    for (const [k, v] of preservedEntries) {
+      p.append(k, v);
+    }
+    p.set("from", fromSafe);
+    p.set("to", toSafe);
+    p.set("page", "1");
+    const q = p.toString();
+    const href = q ? `${pathname}?${q}` : pathname;
+    window.location.assign(href);
+  }
+
+  function onClear() {
+    window.location.assign(buildClearHref());
+  }
 
   return (
     <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
       <div className="flex flex-wrap items-end gap-3">
         <form
-          key={`${fromUrl}|${toUrl}`}
+          key={`${defaultFrom}|${defaultTo}`}
           onSubmit={onSubmit}
           className="flex flex-wrap items-end gap-3"
         >
@@ -85,7 +75,7 @@ export default function AnalystDateRangeBar() {
               type="date"
               name="from"
               required
-              defaultValue={fromUrl}
+              defaultValue={defaultFrom}
               className="mt-1.5 block min-h-10 w-full min-w-[10rem] rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:border-lf-brand/50 focus:ring-2 focus:ring-lf-brand/25 [color-scheme:light]"
             />
           </label>
@@ -95,7 +85,7 @@ export default function AnalystDateRangeBar() {
               type="date"
               name="to"
               required
-              defaultValue={toUrl}
+              defaultValue={defaultTo}
               className="mt-1.5 block min-h-10 w-full min-w-[10rem] rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:border-lf-brand/50 focus:ring-2 focus:ring-lf-brand/25 [color-scheme:light]"
             />
           </label>

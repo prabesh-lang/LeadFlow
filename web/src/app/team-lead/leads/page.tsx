@@ -1,9 +1,10 @@
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
-import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
+import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import {
   analystRangeParams,
   analystRangeSummaryLabel,
+  preservedSearchParamEntriesForDateBar,
 } from "@/lib/analyst-date-range";
 import { mtlLeadSql } from "@/lib/mtl-leads";
 import { MtlLeadsTableClient } from "@/components/portal-leads/mtl-leads-table-client";
@@ -21,7 +22,10 @@ export default async function TeamLeadLeadsPage({
   if (!session) return null;
 
   const sp = await searchParams;
-  const { from, to, q } = await analystRangeParams(sp);
+  const [preservedEntries, { from, to, q }] = await Promise.all([
+    preservedSearchParamEntriesForDateBar(sp),
+    analystRangeParams(sp),
+  ]);
   const pageRaw = Number.parseInt(sp.page ?? "", 10);
   const perPageRaw = Number.parseInt(sp.perPage ?? "", 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
@@ -141,7 +145,12 @@ export default async function TeamLeadLeadsPage({
         </p>
       </header>
 
-      <AnalystDateRangeBarSuspense />
+      <AnalystDateRangeBar
+        pathname="/team-lead/leads"
+        defaultFrom={from ?? ""}
+        defaultTo={to ?? ""}
+        preservedEntries={preservedEntries}
+      />
 
       <PortalPaginationBar
         pathname="/team-lead/leads"

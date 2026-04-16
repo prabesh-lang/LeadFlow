@@ -1,9 +1,10 @@
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
-import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
+import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import {
   analystRangeParams,
   analystRangeSummaryLabel,
+  preservedSearchParamEntriesForDateBar,
 } from "@/lib/analyst-date-range";
 import { execLeadSql } from "@/lib/exec-leads";
 import { ExecLeadsTableClient } from "@/components/portal-leads/exec-leads-table-client";
@@ -20,7 +21,10 @@ export default async function ExecutiveLeadsPage({
   if (!session) return null;
 
   const sp = await searchParams;
-  const { from, to, q } = await analystRangeParams(sp);
+  const [preservedEntries, { from, to, q }] = await Promise.all([
+    preservedSearchParamEntriesForDateBar(sp),
+    analystRangeParams(sp),
+  ]);
   const pageRaw = Number.parseInt(sp.page ?? "", 10);
   const perPageRaw = Number.parseInt(sp.perPage ?? "", 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
@@ -121,7 +125,12 @@ export default async function ExecutiveLeadsPage({
         </p>
       </header>
 
-      <AnalystDateRangeBarSuspense />
+      <AnalystDateRangeBar
+        pathname="/executive/leads"
+        defaultFrom={from ?? ""}
+        defaultTo={to ?? ""}
+        preservedEntries={preservedEntries}
+      />
 
       <PortalPaginationBar
         pathname="/executive/leads"

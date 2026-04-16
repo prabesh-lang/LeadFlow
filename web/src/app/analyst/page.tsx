@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
 import { AnalystHeaderAddButton } from "@/components/analyst/add-lead-modal";
-import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
+import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
 import { DashboardReportExport } from "@/components/dashboard-report-export";
 import {
@@ -10,6 +10,7 @@ import {
   analystRangeSummaryLabel,
   hrefWithDateRange,
   leadWhereSql,
+  preservedSearchParamEntriesForDateBar,
 } from "@/lib/analyst-date-range";
 import { buildUnifiedDashboardViewModel } from "@/lib/unified-dashboard-report";
 
@@ -40,7 +41,10 @@ export default async function AnalystDashboard({
   const session = await getSession();
   if (!session) return null;
 
-  const { from, to } = await analystRangeParams(searchParams);
+  const [preservedEntries, { from, to }] = await Promise.all([
+    preservedSearchParamEntriesForDateBar(searchParams),
+    analystRangeParams(searchParams),
+  ]);
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { clause, params } = leadWhereSql(session.id, from, to);
 
@@ -111,7 +115,12 @@ export default async function AnalystDashboard({
         </div>
       </header>
 
-      <AnalystDateRangeBarSuspense />
+      <AnalystDateRangeBar
+        pathname="/analyst"
+        defaultFrom={from ?? ""}
+        defaultTo={to ?? ""}
+        preservedEntries={preservedEntries}
+      />
 
       <UnifiedPortalReportSections
         vm={vm}

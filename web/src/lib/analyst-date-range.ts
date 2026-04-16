@@ -130,6 +130,30 @@ export function hrefWithDateRange(
   return qs ? `${path}?${qs}` : path;
 }
 
+/**
+ * Query pairs to keep when applying/clearing dashboard date filters (excludes
+ * `from`, `to`, `page`). Built on the server so the date bar never needs
+ * `useSearchParams` (avoids Suspense / client-router issues in App Router).
+ */
+export async function preservedSearchParamEntriesForDateBar(
+  searchParams:
+    | Promise<Record<string, string | string[] | undefined>>
+    | Record<string, string | string[] | undefined>,
+): Promise<[string, string][]> {
+  const sp = await Promise.resolve(searchParams);
+  const skip = new Set(["from", "to", "page"]);
+  const out: [string, string][] = [];
+  for (const [key, raw] of Object.entries(sp)) {
+    if (skip.has(key)) continue;
+    if (raw === undefined) continue;
+    const values = Array.isArray(raw) ? raw : [raw];
+    for (const v of values) {
+      out.push([key, v]);
+    }
+  }
+  return out;
+}
+
 /** Next.js app router `searchParams` (may be a Promise in newer versions). */
 export async function analystRangeParams(
   searchParams:

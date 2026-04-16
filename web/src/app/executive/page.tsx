@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
 import { dbQuery, dbQueryOne } from "@/lib/db/pool";
-import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
+import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
 import { DashboardReportExport } from "@/components/dashboard-report-export";
 import {
   analystRangeParams,
   analystRangeSummaryLabel,
   hrefWithDateRange,
+  preservedSearchParamEntriesForDateBar,
 } from "@/lib/analyst-date-range";
 import { execLeadSql } from "@/lib/exec-leads";
 import { UserRole } from "@/lib/constants";
@@ -42,7 +43,10 @@ export default async function ExecutiveDashboardPage({
   const session = await getSession();
   if (!session) return null;
 
-  const { from, to } = await analystRangeParams(searchParams);
+  const [preservedEntries, { from, to }] = await Promise.all([
+    preservedSearchParamEntriesForDateBar(searchParams),
+    analystRangeParams(searchParams),
+  ]);
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { clause, params } = execLeadSql(session.id, from, to);
 
@@ -129,7 +133,12 @@ export default async function ExecutiveDashboardPage({
         </div>
       </header>
 
-      <AnalystDateRangeBarSuspense />
+      <AnalystDateRangeBar
+        pathname="/executive"
+        defaultFrom={from ?? ""}
+        defaultTo={to ?? ""}
+        preservedEntries={preservedEntries}
+      />
 
       <UnifiedPortalReportSections
         vm={vm}

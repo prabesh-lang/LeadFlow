@@ -1,10 +1,11 @@
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
-import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
+import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import {
   analystRangeParams,
   analystRangeSummaryLabel,
   leadWhereSql,
+  preservedSearchParamEntriesForDateBar,
 } from "@/lib/analyst-date-range";
 import { AnalystPipelineTableClient } from "@/components/portal-leads/analyst-pipeline-table-client";
 import { QualificationStatus, SalesStage } from "@/lib/constants";
@@ -17,7 +18,10 @@ export default async function AnalystPipelinePage({
   const session = await getSession();
   if (!session) return null;
 
-  const { from, to, q } = await analystRangeParams(searchParams);
+  const [preservedEntries, { from, to, q }] = await Promise.all([
+    preservedSearchParamEntriesForDateBar(searchParams),
+    analystRangeParams(searchParams),
+  ]);
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { clause, params } = leadWhereSql(session.id, from, to);
 
@@ -78,7 +82,12 @@ export default async function AnalystPipelinePage({
         ) : null}
       </header>
 
-      <AnalystDateRangeBarSuspense />
+      <AnalystDateRangeBar
+        pathname="/analyst/pipeline"
+        defaultFrom={from ?? ""}
+        defaultTo={to ?? ""}
+        preservedEntries={preservedEntries}
+      />
 
       <div className="flex gap-3 rounded-xl border border-lf-accent/30 bg-lf-accent/10 px-4 py-3 text-sm text-lf-link">
         <span className="shrink-0 font-bold text-lf-link" aria-hidden>

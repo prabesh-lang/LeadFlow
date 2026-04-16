@@ -664,7 +664,7 @@ function buildUnifiedExportPayload(
       title: "Qualification reasons",
       headers: ["Status", "Reason", "Count"],
       rows: qualificationReasonRows.map((r) => [
-        r.status.replaceAll("_", " "),
+        String(r.status ?? "").replaceAll("_", " "),
         r.reason,
         r.count,
       ]),

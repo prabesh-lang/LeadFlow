@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AnalystDateRangeBarSuspense from "@/components/analyst/analyst-date-range-bar-suspense";
+import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import { SuperadminReportCharts } from "@/components/superadmin/superadmin-report-charts";
 import { SuperadminReportExport } from "@/components/superadmin/superadmin-report-export";
 import { SuperadminReportHistograms } from "@/components/superadmin/superadmin-report-histograms";
@@ -8,6 +8,7 @@ import {
   analystRangeParams,
   analystRangeSummaryLabel,
   hrefWithDateRange,
+  preservedSearchParamEntriesForDateBar,
 } from "@/lib/analyst-date-range";
 import { getSuperadminReportAggregates } from "@/lib/superadmin-stats";
 import { buildUnifiedDashboardViewModel } from "@/lib/unified-dashboard-report";
@@ -43,7 +44,10 @@ export default async function SuperadminReportPage({
 }: {
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
-  const { from, to } = await analystRangeParams(searchParams);
+  const [preservedEntries, { from, to }] = await Promise.all([
+    preservedSearchParamEntriesForDateBar(searchParams),
+    analystRangeParams(searchParams),
+  ]);
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const r = await getSuperadminReportAggregates({ from, to });
   const generatedAt = new Date().toISOString();
@@ -104,7 +108,12 @@ export default async function SuperadminReportPage({
         <SuperadminReportExport payload={vm.exportPayload} />
       </div>
 
-      <AnalystDateRangeBarSuspense />
+      <AnalystDateRangeBar
+        pathname="/superadmin/report"
+        defaultFrom={from ?? ""}
+        defaultTo={to ?? ""}
+        preservedEntries={preservedEntries}
+      />
 
       <SuperadminReportCharts
         totalLeads={r.total}

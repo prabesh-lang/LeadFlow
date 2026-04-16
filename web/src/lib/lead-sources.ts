@@ -72,6 +72,8 @@ export function resolveLeadSourceLabel(
 }
 
 /** Full stored source string for tables and exports (includes website / Meta detail). */
-export function formatLeadSourceDisplay(source: string): string {
-  return source.trim() || "—";
+export function formatLeadSourceDisplay(source: string | null | undefined): string {
+  if (source == null) return "—";
+  const t = String(source).trim();
+  return t || "—";
 }
