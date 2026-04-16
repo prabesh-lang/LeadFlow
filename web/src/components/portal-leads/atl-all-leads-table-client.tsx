@@ -282,7 +282,7 @@ export function AtlAllLeadsTableClient({
                       </td>
                       <td className="min-w-0 px-4 py-3 text-lf-text-secondary">
                         <span className="inline-block whitespace-nowrap rounded-full bg-lf-bg px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide">
-                          {l.qualificationStatus.replaceAll("_", " ")}
+                          {String(l.qualificationStatus ?? "").replaceAll("_", " ") || "—"}
                         </span>
                       </td>
                       <td className="px-4 py-3 tabular-nums text-lf-text-secondary">

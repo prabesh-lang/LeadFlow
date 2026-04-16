@@ -1,8 +1,5 @@
 "use client";
 
-import { type FormEvent } from "react";
-import { normalizeYmdOrNull } from "@/lib/analyst-date-range";
-
 export type AnalystDateRangeBarProps = {
   /** Current route pathname, e.g. `/analyst-team-lead` */
   pathname: string;
@@ -13,9 +10,10 @@ export type AnalystDateRangeBarProps = {
 };
 
 /**
- * Date filter UI: props come from the server page (no `useSearchParams`) so we
- * avoid Suspense + client navigation bugs with Next.js App Router.
- * Apply/Clear use `location.assign` for a reliable full navigation.
+ * Date filter UI: props come from the server page (no `useSearchParams`).
+ * Apply uses a plain GET form so the browser performs a full navigation — no
+ * client router / `location.assign` path that can clash with App Router hydration.
+ * Range ordering and invalid dates are normalized on the server (`analystRangeParams`).
  */
 export default function AnalystDateRangeBar({
   pathname,
@@ -36,41 +34,19 @@ export default function AnalystDateRangeBar({
     return q ? `${pathname}?${q}` : pathname;
   }
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    let fromSafe = normalizeYmdOrNull(String(fd.get("from") ?? ""));
-    let toSafe = normalizeYmdOrNull(String(fd.get("to") ?? ""));
-    if (!fromSafe || !toSafe) return;
-    if (fromSafe > toSafe) {
-      const tmp = fromSafe;
-      fromSafe = toSafe;
-      toSafe = tmp;
-    }
-    const p = new URLSearchParams();
-    for (const [k, v] of preservedEntries) {
-      p.append(k, v);
-    }
-    p.set("from", fromSafe);
-    p.set("to", toSafe);
-    p.set("page", "1");
-    const q = p.toString();
-    const href = q ? `${pathname}?${q}` : pathname;
-    window.location.assign(href);
-  }
-
-  function onClear() {
-    window.location.assign(buildClearHref());
-  }
-
   return (
     <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-elevated to-lf-bg px-4 py-4 shadow-sm sm:px-5 sm:py-5">
       <div className="flex flex-wrap items-end gap-3">
         <form
           key={`${defaultFrom}|${defaultTo}`}
-          onSubmit={onSubmit}
+          method="get"
+          action={pathname}
           className="flex flex-wrap items-end gap-3"
         >
+          {preservedEntries.map(([k, v], i) => (
+            <input key={`${i}-${k}`} type="hidden" name={k} value={v} />
+          ))}
+          <input type="hidden" name="page" value="1" />
           <label className="text-xs font-medium text-lf-muted">
             From
             <input
@@ -99,13 +75,12 @@ export default function AnalystDateRangeBar({
           </button>
         </form>
         {hasActiveRange ? (
-          <button
-            type="button"
-            onClick={onClear}
-            className="min-h-10 rounded-lg border border-lf-border px-4 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
+          <a
+            href={buildClearHref()}
+            className="inline-flex min-h-10 items-center rounded-lg border border-lf-border px-4 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
           >
             Clear
-          </button>
+          </a>
         ) : null}
       </div>
     </div>
