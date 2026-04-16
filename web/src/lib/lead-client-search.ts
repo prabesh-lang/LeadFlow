@@ -21,10 +21,12 @@ export function filterLeadsByNameOrPhone<
 }
 
 export function normalizeClientSearchQuery(
-  raw: string | undefined | null,
+  raw: string | string[] | undefined | null,
 ): string | null {
   if (raw == null) return null;
-  const t = String(raw).trim();
+  const scalar = Array.isArray(raw) ? raw[0] : raw;
+  if (scalar == null) return null;
+  const t = String(scalar).trim();
   if (!t) return null;
   return t.length > MAX_LEN ? t.slice(0, MAX_LEN) : t;
 }

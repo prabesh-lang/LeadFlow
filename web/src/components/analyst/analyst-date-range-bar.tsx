@@ -1,5 +1,3 @@
-"use client";
-
 export type AnalystDateRangeBarProps = {
   /** Current route pathname, e.g. `/analyst-team-lead` */
   pathname: string;
@@ -10,9 +8,9 @@ export type AnalystDateRangeBarProps = {
 };
 
 /**
- * Date filter UI: props come from the server page (no `useSearchParams`).
- * Apply uses a plain GET form so the browser performs a full navigation — no
- * client router / `location.assign` path that can clash with App Router hydration.
+ * Server component: a plain GET form so Apply triggers a full document navigation
+ * with query params. Keeping this off the client bundle avoids Next/React treating
+ * the submit as a client transition that can drop or ignore `?from=&to=`.
  * Range ordering and invalid dates are normalized on the server (`analystRangeParams`).
  */
 export default function AnalystDateRangeBar({

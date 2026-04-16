@@ -19,8 +19,14 @@ function toYmd(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-export function normalizeYmdOrNull(v?: string | null): string | null {
-  const t = v?.trim();
+/** Next.js `searchParams` entries are often `string | string[] | undefined`. */
+export function normalizeYmdOrNull(
+  v?: string | string[] | null,
+): string | null {
+  if (v == null) return null;
+  const scalar = Array.isArray(v) ? v[0] : v;
+  if (scalar == null) return null;
+  const t = scalar.trim();
   if (!t) return null;
   const p = parseYmd(t);
   if (!p) return null;
@@ -154,11 +160,11 @@ export async function preservedSearchParamEntriesForDateBar(
   return out;
 }
 
-/** Next.js app router `searchParams` (may be a Promise in newer versions). */
+/** Next.js app router `searchParams` (Promise + `string | string[]` values in15+). */
 export async function analystRangeParams(
   searchParams:
-    | Promise<{ from?: string; to?: string; q?: string }>
-    | { from?: string; to?: string; q?: string },
+    | Promise<Record<string, string | string[] | undefined>>
+    | Record<string, string | string[] | undefined>,
 ): Promise<{ from: string | null; to: string | null; q: string | null }> {
   const sp = await Promise.resolve(searchParams);
   const from = normalizeYmdOrNull(sp.from);
