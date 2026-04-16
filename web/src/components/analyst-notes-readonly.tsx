@@ -9,10 +9,12 @@ export default function AnalystNotesReadonly({
   }
   return (
     <div
-      className="max-h-36 min-w-0 max-w-[min(100%,20rem)] overflow-y-auto rounded-lg border border-lf-border bg-lf-bg/60 px-3 py-2.5 text-xs leading-relaxed text-lf-text-secondary shadow-inner shadow-black/5"
+      className="max-h-36 min-w-0 max-w-[min(100%,20rem)] overflow-auto rounded-lg border border-lf-border bg-lf-bg/60 px-3.5 py-3 text-xs leading-relaxed text-lf-text-secondary"
       title={notes}
     >
-      <p className="whitespace-pre-wrap break-words normal-case">{notes}</p>
+      <p className="min-w-0 whitespace-pre-wrap break-words normal-case [overflow-wrap:anywhere]">
+        {notes}
+      </p>
     </div>
   );
 }

@@ -147,22 +147,48 @@ export function AtlAllLeadsTableClient({
         <table className="w-max min-w-[1560px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-lf-border bg-lf-bg/80 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
-                <th className="sticky left-0 z-10 min-w-[140px] bg-lf-bg px-4 py-3.5 font-medium shadow-[3px_0_12px_-4px_rgba(0,0,0,0.08)]">
+                <th className="min-w-[140px] px-4 py-4 align-bottom font-medium leading-snug">
                   Name
                 </th>
-                <th className="min-w-[120px] px-4 py-3.5 font-medium">Analyst</th>
-                <th className="min-w-[120px] px-4 py-3.5 font-medium">Phone</th>
-                <th className="min-w-[180px] px-4 py-3.5 font-medium">Email</th>
-                <th className="min-w-[200px] px-4 py-3.5 font-medium">Source</th>
-                <th className="min-w-[220px] px-4 py-3.5 font-medium">Analyst notes</th>
-                <th className="min-w-[120px] px-4 py-3.5 font-medium">Qualification</th>
-                <th className="min-w-[72px] px-4 py-3.5 font-medium">Score</th>
-                <th className="min-w-[128px] px-4 py-3.5 font-medium">Sales status</th>
-                <th className="min-w-[200px] px-4 py-3.5 font-medium">Executive notes</th>
-                <th className="min-w-[120px] px-4 py-3.5 font-medium">Added</th>
-                <th className="min-w-[168px] px-4 py-3.5 font-medium">Route TL</th>
-                <th className="min-w-[200px] px-4 py-3.5 font-medium">Route SE</th>
-                <th className="min-w-[260px] px-4 py-3.5 font-medium">Pass timeline / gap</th>
+                <th className="min-w-[120px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Analyst
+                </th>
+                <th className="min-w-[120px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Phone
+                </th>
+                <th className="min-w-[180px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Email
+                </th>
+                <th className="min-w-[200px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Source
+                </th>
+                <th className="min-w-[220px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Analyst notes
+                </th>
+                <th className="min-w-[120px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Qualification
+                </th>
+                <th className="min-w-[72px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Score
+                </th>
+                <th className="min-w-[128px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Sales status
+                </th>
+                <th className="min-w-[200px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Executive notes
+                </th>
+                <th className="min-w-[120px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Added
+                </th>
+                <th className="min-w-[168px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Route TL
+                </th>
+                <th className="min-w-[200px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Route SE
+                </th>
+                <th className="min-w-[260px] px-4 py-4 align-bottom font-medium leading-snug">
+                  Pass timeline / gap
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-lf-divide">
@@ -231,7 +257,7 @@ export function AtlAllLeadsTableClient({
                       key={l.id}
                       className="group align-top text-lf-muted transition-colors hover:bg-lf-bg/20"
                     >
-                      <td className="sticky left-0 z-[1] min-w-[140px] bg-lf-surface px-4 py-3 font-semibold text-lf-text shadow-[3px_0_12px_-4px_rgba(0,0,0,0.06)] group-hover:bg-lf-bg/20">
+                      <td className="min-w-[140px] max-w-[min(16rem,40vw)] px-4 py-3 align-top font-semibold text-lf-text break-words [overflow-wrap:anywhere]">
                         {l.leadName || "—"}
                       </td>
                       <td className="min-w-0 px-4 py-3 text-lf-text-secondary">
@@ -251,7 +277,7 @@ export function AtlAllLeadsTableClient({
                       <td className="min-w-0 max-w-[260px] px-4 py-3 align-top">
                         <LeadSourcePill source={l.source} />
                       </td>
-                      <td className="px-4 py-3 align-top">
+                      <td className="min-w-0 px-4 py-3 align-top">
                         <AnalystNotesReadonly notes={l.notes} />
                       </td>
                       <td className="min-w-0 px-4 py-3 text-lf-text-secondary">
