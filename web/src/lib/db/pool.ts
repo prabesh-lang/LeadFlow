@@ -19,7 +19,6 @@ export function assertDatabaseUrlConfigured(connectionString: string): void {
 
 function normalizeConnectionString(url: string): string {
   let out = url.trim();
-  const lower = out.toLowerCase();
   const isPooler =
     /pooler\.supabase\.com/i.test(out) || /:6543(\/|\?|$)/.test(out);
   if (isPooler && !/[?&]pgbouncer=true/i.test(out)) {

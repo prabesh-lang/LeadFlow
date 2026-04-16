@@ -3,6 +3,13 @@
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { superadminSetPasswordFormAction } from "@/app/actions/superadmin";
 
+function deriveSavedPassword(
+  state: { password?: string; error?: string } | undefined,
+  initialPassword: string | null | undefined,
+): string {
+  return state?.password ?? initialPassword ?? "";
+}
+
 const inputClass =
   "min-h-10 w-full min-w-[140px] max-w-[200px] rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:ring-2";
 
@@ -14,15 +21,12 @@ export function SuperadminPasswordForm({
   initialPassword?: string | null;
 }) {
   const [visible, setVisible] = useState(false);
-  const [savedPassword, setSavedPassword] = useState(initialPassword ?? "");
   const [copied, setCopied] = useState(false);
   const [state, action, pending] = useActionState(
     superadminSetPasswordFormAction,
     undefined,
   );
-  useEffect(() => {
-    if (state?.password) setSavedPassword(state.password);
-  }, [state?.password]);
+  const savedPassword = deriveSavedPassword(state, initialPassword);
   useEffect(() => {
     if (!copied) return;
     const t = window.setTimeout(() => setCopied(false), 1200);

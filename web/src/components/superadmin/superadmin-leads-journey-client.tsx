@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { superadminDeleteLeadFormAction } from "@/app/actions/superadmin";
 import { LeadHandoffAction, QualificationStatus } from "@/lib/constants";
@@ -54,6 +54,50 @@ function statusPillClass(status: string) {
   return "bg-lf-bg/60 text-lf-text-secondary";
 }
 
+function findSelectedLead(
+  analystGroups: AnalystGroup[],
+  selectedLeadId: string | null,
+): { lead: JourneyLead; analyst: AnalystGroup["analyst"] } | null {
+  if (!selectedLeadId) return null;
+  for (const group of analystGroups) {
+    const lead = group.leads.find((l) => l.id === selectedLeadId);
+    if (lead) return { lead, analyst: group.analyst };
+  }
+  return null;
+}
+
+function buildJourneyTimeline(selected: {
+  lead: JourneyLead;
+  analyst: AnalystGroup["analyst"];
+}) {
+  let routedToMainTeamAt: string | null = null;
+  let assignedToExecutiveAt: string | null = null;
+  let directAssignedToExecutiveByAtlAt: string | null = null;
+  for (const h of selected.lead.handoffLogs) {
+    if (
+      h.action === LeadHandoffAction.ROUTED_TO_MAIN_TEAM &&
+      !routedToMainTeamAt
+    ) {
+      routedToMainTeamAt = h.createdAt;
+    } else if (
+      h.action === LeadHandoffAction.ASSIGNED_TO_EXECUTIVE &&
+      !assignedToExecutiveAt
+    ) {
+      assignedToExecutiveAt = h.createdAt;
+    } else if (
+      h.action === LeadHandoffAction.DIRECT_ASSIGNED_TO_EXECUTIVE_BY_ATL &&
+      !directAssignedToExecutiveByAtlAt
+    ) {
+      directAssignedToExecutiveByAtlAt = h.createdAt;
+    }
+  }
+  return {
+    routedToMainTeamAt,
+    assignedToExecutiveAt,
+    directAssignedToExecutiveByAtlAt,
+  };
+}
+
 function fmtGap(fromIso: string | null, toIso: string | null) {
   if (!fromIso || !toIso) return "—";
   const from = new Date(fromIso).getTime();
@@ -81,44 +125,8 @@ export function SuperadminLeadsJourneyClient({
   );
   const wasPending = useRef(false);
 
-  const selected = useMemo(() => {
-    if (!selectedLeadId) return null;
-    for (const group of analystGroups) {
-      const lead = group.leads.find((l) => l.id === selectedLeadId);
-      if (lead) return { lead, analyst: group.analyst };
-    }
-    return null;
-  }, [analystGroups, selectedLeadId]);
-
-  const timeline = useMemo(() => {
-    if (!selected) return null;
-    let routedToMainTeamAt: string | null = null;
-    let assignedToExecutiveAt: string | null = null;
-    let directAssignedToExecutiveByAtlAt: string | null = null;
-    for (const h of selected.lead.handoffLogs) {
-      if (
-        h.action === LeadHandoffAction.ROUTED_TO_MAIN_TEAM &&
-        !routedToMainTeamAt
-      ) {
-        routedToMainTeamAt = h.createdAt;
-      } else if (
-        h.action === LeadHandoffAction.ASSIGNED_TO_EXECUTIVE &&
-        !assignedToExecutiveAt
-      ) {
-        assignedToExecutiveAt = h.createdAt;
-      } else if (
-        h.action === LeadHandoffAction.DIRECT_ASSIGNED_TO_EXECUTIVE_BY_ATL &&
-        !directAssignedToExecutiveByAtlAt
-      ) {
-        directAssignedToExecutiveByAtlAt = h.createdAt;
-      }
-    }
-    return {
-      routedToMainTeamAt,
-      assignedToExecutiveAt,
-      directAssignedToExecutiveByAtlAt,
-    };
-  }, [selected]);
+  const selected = findSelectedLead(analystGroups, selectedLeadId);
+  const timeline = selected ? buildJourneyTimeline(selected) : null;
 
   const closeModal = () => {
     if (pending) return;
@@ -127,8 +135,10 @@ export function SuperadminLeadsJourneyClient({
 
   useEffect(() => {
     if (wasPending.current && !pending && !state?.error) {
-      setSelectedLeadId(null);
-      router.refresh();
+      queueMicrotask(() => {
+        setSelectedLeadId(null);
+        router.refresh();
+      });
     }
     wasPending.current = pending;
   }, [pending, router, state]);

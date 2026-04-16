@@ -9,9 +9,13 @@
     "start": "node scripts/railway-db-guard.mjs && node scripts/ensure-database.mjs && node scripts/auto-bootstrap-railway.mjs && next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
+    "validate:schema": "node -e \"const fs=require('fs'); const p='database/migrations/001_init_postgresql.sql'; if(!fs.existsSync(p)){console.error('Missing',p); process.exit(1);} console.log('OK:', p);\"",
     "postinstall": "node scripts/ensure-xlsx-for-turbopack.mjs",
     "db:seed": "tsx database/seed.ts",
-    "db:seed:bootstrap": "tsx database/seed-bootstrap.ts"
+    "db:seed:bootstrap": "tsx database/seed-bootstrap.ts",
+    "db:generate": "node -e \"console.log('[LeadFlow] No ORM codegen — using pg + SQL in database/migrations/.'); process.exit(0);\"",
+    "db:push": "node -e \"console.error('[LeadFlow] db:push is not used. Apply database/migrations/*.sql via Supabase or psql.'); process.exit(1);\"",
+    "db:migrate:deploy": "node -e \"console.warn('[LeadFlow] Apply database/migrations/*.sql to Postgres (Supabase SQL editor or psql). No auto-migrate runner.'); process.exit(0);\""
   },
   "engines": {
     "node": ">=20.9.0"

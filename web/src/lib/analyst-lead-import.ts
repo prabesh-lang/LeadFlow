@@ -32,8 +32,8 @@ export const ANALYST_IMPORT_COLUMN_META: {
   {
     key: "full_name",
     label: "Full Name",
-    required: false,
-    hint: "Required when Qualification is QUALIFIED",
+    required: true,
+    hint: "Prospect’s full name",
   },
   {
     key: "phone",
@@ -45,7 +45,6 @@ export const ANALYST_IMPORT_COLUMN_META: {
     key: "email",
     label: "Email",
     required: false,
-    hint: "Required when Qualification is QUALIFIED",
   },
   { key: "city", label: "City", required: false },
   {
@@ -206,6 +205,9 @@ export function parseAnalystImportRow(
   const dateRaw = (raw.date_added ?? "").trim();
   const notes = (raw.notes ?? "").trim() || null;
 
+  if (!full_name) {
+    return { ok: false, rowNumber, error: "Full name is required." };
+  }
   if (!phone) {
     return { ok: false, rowNumber, error: "Phone is required." };
   }
@@ -215,6 +217,9 @@ export function parseAnalystImportRow(
       rowNumber,
       error: `Invalid lead_source. Use one of: ${[...SOURCE_VALUES].join(", ")}.`,
     };
+  }
+  if (emailRaw && !isValidEmail(emailRaw)) {
+    return { ok: false, rowNumber, error: "Invalid email." };
   }
   if (
     qualification !== QualificationStatus.QUALIFIED &&
@@ -227,23 +232,6 @@ export function parseAnalystImportRow(
       error:
         "qualification must be QUALIFIED, NOT_QUALIFIED, or IRRELEVANT.",
     };
-  }
-  if (qualification === QualificationStatus.QUALIFIED && !full_name) {
-    return {
-      ok: false,
-      rowNumber,
-      error: "full_name is required when qualification is QUALIFIED.",
-    };
-  }
-  if (qualification === QualificationStatus.QUALIFIED && !emailRaw) {
-    return {
-      ok: false,
-      rowNumber,
-      error: "email is required when qualification is QUALIFIED.",
-    };
-  }
-  if (emailRaw && !isValidEmail(emailRaw)) {
-    return { ok: false, rowNumber, error: "Invalid email." };
   }
 
   let lead_score: number | null = null;
