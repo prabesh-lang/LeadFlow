@@ -54,10 +54,18 @@ function StatCard({
 
 export async function AtlTeamRoutingInsights({
   analystIds,
+  from = null,
+  to = null,
+  rangeLabel = "All time",
 }: {
   analystIds: string[];
+  /** Optional createdAt range; omit or null for all time. */
+  from?: string | null;
+  to?: string | null;
+  /** Shown in subtitles (e.g. from analyst range summary). */
+  rangeLabel?: string;
 }) {
-  const { clause, params } = atlLeadSql(analystIds, null, null);
+  const { clause, params } = atlLeadSql(analystIds, from, to);
   const leads =
     analystIds.length === 0
       ? []
@@ -79,7 +87,7 @@ export async function AtlTeamRoutingInsights({
           accent="blue"
           title="Total team leads"
           value={ins.total}
-          sub="From your analysts · all time"
+          sub={`From your analysts · ${rangeLabel}`}
         />
         <StatCard
           accent="green"
@@ -237,9 +245,10 @@ export async function AtlTeamRoutingInsights({
       </Card>
 
       <Card>
-        <h3 className="mb-4 text-base font-semibold text-lf-text">
-          Leads by source (all time)
+        <h3 className="text-base font-semibold text-lf-text">
+          Leads by source
         </h3>
+        <p className="mb-4 text-xs text-lf-muted">{rangeLabel}</p>
         <ul className="space-y-4">
           {ins.sourceEntries.length === 0 ? (
             <li className="text-sm text-lf-subtle">No data yet.</li>

@@ -196,10 +196,10 @@ export function AtlTeamMembersClient({
             Member directory for lead analysts and main team leads. Full
             pipeline metrics:{" "}
             <Link
-              href="/analyst-team-lead/insights"
+              href="/analyst-team-lead/reports"
               className="text-lf-link hover:underline"
             >
-              Insights
+              Report
             </Link>{" "}
             (sidebar) ·{" "}
             <Link

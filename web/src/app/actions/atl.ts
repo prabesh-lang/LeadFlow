@@ -80,7 +80,7 @@ export async function createLeadAnalystMember(formData: FormData) {
 
   revalidatePath("/analyst-team-lead");
   revalidatePath("/analyst-team-lead/team");
-  revalidatePath("/analyst-team-lead/insights");
+  revalidatePath("/analyst-team-lead/reports");
   return {
     ok: true as const,
     name,
@@ -146,7 +146,7 @@ export async function createMainTeamLeadAndTeam(formData: FormData) {
 
   revalidatePath("/analyst-team-lead");
   revalidatePath("/analyst-team-lead/team");
-  revalidatePath("/analyst-team-lead/insights");
+  revalidatePath("/analyst-team-lead/reports");
   return {
     ok: true as const,
     teamName,
@@ -245,7 +245,7 @@ export async function assignLeadToMainTeamLead(formData: FormData) {
 
   revalidatePath("/analyst-team-lead");
   revalidatePath("/analyst-team-lead/leads");
-  revalidatePath("/analyst-team-lead/insights");
+  revalidatePath("/analyst-team-lead/reports");
   revalidatePath("/team-lead");
   revalidatePath("/analyst");
   return { ok: true as const };
@@ -362,7 +362,7 @@ export async function assignLeadDirectToExecutiveByAtl(formData: FormData) {
 
   revalidatePath("/analyst-team-lead");
   revalidatePath("/analyst-team-lead/leads");
-  revalidatePath("/analyst-team-lead/insights");
+  revalidatePath("/analyst-team-lead/reports");
   revalidatePath("/team-lead");
   revalidatePath("/team-lead/leads");
   revalidatePath("/executive");

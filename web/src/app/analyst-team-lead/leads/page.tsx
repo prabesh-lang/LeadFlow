@@ -223,10 +223,10 @@ export default async function AnalystTeamLeadLeadsPage({
           <p className="mt-1 text-sm text-lf-muted">
             Leads created by your analysts ·{" "}
             <Link
-              href={hrefWithDateRange("/analyst-team-lead", from, to, q)}
+              href={hrefWithDateRange("/analyst-team-lead/reports", from, to, q)}
               className="text-lf-link hover:underline"
             >
-              Back to dashboard
+              Back to report
             </Link>
           </p>
         </div>
