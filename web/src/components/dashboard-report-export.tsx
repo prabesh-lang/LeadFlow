@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { DashboardExportPayload } from "@/lib/dashboard-export-types";
 import {
   buildDashboardCsv,
@@ -29,7 +29,13 @@ export function DashboardReportExport({
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<"csv" | "xlsx" | "pdf" | null>(null);
 
-  const base = exportFileBase(payload);
+  const base = useMemo(() => {
+    try {
+      return exportFileBase(payload);
+    } catch {
+      return `export-${Date.now()}`;
+    }
+  }, [payload]);
 
   const run = useCallback(
     (kind: "csv" | "xlsx" | "pdf") => {

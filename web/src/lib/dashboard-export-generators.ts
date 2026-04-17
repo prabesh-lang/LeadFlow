@@ -20,13 +20,27 @@ function sanitizeSheetName(name: string, index: number): string {
 }
 
 export function exportFileBase(payload: DashboardExportPayload): string {
-  const ymd = payload.generatedAt.slice(0, 10);
-  const slug = payload.rangeLabel
+  const gen = payload.generatedAt;
+  const ymd =
+    typeof gen === "string" && gen.length >= 10
+      ? gen.slice(0, 10)
+      : (() => {
+          try {
+            const d = gen != null ? new Date(gen as string) : new Date();
+            const t = d.getTime();
+            return Number.isNaN(t) ? "unknown" : d.toISOString().slice(0, 10);
+          } catch {
+            return "unknown";
+          }
+        })();
+  const raw = String(payload.rangeLabel ?? "all time");
+  const slug = raw
     .toLowerCase()
     .replace(/\s+/g, "-")
     .replace(/[^a-z0-9-]/g, "")
     .slice(0, 48);
-  return `${payload.fileNamePrefix}-${slug || "all-time"}-${ymd}`;
+  const prefix = String(payload.fileNamePrefix ?? "export").trim() || "export";
+  return `${prefix}-${slug || "all-time"}-${ymd}`;
 }
 
 export function buildDashboardCsv(payload: DashboardExportPayload): string {
