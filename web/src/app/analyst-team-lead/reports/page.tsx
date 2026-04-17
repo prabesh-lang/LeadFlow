@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
+import { connection } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import { AtlTeamRoutingInsights } from "@/components/atl/atl-team-routing-insights";
@@ -16,6 +18,9 @@ export default async function AnalystTeamLeadReportsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  noStore();
+  await connection();
+
   const session = await getSession();
   if (!session) return null;
 

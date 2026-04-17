@@ -232,12 +232,12 @@ export async function analystRangeParams(
     | Record<string, string | string[] | undefined>,
 ): Promise<{ from: string | null; to: string | null; q: string | null }> {
   const sp = await Promise.resolve(searchParams);
-  const fromRaw = normalizeYmdOrNull(sp.from);
-  const toRaw = normalizeYmdOrNull(sp.to);
+  const fromRaw = normalizeYmdOrNull(searchParamFirst(sp, "from"));
+  const toRaw = normalizeYmdOrNull(searchParamFirst(sp, "to"));
   const { from, to } = canonicalizePortalDatePair(fromRaw, toRaw);
   return {
     from,
     to,
-    q: normalizeClientSearchQuery(sp.q),
+    q: normalizeClientSearchQuery(searchParamFirst(sp, "q")),
   };
 }

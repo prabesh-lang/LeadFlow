@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
+import { connection } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
 import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
@@ -111,6 +113,9 @@ export default async function AnalystTeamLeadLeadsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  noStore();
+  await connection();
+
   const session = await getSession();
   if (!session) return null;
 

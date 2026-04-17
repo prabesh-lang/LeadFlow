@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import {
   buildPortalDateRangeApplyHref,
   buildPortalDateRangeClearHref,
@@ -39,6 +39,8 @@ export default function AnalystDateRangeBar({
   rangeSummary,
 }: AnalystDateRangeBarProps) {
   const [applyError, setApplyError] = useState<string | null>(null);
+  const fromInputRef = useRef<HTMLInputElement>(null);
+  const toInputRef = useRef<HTMLInputElement>(null);
 
   const hasActiveRange = Boolean(
     (defaultFrom ?? "").trim() || (defaultTo ?? "").trim(),
@@ -46,9 +48,8 @@ export default function AnalystDateRangeBar({
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    let fromSafe = normalizeYmdOrNull(String(fd.get("from") ?? ""));
-    let toSafe = normalizeYmdOrNull(String(fd.get("to") ?? ""));
+    let fromSafe = normalizeYmdOrNull(fromInputRef.current?.value ?? "");
+    let toSafe = normalizeYmdOrNull(toInputRef.current?.value ?? "");
 
     if (!fromSafe && !toSafe) {
       setApplyError("Enter a “From” date, a “To” date, or both.");
@@ -94,6 +95,7 @@ export default function AnalystDateRangeBar({
           <label className="text-xs font-medium text-lf-muted">
             From
             <input
+              ref={fromInputRef}
               type="date"
               name="from"
               defaultValue={defaultFrom}
@@ -105,6 +107,7 @@ export default function AnalystDateRangeBar({
           <label className="text-xs font-medium text-lf-muted">
             To
             <input
+              ref={toInputRef}
               type="date"
               name="to"
               defaultValue={defaultTo}
