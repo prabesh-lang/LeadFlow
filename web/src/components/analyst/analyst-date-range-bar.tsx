@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import {
   buildPortalDateRangeApplyHref,
   buildPortalDateRangeClearHref,
@@ -8,7 +8,7 @@ import {
 } from "@/lib/analyst-date-range";
 
 export type AnalystDateRangeBarProps = {
-  /** Current route pathname, e.g. `/analyst-team-lead` */
+  /** Current route pathname, e.g. `/analyst-team-lead/reports` */
   pathname: string;
   defaultFrom: string;
   defaultTo: string;
@@ -21,7 +21,10 @@ export type AnalystDateRangeBarProps = {
  *
  * Apply/Clear use `window.location.assign` with {@link buildPortalDateRangeApplyHref}
  * so navigation matches superadmin and always sends a full document request with
- * `?from=` / `?to=` / `page=1` plus preserved params.
+ * `?from=` / `?to=` (either or both) / `page=1` plus preserved params.
+ *
+ * At least one valid date is required. Single-date ranges align with
+ * {@link leadCreatedAtRange} (from-only → through today; to-only → from epoch).
  */
 export default function AnalystDateRangeBar({
   pathname,
@@ -29,6 +32,12 @@ export default function AnalystDateRangeBar({
   defaultTo,
   preservedEntries,
 }: AnalystDateRangeBarProps) {
+  const [applyError, setApplyError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setApplyError(null);
+  }, [defaultFrom, defaultTo]);
+
   const hasActiveRange = Boolean(
     (defaultFrom ?? "").trim() || (defaultTo ?? "").trim(),
   );
@@ -38,18 +47,26 @@ export default function AnalystDateRangeBar({
     const fd = new FormData(e.currentTarget);
     let fromSafe = normalizeYmdOrNull(String(fd.get("from") ?? ""));
     let toSafe = normalizeYmdOrNull(String(fd.get("to") ?? ""));
-    if (!fromSafe || !toSafe) return;
-    if (fromSafe > toSafe) {
+
+    if (!fromSafe && !toSafe) {
+      setApplyError("Enter a “From” date, a “To” date, or both.");
+      return;
+    }
+
+    if (fromSafe && toSafe && fromSafe > toSafe) {
       const tmp = fromSafe;
       fromSafe = toSafe;
       toSafe = tmp;
     }
+
+    setApplyError(null);
     window.location.assign(
       buildPortalDateRangeApplyHref(pathname, fromSafe, toSafe, preservedEntries),
     );
   }
 
   function onClear() {
+    setApplyError(null);
     window.location.assign(buildPortalDateRangeClearHref(pathname, preservedEntries));
   }
 
@@ -60,6 +77,7 @@ export default function AnalystDateRangeBar({
           key={`${defaultFrom}|${defaultTo}`}
           onSubmit={onSubmit}
           className="flex flex-wrap items-end gap-3"
+          noValidate
         >
           {preservedEntries.map(([k, v], i) => (
             <input
@@ -76,9 +94,10 @@ export default function AnalystDateRangeBar({
             <input
               type="date"
               name="from"
-              required
               defaultValue={defaultFrom}
               className="mt-1.5 block min-h-10 w-full min-w-[10rem] rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:border-lf-brand/50 focus:ring-2 focus:ring-lf-brand/25 [color-scheme:light]"
+              aria-invalid={applyError ? true : undefined}
+              aria-describedby={applyError ? "date-range-apply-error" : undefined}
             />
           </label>
           <label className="text-xs font-medium text-lf-muted">
@@ -86,9 +105,10 @@ export default function AnalystDateRangeBar({
             <input
               type="date"
               name="to"
-              required
               defaultValue={defaultTo}
               className="mt-1.5 block min-h-10 w-full min-w-[10rem] rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 focus:border-lf-brand/50 focus:ring-2 focus:ring-lf-brand/25 [color-scheme:light]"
+              aria-invalid={applyError ? true : undefined}
+              aria-describedby={applyError ? "date-range-apply-error" : undefined}
             />
           </label>
           <button
@@ -108,6 +128,19 @@ export default function AnalystDateRangeBar({
           </button>
         ) : null}
       </div>
+      <p className="mt-2 text-[11px] leading-relaxed text-lf-subtle">
+        From only: that date through today. To only: from the beginning through that
+        date. Both: inclusive range (order is adjusted if From is after To).
+      </p>
+      {applyError ? (
+        <p
+          id="date-range-apply-error"
+          role="alert"
+          className="mt-2 text-sm text-lf-danger"
+        >
+          {applyError}
+        </p>
+      ) : null}
     </div>
   );
 }

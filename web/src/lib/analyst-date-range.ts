@@ -137,13 +137,14 @@ export function hrefWithDateRange(
 }
 
 /**
- * Shared by portal date bars: Apply → `?from=&to=&page=1` plus preserved params
- * (e.g. `q`, `perPage`). Same behavior as superadmin report + all role dashboards.
+ * Shared by portal date bars: Apply → `?from=` / `?to=` (each optional) + `page=1`
+ * plus preserved params. Omitting `to` means “from date through today”; omitting
+ * `from` means “up to end of to date” — matches {@link leadCreatedAtRange}.
  */
 export function buildPortalDateRangeApplyHref(
   pathname: string,
-  fromYmd: string,
-  toYmd: string,
+  fromYmd: string | null,
+  toYmd: string | null,
   preservedEntries: [string, string][],
 ): string {
   const p = new URLSearchParams();
@@ -151,11 +152,11 @@ export function buildPortalDateRangeApplyHref(
     if (k === "from" || k === "to" || k === "page") continue;
     p.append(k, String(v));
   }
-  p.set("from", fromYmd);
-  p.set("to", toYmd);
+  if (fromYmd) p.set("from", fromYmd);
+  if (toYmd) p.set("to", toYmd);
   p.set("page", "1");
   const qs = p.toString();
-  return qs ? `${pathname}?${qs}` : pathname;
+  return qs ? `${pathname}?${qs}` : `${pathname}?page=1`;
 }
 
 /** Clear date range but keep other query params (e.g. search `q`). */
