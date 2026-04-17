@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
-import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import {
-  analystRangeParams,
   analystRangeSummaryLabel,
-  preservedSearchParamEntriesForDateBar,
   searchParamFirst,
 } from "@/lib/analyst-date-range";
+import { normalizeClientSearchQuery } from "@/lib/lead-client-search";
 import { mtlLeadSql } from "@/lib/mtl-leads";
 import { MtlLeadsTableClient } from "@/components/portal-leads/mtl-leads-table-client";
 import { UserRole } from "@/lib/constants";
@@ -24,18 +22,15 @@ export default async function TeamLeadLeadsPage({
   if (!session) return null;
 
   const sp = await searchParams;
-  const [preservedEntries, { from, to, q }] = await Promise.all([
-    preservedSearchParamEntriesForDateBar(sp),
-    analystRangeParams(sp),
-  ]);
+  const q = normalizeClientSearchQuery(searchParamFirst(sp, "q"));
   const pageRaw = Number.parseInt(searchParamFirst(sp, "page") ?? "", 10);
   const perPageRaw = Number.parseInt(searchParamFirst(sp, "perPage") ?? "", 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
   const perPage: 25 | 50 | 100 =
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
   const offset = (page - 1) * perPage;
-  const rangeLabel = analystRangeSummaryLabel(from, to);
-  const { clause, params } = mtlLeadSql(session.id, from, to);
+  const rangeLabel = analystRangeSummaryLabel(null, null);
+  const { clause, params } = mtlLeadSql(session.id, null, null);
 
   const mtlSelect = `SELECT l.*, cb.name AS cb_name, se.id AS se_id, se.name AS se_name
        FROM "Lead" l
@@ -143,7 +138,7 @@ export default async function TeamLeadLeadsPage({
           All leads
         </h1>
         <p className="mt-1 text-sm text-lf-muted">
-          Qualified leads routed to you · {rangeLabel} ·{" "}
+          All-time qualified leads routed to you ·{" "}
           <Link
             href="/team-lead/reports"
             className="text-lf-link hover:underline"
@@ -153,20 +148,9 @@ export default async function TeamLeadLeadsPage({
         </p>
       </header>
 
-      <AnalystDateRangeBar
-        key={`${from ?? ""}|${to ?? ""}`}
-        pathname="/team-lead/leads"
-        defaultFrom={from ?? ""}
-        defaultTo={to ?? ""}
-        preservedEntries={preservedEntries}
-        rangeSummary={rangeLabel}
-      />
-
       <PortalPaginationBar
         pathname="/team-lead/leads"
         query={{
-          from,
-          to,
           q,
           ...(perPage !== 25 ? { perPage: String(perPage) } : {}),
         }}
@@ -176,7 +160,7 @@ export default async function TeamLeadLeadsPage({
       />
 
       <MtlLeadsTableClient
-        key={`${from ?? ""}|${to ?? ""}|${page}|${perPage}`}
+        key={`${page}|${perPage}|${q ?? ""}`}
         leads={rows}
         initialQ={q}
         execs={execOptions}

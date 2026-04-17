@@ -113,7 +113,7 @@ export default async function MainTeamLeadDashboard() {
             {execCount > 0
               ? ` · ${execCount} sales executive${execCount === 1 ? "" : "s"}`
               : ""}
-            . Filter by date and export on{" "}
+            . CSV, Excel, and PDF exports are on{" "}
             <Link
               href="/team-lead/reports"
               className="font-medium text-lf-link hover:underline"
