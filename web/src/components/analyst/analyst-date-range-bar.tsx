@@ -1,3 +1,8 @@
+"use client";
+
+import { type FormEvent } from "react";
+import { normalizeYmdOrNull } from "@/lib/analyst-date-range";
+
 export type AnalystDateRangeBarProps = {
   /** Current route pathname, e.g. `/analyst-team-lead` */
   pathname: string;
@@ -8,10 +13,12 @@ export type AnalystDateRangeBarProps = {
 };
 
 /**
- * Server component: a plain GET form so Apply triggers a full document navigation
- * with query params. Keeping this off the client bundle avoids Next/React treating
- * the submit as a client transition that can drop or ignore `?from=&to=`.
- * Range ordering and invalid dates are normalized on the server (`analystRangeParams`).
+ * Date range filter for portal dashboards and lead lists.
+ *
+ * Apply/Clear use `window.location.assign` so navigation is always a **full
+ * document load** with the correct query string. The App Router can intercept
+ * plain GET `<form>` submits and soft-navigate in ways that drop or mishandle
+ * `?from=` / `?to=`, which breaks ATL and other portals after Apply.
  */
 export default function AnalystDateRangeBar({
   pathname,
@@ -23,13 +30,40 @@ export default function AnalystDateRangeBar({
     (defaultFrom ?? "").trim() || (defaultTo ?? "").trim(),
   );
 
-  function buildClearHref(): string {
-    const p = new URLSearchParams();
+  function appendPreserved(params: URLSearchParams) {
     for (const [k, v] of preservedEntries) {
-      p.append(k, v);
+      if (k === "from" || k === "to" || k === "page") continue;
+      params.append(k, String(v));
     }
-    const q = p.toString();
-    return q ? `${pathname}?${q}` : pathname;
+  }
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    let fromSafe = normalizeYmdOrNull(String(fd.get("from") ?? ""));
+    let toSafe = normalizeYmdOrNull(String(fd.get("to") ?? ""));
+    if (!fromSafe || !toSafe) return;
+    if (fromSafe > toSafe) {
+      const tmp = fromSafe;
+      fromSafe = toSafe;
+      toSafe = tmp;
+    }
+    const p = new URLSearchParams();
+    appendPreserved(p);
+    p.set("from", fromSafe);
+    p.set("to", toSafe);
+    p.set("page", "1");
+    const qs = p.toString();
+    const href = qs ? `${pathname}?${qs}` : pathname;
+    window.location.assign(href);
+  }
+
+  function onClear() {
+    const p = new URLSearchParams();
+    appendPreserved(p);
+    const qs = p.toString();
+    const href = qs ? `${pathname}?${qs}` : pathname;
+    window.location.assign(href);
   }
 
   return (
@@ -37,14 +71,19 @@ export default function AnalystDateRangeBar({
       <div className="flex flex-wrap items-end gap-3">
         <form
           key={`${defaultFrom}|${defaultTo}`}
-          method="get"
-          action={pathname}
+          onSubmit={onSubmit}
           className="flex flex-wrap items-end gap-3"
         >
           {preservedEntries.map(([k, v], i) => (
-            <input key={`${i}-${k}`} type="hidden" name={k} value={v} />
+            <input
+              key={`${i}-${k}`}
+              type="hidden"
+              name={k}
+              value={String(v)}
+              aria-hidden
+            />
           ))}
-          <input type="hidden" name="page" value="1" />
+          <input type="hidden" name="page" value="1" aria-hidden />
           <label className="text-xs font-medium text-lf-muted">
             From
             <input
@@ -73,12 +112,13 @@ export default function AnalystDateRangeBar({
           </button>
         </form>
         {hasActiveRange ? (
-          <a
-            href={buildClearHref()}
-            className="inline-flex min-h-10 items-center rounded-lg border border-lf-border px-4 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
+          <button
+            type="button"
+            onClick={onClear}
+            className="min-h-10 rounded-lg border border-lf-border px-4 text-xs font-medium text-lf-text-secondary hover:bg-lf-bg/50"
           >
             Clear
-          </a>
+          </button>
         ) : null}
       </div>
     </div>
