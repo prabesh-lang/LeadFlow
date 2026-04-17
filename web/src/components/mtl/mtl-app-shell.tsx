@@ -6,6 +6,7 @@ import type { AtlNotificationItem } from "@/components/atl/atl-notification-bell
 const NAV = [
   { href: "/team-lead", label: "Dashboard" },
   { href: "/team-lead/leads", label: "Leads" },
+  { href: "/team-lead/reports", label: "Report" },
   { href: "/team-lead/team", label: "Team" },
   { href: "/team-lead/settings", label: "Settings" },
 ] as const;

@@ -76,6 +76,7 @@ export async function createSalesExecutive(formData: FormData) {
 
   revalidatePath("/team-lead");
   revalidatePath("/team-lead/leads");
+  revalidatePath("/team-lead/reports");
   revalidatePath("/team-lead/team");
   return {
     ok: true as const,
@@ -148,6 +149,7 @@ export async function assignLeadToExecutive(formData: FormData) {
 
   revalidatePath("/team-lead");
   revalidatePath("/team-lead/leads");
+  revalidatePath("/team-lead/reports");
   revalidatePath("/executive");
   revalidatePath("/analyst");
   revalidatePath("/analyst-team-lead");

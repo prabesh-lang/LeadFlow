@@ -1,10 +1,16 @@
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
+import { connection } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { dbQuery, dbQueryOne } from "@/lib/db/pool";
+import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
+import { DashboardReportExport } from "@/components/dashboard-report-export";
 import {
+  analystRangeParams,
   analystRangeSummaryLabel,
   hrefWithDateRange,
+  preservedSearchParamEntriesForDateBar,
 } from "@/lib/analyst-date-range";
 import { mtlLeadSql } from "@/lib/mtl-leads";
 import { UserRole } from "@/lib/constants";
@@ -32,12 +38,24 @@ type LeadDashRow = {
   se_name: string | null;
 };
 
-export default async function MainTeamLeadDashboard() {
+export default async function MainTeamLeadReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  noStore();
+  await connection();
+
   const session = await getSession();
   if (!session) return null;
 
-  const rangeLabel = analystRangeSummaryLabel(null, null);
-  const { clause, params } = mtlLeadSql(session.id, null, null);
+  const sp = await searchParams;
+  const [preservedEntries, { from, to }] = await Promise.all([
+    preservedSearchParamEntriesForDateBar(sp),
+    analystRangeParams(sp),
+  ]);
+  const rangeLabel = analystRangeSummaryLabel(from, to);
+  const { clause, params } = mtlLeadSql(session.id, from, to);
 
   const leads = await dbQuery<LeadDashRow>(
     `SELECT l.*, cb.name AS cb_name, cb.email AS cb_email, se.name AS se_name
@@ -105,38 +123,42 @@ export default async function MainTeamLeadDashboard() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight text-lf-text md:text-3xl">
-            Dashboard
+            Report
           </h1>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-lf-muted">
-            All-time snapshot · Team{" "}
+            Filter by date and export CSV, Excel, or PDF · Team{" "}
             <span className="text-lf-text-secondary">{team?.name ?? "—"}</span>
             {execCount > 0
               ? ` · ${execCount} sales executive${execCount === 1 ? "" : "s"}`
-              : ""}
-            . Filter by date and export on{" "}
-            <Link
-              href="/team-lead/reports"
-              className="font-medium text-lf-link hover:underline"
-            >
-              Report
-            </Link>
-            .
+              : ""}{" "}
+            · range:{" "}
+            <span className="text-lf-text-secondary">{rangeLabel}</span>
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <DashboardReportExport payload={vm.exportPayload} />
           <Link
-            href="/team-lead/reports"
-            className="rounded-lg border border-lf-border bg-lf-surface px-4 py-2.5 text-sm font-semibold text-lf-text shadow-sm hover:bg-lf-bg/50"
+            href="/team-lead/team"
+            className="rounded-lg bg-lf-accent px-4 py-2.5 text-sm font-semibold text-lf-on-accent shadow-lg shadow-[#c62828]/30 hover:bg-lf-accent-hover"
           >
-            Report
+            Team
           </Link>
         </div>
       </header>
 
+      <AnalystDateRangeBar
+        key={`${from ?? ""}|${to ?? ""}`}
+        pathname="/team-lead/reports"
+        defaultFrom={from ?? ""}
+        defaultTo={to ?? ""}
+        preservedEntries={preservedEntries}
+        rangeSummary={rangeLabel}
+      />
+
       <UnifiedPortalReportSections
         vm={vm}
-        countrySubtitle="Phone country (E.164) for leads routed to your team (all time). Each row splits qualified, not qualified, and irrelevant. Sorted by total leads; the list shows the top 10 countries by default when there are more."
-        leadsHref={hrefWithDateRange("/team-lead/leads", null, null)}
+        countrySubtitle="Phone country (E.164) for leads routed to your team in this range. Each row splits qualified, not qualified, and irrelevant. Sorted by total leads; the list shows the top 10 countries by default when there are more."
+        leadsHref={hrefWithDateRange("/team-lead/leads", from, to)}
         recentLeadsTitle="Recent leads"
       />
     </div>

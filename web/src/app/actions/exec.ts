@@ -70,6 +70,7 @@ export async function updateLeadSalesOutcome(formData: FormData) {
   revalidatePath("/executive/leads");
   revalidatePath("/team-lead");
   revalidatePath("/team-lead/leads");
+  revalidatePath("/team-lead/reports");
   revalidatePath("/analyst-team-lead");
   revalidatePath("/analyst");
   return { ok: true as const };

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
 import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
@@ -142,7 +143,13 @@ export default async function TeamLeadLeadsPage({
           All leads
         </h1>
         <p className="mt-1 text-sm text-lf-muted">
-          Qualified leads routed to you · {rangeLabel}
+          Qualified leads routed to you · {rangeLabel} ·{" "}
+          <Link
+            href="/team-lead/reports"
+            className="text-lf-link hover:underline"
+          >
+            Report
+          </Link>
         </p>
       </header>
 

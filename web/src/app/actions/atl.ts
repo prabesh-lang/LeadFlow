@@ -247,6 +247,7 @@ export async function assignLeadToMainTeamLead(formData: FormData) {
   revalidatePath("/analyst-team-lead/leads");
   revalidatePath("/analyst-team-lead/reports");
   revalidatePath("/team-lead");
+  revalidatePath("/team-lead/reports");
   revalidatePath("/analyst");
   return { ok: true as const };
 }
@@ -365,6 +366,7 @@ export async function assignLeadDirectToExecutiveByAtl(formData: FormData) {
   revalidatePath("/analyst-team-lead/reports");
   revalidatePath("/team-lead");
   revalidatePath("/team-lead/leads");
+  revalidatePath("/team-lead/reports");
   revalidatePath("/executive");
   revalidatePath("/analyst");
   return { ok: true as const };

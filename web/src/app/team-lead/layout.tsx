@@ -9,7 +9,7 @@ import { dbQueryOne } from "@/lib/db/pool";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
-/** Dashboard/leads date filters use `searchParams`; avoid caching HTML without query. */
+/** Report and leads use `searchParams` for filters/pagination. */
 export const dynamic = "force-dynamic";
 
 export default async function TeamLeadLayout({
