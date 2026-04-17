@@ -2,15 +2,12 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
 import { AnalystHeaderAddButton } from "@/components/analyst/add-lead-modal";
-import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
 import { DashboardReportExport } from "@/components/dashboard-report-export";
 import {
-  analystRangeParams,
   analystRangeSummaryLabel,
   hrefWithDateRange,
   leadWhereSql,
-  preservedSearchParamEntriesForDateBar,
 } from "@/lib/analyst-date-range";
 import { buildUnifiedDashboardViewModel } from "@/lib/unified-dashboard-report";
 
@@ -33,21 +30,12 @@ type LeadDashRow = {
   se_name: string | null;
 };
 
-export default async function AnalystDashboard({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+export default async function AnalystDashboard() {
   const session = await getSession();
   if (!session) return null;
 
-  const sp = await searchParams;
-  const [preservedEntries, { from, to }] = await Promise.all([
-    preservedSearchParamEntriesForDateBar(sp),
-    analystRangeParams(sp),
-  ]);
-  const rangeLabel = analystRangeSummaryLabel(from, to);
-  const { clause, params } = leadWhereSql(session.id, from, to);
+  const rangeLabel = analystRangeSummaryLabel(null, null);
+  const { clause, params } = leadWhereSql(session.id, null, null);
 
   const leads = await dbQuery<LeadDashRow>(
     `SELECT l.*, se.name AS se_name
@@ -100,14 +88,19 @@ export default async function AnalystDashboard({
             Dashboard
           </h1>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-lf-muted">
-            Same report layout and export format as every portal. Use{" "}
+            All-time snapshot · same report layout as every portal. Filter by date
+            on{" "}
             <Link
-              href={hrefWithDateRange("/analyst/leads", from, to)}
+              href={hrefWithDateRange("/analyst/leads", null, null)}
               className="text-lf-link hover:underline"
             >
               All leads
             </Link>{" "}
-            for the full sortable table.
+            or{" "}
+            <Link href="/analyst/pipeline" className="text-lf-link hover:underline">
+              Pipeline
+            </Link>
+            .
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -116,19 +109,10 @@ export default async function AnalystDashboard({
         </div>
       </header>
 
-      <AnalystDateRangeBar
-        key={`${from ?? ""}|${to ?? ""}`}
-        pathname="/analyst"
-        defaultFrom={from ?? ""}
-        defaultTo={to ?? ""}
-        preservedEntries={preservedEntries}
-        rangeSummary={rangeLabel}
-      />
-
       <UnifiedPortalReportSections
         vm={vm}
-        countrySubtitle="Phone country (E.164) for your leads in this range. Each row splits qualified, not qualified, and irrelevant. Sorted by total leads; the list shows the top 10 countries by default when there are more."
-        leadsHref={hrefWithDateRange("/analyst/leads", from, to)}
+        countrySubtitle="Phone country (E.164) for your leads (all time). Each row splits qualified, not qualified, and irrelevant. Sorted by total leads; the list shows the top 10 countries by default when there are more."
+        leadsHref={hrefWithDateRange("/analyst/leads", null, null)}
         recentLeadsTitle="Recently added leads"
       />
     </div>

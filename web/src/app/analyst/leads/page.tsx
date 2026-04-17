@@ -116,7 +116,7 @@ export default async function AnalystAllLeadsPage({
           <p className="mt-1 text-sm text-lf-muted">
             Every lead you have added ·{" "}
             <Link
-              href={hrefWithDateRange("/analyst", from, to, q)}
+              href={hrefWithDateRange("/analyst", null, null, q)}
               className="text-lf-link hover:underline"
             >
               Back to dashboard
