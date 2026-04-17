@@ -157,7 +157,12 @@ export default async function TeamLeadLeadsPage({
 
       <PortalPaginationBar
         pathname="/team-lead/leads"
-        query={{ from, to, q }}
+        query={{
+          from,
+          to,
+          q,
+          ...(perPage !== 25 ? { perPage: String(perPage) } : {}),
+        }}
         page={page}
         perPage={perPage}
         totalCount={totalCount}
