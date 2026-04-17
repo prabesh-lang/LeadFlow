@@ -4,10 +4,8 @@ import { useCallback, useMemo, useState } from "react";
 import type { DashboardExportPayload } from "@/lib/dashboard-export-types";
 import {
   buildDashboardCsv,
-  buildDashboardPdf,
-  buildDashboardXlsx,
   exportFileBase,
-} from "@/lib/dashboard-export-generators";
+} from "@/lib/dashboard-export-csv";
 
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
@@ -28,6 +26,7 @@ export function DashboardReportExport({
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<"csv" | "xlsx" | "pdf" | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const base = useMemo(() => {
     try {
@@ -38,8 +37,9 @@ export function DashboardReportExport({
   }, [payload]);
 
   const run = useCallback(
-    (kind: "csv" | "xlsx" | "pdf") => {
+    async (kind: "csv" | "xlsx" | "pdf") => {
       setBusy(kind);
+      setExportError(null);
       try {
         if (kind === "csv") {
           const csv = `\uFEFF${buildDashboardCsv(payload)}`;
@@ -47,11 +47,21 @@ export function DashboardReportExport({
             new Blob([csv], { type: "text/csv;charset=utf-8" }),
             `${base}.csv`,
           );
-        } else if (kind === "xlsx") {
-          downloadBlob(buildDashboardXlsx(payload), `${base}.xlsx`);
         } else {
-          downloadBlob(buildDashboardPdf(payload), `${base}.pdf`);
+          const { buildDashboardPdf, buildDashboardXlsx } = await import(
+            "@/lib/dashboard-export-heavy"
+          );
+          if (kind === "xlsx") {
+            downloadBlob(buildDashboardXlsx(payload), `${base}.xlsx`);
+          } else {
+            downloadBlob(buildDashboardPdf(payload), `${base}.pdf`);
+          }
         }
+      } catch (e) {
+        console.error("[DashboardReportExport]", e);
+        setExportError(
+          e instanceof Error ? e.message : "Export failed. Please try again.",
+        );
       } finally {
         setBusy(null);
         setOpen(false);
@@ -90,7 +100,6 @@ export function DashboardReportExport({
       </button>
       {open && !busy ? (
         <>
-          {/* Use a div, not a button: parent wrappers (e.g. superadmin) style all [&_button] and would paint this layer */}
           <div
             className="fixed inset-0 z-40 cursor-default bg-transparent"
             aria-hidden
@@ -104,7 +113,7 @@ export function DashboardReportExport({
               type="button"
               role="menuitem"
               className="block w-full px-4 py-2.5 text-left text-sm text-lf-text hover:bg-lf-bg/50"
-              onClick={() => run("pdf")}
+              onClick={() => void run("pdf")}
             >
               PDF
             </button>
@@ -112,7 +121,7 @@ export function DashboardReportExport({
               type="button"
               role="menuitem"
               className="block w-full px-4 py-2.5 text-left text-sm text-lf-text hover:bg-lf-bg/50"
-              onClick={() => run("xlsx")}
+              onClick={() => void run("xlsx")}
             >
               Excel (.xlsx)
             </button>
@@ -120,12 +129,17 @@ export function DashboardReportExport({
               type="button"
               role="menuitem"
               className="block w-full px-4 py-2.5 text-left text-sm text-lf-text hover:bg-lf-bg/50"
-              onClick={() => run("csv")}
+              onClick={() => void run("csv")}
             >
               CSV
             </button>
           </div>
         </>
+      ) : null}
+      {exportError ? (
+        <p className="mt-2 max-w-xs text-xs text-lf-danger" role="alert">
+          {exportError}
+        </p>
       ) : null}
     </div>
   );
