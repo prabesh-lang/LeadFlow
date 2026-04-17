@@ -135,10 +135,12 @@ export default async function ExecutiveDashboardPage({
       </header>
 
       <AnalystDateRangeBar
+        key={`${from ?? ""}|${to ?? ""}`}
         pathname="/executive"
         defaultFrom={from ?? ""}
         defaultTo={to ?? ""}
         preservedEntries={preservedEntries}
+        rangeSummary={rangeLabel}
       />
 
       <UnifiedPortalReportSections

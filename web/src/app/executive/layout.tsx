@@ -9,6 +9,9 @@ import { dbQueryOne } from "@/lib/db/pool";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
+/** Dashboard/leads date filters use `searchParams`; avoid caching HTML without query. */
+export const dynamic = "force-dynamic";
+
 export default async function ExecutiveLayout({
   children,
 }: {

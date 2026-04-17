@@ -133,10 +133,12 @@ export default async function MainTeamLeadDashboard({
       </header>
 
       <AnalystDateRangeBar
+        key={`${from ?? ""}|${to ?? ""}`}
         pathname="/team-lead"
         defaultFrom={from ?? ""}
         defaultTo={to ?? ""}
         preservedEntries={preservedEntries}
+        rangeSummary={rangeLabel}
       />
 
       <UnifiedPortalReportSections

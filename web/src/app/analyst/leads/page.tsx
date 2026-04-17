@@ -133,10 +133,12 @@ export default async function AnalystAllLeadsPage({
       </header>
 
       <AnalystDateRangeBar
+        key={`${from ?? ""}|${to ?? ""}`}
         pathname="/analyst/leads"
         defaultFrom={from ?? ""}
         defaultTo={to ?? ""}
         preservedEntries={preservedEntries}
+        rangeSummary={rangeLabel}
       />
 
       <PortalPaginationBar

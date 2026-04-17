@@ -78,16 +78,15 @@ export default async function AnalystPipelinePage({
         <h1 className="text-2xl font-bold tracking-tight text-lf-text md:text-3xl">
           Pipeline status
         </h1>
-        {rangeLabel !== "All time" ? (
-          <p className="mt-1 text-sm text-lf-muted">{rangeLabel}</p>
-        ) : null}
       </header>
 
       <AnalystDateRangeBar
+        key={`${from ?? ""}|${to ?? ""}`}
         pathname="/analyst/pipeline"
         defaultFrom={from ?? ""}
         defaultTo={to ?? ""}
         preservedEntries={preservedEntries}
+        rangeSummary={rangeLabel}
       />
 
       <div className="flex gap-3 rounded-xl border border-lf-accent/30 bg-lf-accent/10 px-4 py-3 text-sm text-lf-link">

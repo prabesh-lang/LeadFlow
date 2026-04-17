@@ -9,6 +9,9 @@ import { dbQueryOne } from "@/lib/db/pool";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
+/** Dashboard/leads/pipeline date filters use `searchParams`; avoid stale cached pages. */
+export const dynamic = "force-dynamic";
+
 export default async function AnalystLayout({
   children,
 }: {

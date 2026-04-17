@@ -47,6 +47,22 @@ export default async function AnalystTeamLeadDashboard() {
         </div>
       </header>
 
+      <div className="rounded-xl border border-lf-accent/30 bg-lf-accent/5 px-4 py-3 text-sm text-lf-text-secondary">
+        <p>
+          <span className="font-semibold text-lf-text">Date filters and exports</span>{" "}
+          are on{" "}
+          <Link
+            href="/analyst-team-lead/reports"
+            className="font-medium text-lf-link hover:underline"
+          >
+            Report
+          </Link>
+          . This page always shows{" "}
+          <span className="font-medium text-lf-text">all-time</span> metrics for your
+          team.
+        </p>
+      </div>
+
       <UnifiedPortalReportSections
         vm={vm}
         countrySubtitle="Phone country (E.164) for your analysts' leads (all time). Each row splits qualified, not qualified, and irrelevant. Sorted by total leads; the list shows the top 10 countries by default when there are more."

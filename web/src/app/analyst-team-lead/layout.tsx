@@ -9,6 +9,9 @@ import { dbQueryOne } from "@/lib/db/pool";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
+/** Search params (`?from` / `?to`) must always hit the server fresh (Report, Leads). */
+export const dynamic = "force-dynamic";
+
 export default async function AnalystTeamLeadLayout({
   children,
 }: {

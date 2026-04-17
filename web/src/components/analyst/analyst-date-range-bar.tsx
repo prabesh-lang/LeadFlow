@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useState } from "react";
 import {
   buildPortalDateRangeApplyHref,
   buildPortalDateRangeClearHref,
@@ -14,6 +14,11 @@ export type AnalystDateRangeBarProps = {
   defaultTo: string;
   /** Params to preserve (e.g. `q`, `perPage`) — excludes from/to/page. */
   preservedEntries: [string, string][];
+  /**
+   * Human-readable range applied to this page’s query (from the server).
+   * Confirms the URL was read and matches dashboard/list data.
+   */
+  rangeSummary?: string;
 };
 
 /**
@@ -31,12 +36,9 @@ export default function AnalystDateRangeBar({
   defaultFrom,
   defaultTo,
   preservedEntries,
+  rangeSummary,
 }: AnalystDateRangeBarProps) {
   const [applyError, setApplyError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setApplyError(null);
-  }, [defaultFrom, defaultTo]);
 
   const hasActiveRange = Boolean(
     (defaultFrom ?? "").trim() || (defaultTo ?? "").trim(),
@@ -128,6 +130,17 @@ export default function AnalystDateRangeBar({
           </button>
         ) : null}
       </div>
+      {rangeSummary ? (
+        <p className="mt-3 rounded-lg border border-lf-border bg-lf-surface px-3 py-2 text-sm text-lf-text-secondary">
+          <span className="font-semibold text-lf-text">Active data range:</span>{" "}
+          {rangeSummary}
+          <span className="block pt-1 text-xs text-lf-muted">
+            Filters use each lead’s <span className="font-medium">creation date</span>{" "}
+            (<code className="rounded bg-lf-bg px-1 text-[11px]">createdAt</code>), not
+            last update or close date.
+          </span>
+        </p>
+      ) : null}
       <p className="mt-2 text-[11px] leading-relaxed text-lf-subtle">
         From only: that date through today. To only: from the beginning through that
         date. Both: inclusive range (order is adjusted if From is after To).

@@ -100,20 +100,17 @@ export default async function SuperadminReportPage({
             analyst, team lead, and executive portals. Histograms and ratio cards
             below add organization-wide views.
           </p>
-          {rangeLabel !== "All time" ? (
-            <p className="mt-2 text-sm font-medium text-lf-muted">
-              Date range: {rangeLabel}
-            </p>
-          ) : null}
         </div>
         <SuperadminReportExport payload={vm.exportPayload} />
       </div>
 
       <AnalystDateRangeBar
+        key={`${from ?? ""}|${to ?? ""}`}
         pathname="/superadmin/report"
         defaultFrom={from ?? ""}
         defaultTo={to ?? ""}
         preservedEntries={preservedEntries}
+        rangeSummary={rangeLabel}
       />
 
       <SuperadminReportCharts

@@ -55,10 +55,12 @@ export default async function AnalystTeamLeadReportsPage({
       </header>
 
       <AnalystDateRangeBar
+        key={`${from ?? ""}|${to ?? ""}`}
         pathname="/analyst-team-lead/reports"
         defaultFrom={from ?? ""}
         defaultTo={to ?? ""}
         preservedEntries={preservedEntries}
+        rangeSummary={rangeLabel}
       />
 
       <UnifiedPortalReportSections
