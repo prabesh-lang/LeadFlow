@@ -34,8 +34,25 @@ export function SuperadminLeadsFiltersBar({
   const [teamId, setTeamId] = useState(initial.teamId ?? "");
   const [execId, setExecId] = useState(initial.execId ?? "");
   const [perPage, setPerPage] = useState<25 | 50 | 100>(initial.perPage);
+  const [dateError, setDateError] = useState<string | null>(null);
 
   const apply = useCallback(() => {
+    let fromN = normalizeYmdOrNull(from.trim()) ?? "";
+    let toN = normalizeYmdOrNull(to.trim()) ?? "";
+
+    if (!fromN && !toN) {
+      setDateError("Enter a \u201cFrom\u201d date, a \u201cTo\u201d date, or both.");
+      return;
+    }
+
+    if (fromN && toN && fromN > toN) {
+      const t = fromN;
+      fromN = toN;
+      toN = t;
+    }
+
+    setDateError(null);
+
     const p = new URLSearchParams(
       typeof window !== "undefined" ? window.location.search.slice(1) : "",
     );
@@ -44,13 +61,6 @@ export function SuperadminLeadsFiltersBar({
       else p.delete(k);
     };
 
-    let fromN = normalizeYmdOrNull(from.trim()) ?? "";
-    let toN = normalizeYmdOrNull(to.trim()) ?? "";
-    if (fromN && toN && fromN > toN) {
-      const t = fromN;
-      fromN = toN;
-      toN = t;
-    }
     setOrDel("from", fromN);
     setOrDel("to", toN);
 
@@ -73,6 +83,7 @@ export function SuperadminLeadsFiltersBar({
     perPage,
     status,
     teamId,
+
     to,
   ]);
 
@@ -200,6 +211,14 @@ export function SuperadminLeadsFiltersBar({
           </select>
         </label>
       </div>
+      {dateError ? (
+        <p
+          role="alert"
+          className="mt-3 text-sm text-lf-danger"
+        >
+          {dateError}
+        </p>
+      ) : null}
     </div>
   );
 }
