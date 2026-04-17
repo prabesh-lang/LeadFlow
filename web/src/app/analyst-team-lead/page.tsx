@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
-import { hrefWithDateRange } from "@/lib/analyst-date-range";
 import { buildAtlTeamLeadDashboardViewModel } from "@/lib/atl-team-lead-dashboard-vm";
 
 export default async function AnalystTeamLeadDashboard() {
@@ -21,14 +20,14 @@ export default async function AnalystTeamLeadDashboard() {
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-lf-muted">
             All-time snapshot · {analystsList.length} analyst
             {analystsList.length === 1 ? "" : "s"} · {teamCount} sales team
-            {teamCount === 1 ? "" : "s"}. Use{" "}
+            {teamCount === 1 ? "" : "s"}. Open{" "}
             <Link
               href="/analyst-team-lead/reports"
               className="font-medium text-lf-link hover:underline"
             >
               Report
             </Link>{" "}
-            for a date range and exports.
+            for the same metrics with CSV, Excel, or PDF export.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -49,8 +48,8 @@ export default async function AnalystTeamLeadDashboard() {
 
       <div className="rounded-xl border border-lf-accent/30 bg-lf-accent/5 px-4 py-3 text-sm text-lf-text-secondary">
         <p>
-          <span className="font-semibold text-lf-text">Date filters and exports</span>{" "}
-          are on{" "}
+          <span className="font-semibold text-lf-text">Exports</span> (CSV, Excel,
+          PDF) are on{" "}
           <Link
             href="/analyst-team-lead/reports"
             className="font-medium text-lf-link hover:underline"
@@ -66,7 +65,7 @@ export default async function AnalystTeamLeadDashboard() {
       <UnifiedPortalReportSections
         vm={vm}
         countrySubtitle="Phone country (E.164) for your analysts' leads (all time). Each row splits qualified, not qualified, and irrelevant. Sorted by total leads; the list shows the top 10 countries by default when there are more."
-        leadsHref={hrefWithDateRange("/analyst-team-lead/leads", null, null)}
+        leadsHref="/analyst-team-lead/leads"
         recentLeadsTitle="Recent team leads"
       />
     </div>

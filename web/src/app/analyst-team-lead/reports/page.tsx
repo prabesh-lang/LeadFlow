@@ -1,37 +1,16 @@
 import Link from "next/link";
-import { unstable_noStore as noStore } from "next/cache";
-import { connection } from "next/server";
 import { getSession } from "@/lib/auth/session";
-import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import { AtlTeamRoutingInsights } from "@/components/atl/atl-team-routing-insights";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
 import { DashboardReportExport } from "@/components/dashboard-report-export";
-import {
-  analystRangeParams,
-  hrefWithDateRange,
-  preservedSearchParamEntriesForDateBar,
-} from "@/lib/analyst-date-range";
 import { buildAtlTeamLeadDashboardViewModel } from "@/lib/atl-team-lead-dashboard-vm";
 
-export default async function AnalystTeamLeadReportsPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  noStore();
-  await connection();
-
+export default async function AnalystTeamLeadReportsPage() {
   const session = await getSession();
   if (!session) return null;
 
-  const sp = await searchParams;
-  const [preservedEntries, { from, to }] = await Promise.all([
-    preservedSearchParamEntriesForDateBar(sp),
-    analystRangeParams(sp),
-  ]);
-
   const { vm, analystsList, analystIds, teamCount, rangeLabel } =
-    await buildAtlTeamLeadDashboardViewModel(session, from, to);
+    await buildAtlTeamLeadDashboardViewModel(session, null, null);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -41,11 +20,10 @@ export default async function AnalystTeamLeadReportsPage({
             Report
           </h1>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-lf-muted">
-            Filter by date and export CSV, Excel, or PDF · {analystsList.length}{" "}
+            All-time metrics · export CSV, Excel, or PDF · {analystsList.length}{" "}
             analyst
             {analystsList.length === 1 ? "" : "s"} · {teamCount} sales team
-            {teamCount === 1 ? "" : "s"} · range:{" "}
-            <span className="text-lf-text-secondary">{rangeLabel}</span>
+            {teamCount === 1 ? "" : "s"}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -59,19 +37,10 @@ export default async function AnalystTeamLeadReportsPage({
         </div>
       </header>
 
-      <AnalystDateRangeBar
-        key={`${from ?? ""}|${to ?? ""}`}
-        pathname="/analyst-team-lead/reports"
-        defaultFrom={from ?? ""}
-        defaultTo={to ?? ""}
-        preservedEntries={preservedEntries}
-        rangeSummary={rangeLabel}
-      />
-
       <UnifiedPortalReportSections
         vm={vm}
-        countrySubtitle="Phone country (E.164) for your analysts' leads in this range. Each row splits qualified, not qualified, and irrelevant. Sorted by total leads; the list shows the top 10 countries by default when there are more."
-        leadsHref={hrefWithDateRange("/analyst-team-lead/leads", from, to)}
+        countrySubtitle="Phone country (E.164) for your analysts' leads (all time). Each row splits qualified, not qualified, and irrelevant. Sorted by total leads; the list shows the top 10 countries by default when there are more."
+        leadsHref="/analyst-team-lead/leads"
         recentLeadsTitle="Recent team leads"
       />
 
@@ -80,12 +49,12 @@ export default async function AnalystTeamLeadReportsPage({
           Team routing overview
         </h2>
         <p className="text-sm text-lf-muted">
-          Qualification and pipeline breakdown for the same date range.
+          Qualification and pipeline breakdown for all-time team leads.
         </p>
         <AtlTeamRoutingInsights
           analystIds={analystIds}
-          from={from}
-          to={to}
+          from={null}
+          to={null}
           rangeLabel={rangeLabel}
         />
       </section>
