@@ -19,6 +19,24 @@ function toYmd(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+/**
+ * When both `from` and `to` are set, normalize to canonical YYYY-MM-DD strings
+ * matching {@link leadCreatedAtRange} (including when the user reversed the order).
+ * If only one side is set, returns them unchanged (open-ended range semantics).
+ */
+export function canonicalizePortalDatePair(
+  from: string | null,
+  to: string | null,
+): { from: string | null; to: string | null } {
+  if (!from || !to) return { from, to };
+  const range = leadCreatedAtRange(from, to);
+  if (!range) return { from, to };
+  return {
+    from: toYmd(range.gte),
+    to: toYmd(range.lte),
+  };
+}
+
 /** Next.js `searchParams` entries are often `string | string[] | undefined`. */
 export function normalizeYmdOrNull(
   v?: string | string[] | null,
@@ -214,18 +232,9 @@ export async function analystRangeParams(
     | Record<string, string | string[] | undefined>,
 ): Promise<{ from: string | null; to: string | null; q: string | null }> {
   const sp = await Promise.resolve(searchParams);
-  const from = normalizeYmdOrNull(sp.from);
-  const to = normalizeYmdOrNull(sp.to);
-  if (from && to) {
-    const range = leadCreatedAtRange(from, to);
-    if (range) {
-      return {
-        from: toYmd(range.gte),
-        to: toYmd(range.lte),
-        q: normalizeClientSearchQuery(sp.q),
-      };
-    }
-  }
+  const fromRaw = normalizeYmdOrNull(sp.from);
+  const toRaw = normalizeYmdOrNull(sp.to);
+  const { from, to } = canonicalizePortalDatePair(fromRaw, toRaw);
   return {
     from,
     to,

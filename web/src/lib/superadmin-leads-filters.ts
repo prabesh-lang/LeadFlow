@@ -1,4 +1,8 @@
-import { leadCreatedAtRange, normalizeYmdOrNull } from "@/lib/analyst-date-range";
+import {
+  canonicalizePortalDatePair,
+  leadCreatedAtRange,
+  normalizeYmdOrNull,
+} from "@/lib/analyst-date-range";
 import { QualificationStatus } from "@/lib/constants";
 
 export type SuperadminLeadsStatus =
@@ -57,9 +61,13 @@ export function parseSuperadminLeadsSearchParams(
   const perPage: 25 | 50 | 100 =
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
 
+  const fromRaw = normalizeYmdOrNull(first(sp.from) ?? null);
+  const toRaw = normalizeYmdOrNull(first(sp.to) ?? null);
+  const { from, to } = canonicalizePortalDatePair(fromRaw, toRaw);
+
   return {
-    from: normalizeYmdOrNull(first(sp.from) ?? null),
-    to: normalizeYmdOrNull(first(sp.to) ?? null),
+    from,
+    to,
     status,
     analystId: trimOrNull(first(sp.analystId)),
     teamId: trimOrNull(first(sp.teamId)),
