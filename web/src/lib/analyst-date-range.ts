@@ -137,6 +137,42 @@ export function hrefWithDateRange(
 }
 
 /**
+ * Shared by portal date bars: Apply → `?from=&to=&page=1` plus preserved params
+ * (e.g. `q`, `perPage`). Same behavior as superadmin report + all role dashboards.
+ */
+export function buildPortalDateRangeApplyHref(
+  pathname: string,
+  fromYmd: string,
+  toYmd: string,
+  preservedEntries: [string, string][],
+): string {
+  const p = new URLSearchParams();
+  for (const [k, v] of preservedEntries) {
+    if (k === "from" || k === "to" || k === "page") continue;
+    p.append(k, String(v));
+  }
+  p.set("from", fromYmd);
+  p.set("to", toYmd);
+  p.set("page", "1");
+  const qs = p.toString();
+  return qs ? `${pathname}?${qs}` : pathname;
+}
+
+/** Clear date range but keep other query params (e.g. search `q`). */
+export function buildPortalDateRangeClearHref(
+  pathname: string,
+  preservedEntries: [string, string][],
+): string {
+  const p = new URLSearchParams();
+  for (const [k, v] of preservedEntries) {
+    if (k === "from" || k === "to" || k === "page") continue;
+    p.append(k, String(v));
+  }
+  const qs = p.toString();
+  return qs ? `${pathname}?${qs}` : pathname;
+}
+
+/**
  * Query pairs to keep when applying/clearing dashboard date filters (excludes
  * `from`, `to`, `page`). Built on the server so the date bar never needs
  * `useSearchParams` (avoids Suspense / client-router issues in App Router).
@@ -158,6 +194,16 @@ export async function preservedSearchParamEntriesForDateBar(
     }
   }
   return out;
+}
+
+/** First value for a query key (Next.js may pass `string | string[]`). */
+export function searchParamFirst(
+  sp: Record<string, string | string[] | undefined>,
+  key: string,
+): string | undefined {
+  const v = sp[key];
+  if (v === undefined) return undefined;
+  return Array.isArray(v) ? v[0] : v;
 }
 
 /** Next.js app router `searchParams` (Promise + `string | string[]` values in15+). */

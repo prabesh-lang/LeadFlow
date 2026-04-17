@@ -1,14 +1,20 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 import { QualificationStatus } from "@/lib/constants";
+import { normalizeYmdOrNull } from "@/lib/analyst-date-range";
 import type { SuperadminLeadsParsed, SuperadminLeadsStatus } from "@/lib/superadmin-leads-filters";
 
 type TeamOpt = { id: string; name: string };
 type ExecOpt = { id: string; name: string; email: string };
 type AnalystOpt = { id: string; name: string; email: string };
 
+/**
+ * Same navigation model as {@link AnalystDateRangeBar}: full `location.assign`
+ * with merged query string so date filters always reach the server (matches
+ * superadmin report + other portals).
+ */
 export function SuperadminLeadsFiltersBar({
   initial,
   analysts,
@@ -20,10 +26,7 @@ export function SuperadminLeadsFiltersBar({
   teams: TeamOpt[];
   execs: ExecOpt[];
 }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-
   const [from, setFrom] = useState(initial.from ?? "");
   const [to, setTo] = useState(initial.to ?? "");
   const [status, setStatus] = useState<SuperadminLeadsStatus>(initial.status);
@@ -33,14 +36,24 @@ export function SuperadminLeadsFiltersBar({
   const [perPage, setPerPage] = useState<25 | 50 | 100>(initial.perPage);
 
   const apply = useCallback(() => {
-    const p = new URLSearchParams(searchParams.toString());
+    const p = new URLSearchParams(
+      typeof window !== "undefined" ? window.location.search.slice(1) : "",
+    );
     const setOrDel = (k: string, v: string) => {
       if (v) p.set(k, v);
       else p.delete(k);
     };
 
-    setOrDel("from", from.trim());
-    setOrDel("to", to.trim());
+    let fromN = normalizeYmdOrNull(from.trim()) ?? "";
+    let toN = normalizeYmdOrNull(to.trim()) ?? "";
+    if (fromN && toN && fromN > toN) {
+      const t = fromN;
+      fromN = toN;
+      toN = t;
+    }
+    setOrDel("from", fromN);
+    setOrDel("to", toN);
+
     p.set("status", status);
     setOrDel("analystId", analystId.trim());
     setOrDel("teamId", teamId.trim());
@@ -51,23 +64,21 @@ export function SuperadminLeadsFiltersBar({
     p.delete("scope");
 
     const q = p.toString();
-    router.push(q ? `${pathname}?${q}` : pathname);
+    window.location.assign(q ? `${pathname}?${q}` : pathname);
   }, [
     analystId,
     execId,
     from,
     pathname,
     perPage,
-    router,
-    searchParams,
     status,
     teamId,
     to,
   ]);
 
   const reset = useCallback(() => {
-    router.push(pathname);
-  }, [pathname, router]);
+    window.location.assign(pathname);
+  }, [pathname]);
 
   return (
     <div className="rounded-xl border border-lf-border bg-lf-surface/90 p-4 sm:p-5">

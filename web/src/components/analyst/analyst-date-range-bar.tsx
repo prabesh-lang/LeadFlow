@@ -1,7 +1,11 @@
 "use client";
 
 import { type FormEvent } from "react";
-import { normalizeYmdOrNull } from "@/lib/analyst-date-range";
+import {
+  buildPortalDateRangeApplyHref,
+  buildPortalDateRangeClearHref,
+  normalizeYmdOrNull,
+} from "@/lib/analyst-date-range";
 
 export type AnalystDateRangeBarProps = {
   /** Current route pathname, e.g. `/analyst-team-lead` */
@@ -15,10 +19,9 @@ export type AnalystDateRangeBarProps = {
 /**
  * Date range filter for portal dashboards and lead lists.
  *
- * Apply/Clear use `window.location.assign` so navigation is always a **full
- * document load** with the correct query string. The App Router can intercept
- * plain GET `<form>` submits and soft-navigate in ways that drop or mishandle
- * `?from=` / `?to=`, which breaks ATL and other portals after Apply.
+ * Apply/Clear use `window.location.assign` with {@link buildPortalDateRangeApplyHref}
+ * so navigation matches superadmin and always sends a full document request with
+ * `?from=` / `?to=` / `page=1` plus preserved params.
  */
 export default function AnalystDateRangeBar({
   pathname,
@@ -29,13 +32,6 @@ export default function AnalystDateRangeBar({
   const hasActiveRange = Boolean(
     (defaultFrom ?? "").trim() || (defaultTo ?? "").trim(),
   );
-
-  function appendPreserved(params: URLSearchParams) {
-    for (const [k, v] of preservedEntries) {
-      if (k === "from" || k === "to" || k === "page") continue;
-      params.append(k, String(v));
-    }
-  }
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -48,22 +44,13 @@ export default function AnalystDateRangeBar({
       fromSafe = toSafe;
       toSafe = tmp;
     }
-    const p = new URLSearchParams();
-    appendPreserved(p);
-    p.set("from", fromSafe);
-    p.set("to", toSafe);
-    p.set("page", "1");
-    const qs = p.toString();
-    const href = qs ? `${pathname}?${qs}` : pathname;
-    window.location.assign(href);
+    window.location.assign(
+      buildPortalDateRangeApplyHref(pathname, fromSafe, toSafe, preservedEntries),
+    );
   }
 
   function onClear() {
-    const p = new URLSearchParams();
-    appendPreserved(p);
-    const qs = p.toString();
-    const href = qs ? `${pathname}?${qs}` : pathname;
-    window.location.assign(href);
+    window.location.assign(buildPortalDateRangeClearHref(pathname, preservedEntries));
   }
 
   return (

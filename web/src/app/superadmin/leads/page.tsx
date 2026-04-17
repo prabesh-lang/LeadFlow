@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 import { SuperadminLeadsFiltersBar } from "@/components/superadmin/superadmin-leads-filters";
 import { UserRole } from "@/lib/constants";
 import { getSuperadminLeadsWithJourney } from "@/lib/superadmin-stats";
@@ -256,19 +255,13 @@ export default async function SuperadminLeadsPage({
         <p className="mt-2 text-xs text-lf-subtle">{filterSummary}</p>
       </div>
 
-      <Suspense
-        fallback={
-          <div className="h-40 animate-pulse rounded-xl border border-lf-border bg-lf-surface/90" />
-        }
-      >
-        <SuperadminLeadsFiltersBar
-          key={filtersKey}
-          initial={parsed}
-          analysts={analysts}
-          teams={teams}
-          execs={execs}
-        />
-      </Suspense>
+      <SuperadminLeadsFiltersBar
+        key={filtersKey}
+        initial={parsed}
+        analysts={analysts}
+        teams={teams}
+        execs={execs}
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <QualSummaryCard

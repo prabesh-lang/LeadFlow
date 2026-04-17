@@ -5,6 +5,7 @@ import {
   analystRangeParams,
   analystRangeSummaryLabel,
   preservedSearchParamEntriesForDateBar,
+  searchParamFirst,
 } from "@/lib/analyst-date-range";
 import { mtlLeadSql } from "@/lib/mtl-leads";
 import { MtlLeadsTableClient } from "@/components/portal-leads/mtl-leads-table-client";
@@ -16,7 +17,7 @@ import type { PortalMtlLeadExportRow } from "@/lib/portal-all-leads-export-paylo
 export default async function TeamLeadLeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; q?: string; page?: string; perPage?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await getSession();
   if (!session) return null;
@@ -26,8 +27,8 @@ export default async function TeamLeadLeadsPage({
     preservedSearchParamEntriesForDateBar(sp),
     analystRangeParams(sp),
   ]);
-  const pageRaw = Number.parseInt(sp.page ?? "", 10);
-  const perPageRaw = Number.parseInt(sp.perPage ?? "", 10);
+  const pageRaw = Number.parseInt(searchParamFirst(sp, "page") ?? "", 10);
+  const perPageRaw = Number.parseInt(searchParamFirst(sp, "perPage") ?? "", 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
   const perPage: 25 | 50 | 100 =
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;

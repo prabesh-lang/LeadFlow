@@ -42,11 +42,12 @@ function RatioCard({
 export default async function SuperadminReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const sp = await searchParams;
   const [preservedEntries, { from, to }] = await Promise.all([
-    preservedSearchParamEntriesForDateBar(searchParams),
-    analystRangeParams(searchParams),
+    preservedSearchParamEntriesForDateBar(sp),
+    analystRangeParams(sp),
   ]);
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const r = await getSuperadminReportAggregates({ from, to });

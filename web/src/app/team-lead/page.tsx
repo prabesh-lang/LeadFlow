@@ -38,14 +38,15 @@ type LeadDashRow = {
 export default async function MainTeamLeadDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await getSession();
   if (!session) return null;
 
+  const sp = await searchParams;
   const [preservedEntries, { from, to }] = await Promise.all([
-    preservedSearchParamEntriesForDateBar(searchParams),
-    analystRangeParams(searchParams),
+    preservedSearchParamEntriesForDateBar(sp),
+    analystRangeParams(sp),
   ]);
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { clause, params } = mtlLeadSql(session.id, from, to);

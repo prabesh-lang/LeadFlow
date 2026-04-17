@@ -8,6 +8,7 @@ import {
   hrefWithDateRange,
   leadWhereSql,
   preservedSearchParamEntriesForDateBar,
+  searchParamFirst,
 } from "@/lib/analyst-date-range";
 import { PORTAL_LEADS_EXPORT_ROW_CAP } from "@/lib/portal-leads-export-cap";
 import type { PortalAnalystLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
@@ -17,7 +18,7 @@ import { PortalPaginationBar } from "@/components/portal-pagination-bar";
 export default async function AnalystAllLeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; q?: string; page?: string; perPage?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await getSession();
   if (!session) return null;
@@ -27,8 +28,8 @@ export default async function AnalystAllLeadsPage({
     preservedSearchParamEntriesForDateBar(sp),
     analystRangeParams(sp),
   ]);
-  const pageRaw = Number.parseInt(sp.page ?? "", 10);
-  const perPageRaw = Number.parseInt(sp.perPage ?? "", 10);
+  const pageRaw = Number.parseInt(searchParamFirst(sp, "page") ?? "", 10);
+  const perPageRaw = Number.parseInt(searchParamFirst(sp, "perPage") ?? "", 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
   const perPage: 25 | 50 | 100 =
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;

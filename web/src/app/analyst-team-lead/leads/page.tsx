@@ -7,6 +7,7 @@ import {
   analystRangeSummaryLabel,
   hrefWithDateRange,
   preservedSearchParamEntriesForDateBar,
+  searchParamFirst,
 } from "@/lib/analyst-date-range";
 import { atlLeadSql } from "@/lib/atl-leads";
 import { fetchAtlRoutingTimelines } from "@/lib/atl-routing-timeline";
@@ -108,7 +109,7 @@ function toAtlExportRows(
 export default async function AnalystTeamLeadLeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; q?: string; page?: string; perPage?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await getSession();
   if (!session) return null;
@@ -118,8 +119,8 @@ export default async function AnalystTeamLeadLeadsPage({
     preservedSearchParamEntriesForDateBar(sp),
     analystRangeParams(sp),
   ]);
-  const pageRaw = Number.parseInt(sp.page ?? "", 10);
-  const perPageRaw = Number.parseInt(sp.perPage ?? "", 10);
+  const pageRaw = Number.parseInt(searchParamFirst(sp, "page") ?? "", 10);
+  const perPageRaw = Number.parseInt(searchParamFirst(sp, "perPage") ?? "", 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
   const perPage: 25 | 50 | 100 =
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;

@@ -5,6 +5,7 @@ import {
   analystRangeParams,
   analystRangeSummaryLabel,
   preservedSearchParamEntriesForDateBar,
+  searchParamFirst,
 } from "@/lib/analyst-date-range";
 import { execLeadSql } from "@/lib/exec-leads";
 import { ExecLeadsTableClient } from "@/components/portal-leads/exec-leads-table-client";
@@ -15,7 +16,7 @@ import type { PortalExecLeadExportRow } from "@/lib/portal-all-leads-export-payl
 export default async function ExecutiveLeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; q?: string; page?: string; perPage?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await getSession();
   if (!session) return null;
@@ -25,8 +26,8 @@ export default async function ExecutiveLeadsPage({
     preservedSearchParamEntriesForDateBar(sp),
     analystRangeParams(sp),
   ]);
-  const pageRaw = Number.parseInt(sp.page ?? "", 10);
-  const perPageRaw = Number.parseInt(sp.perPage ?? "", 10);
+  const pageRaw = Number.parseInt(searchParamFirst(sp, "page") ?? "", 10);
+  const perPageRaw = Number.parseInt(searchParamFirst(sp, "perPage") ?? "", 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
   const perPage: 25 | 50 | 100 =
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;

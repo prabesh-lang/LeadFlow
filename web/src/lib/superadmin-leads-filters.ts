@@ -1,4 +1,4 @@
-import { leadCreatedAtRange } from "@/lib/analyst-date-range";
+import { leadCreatedAtRange, normalizeYmdOrNull } from "@/lib/analyst-date-range";
 import { QualificationStatus } from "@/lib/constants";
 
 export type SuperadminLeadsStatus =
@@ -58,8 +58,8 @@ export function parseSuperadminLeadsSearchParams(
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
 
   return {
-    from: trimOrNull(first(sp.from)),
-    to: trimOrNull(first(sp.to)),
+    from: normalizeYmdOrNull(first(sp.from) ?? null),
+    to: normalizeYmdOrNull(first(sp.to) ?? null),
     status,
     analystId: trimOrNull(first(sp.analystId)),
     teamId: trimOrNull(first(sp.teamId)),

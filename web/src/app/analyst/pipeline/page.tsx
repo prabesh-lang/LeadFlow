@@ -13,14 +13,15 @@ import { QualificationStatus, SalesStage } from "@/lib/constants";
 export default async function AnalystPipelinePage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; q?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await getSession();
   if (!session) return null;
 
+  const sp = await searchParams;
   const [preservedEntries, { from, to, q }] = await Promise.all([
-    preservedSearchParamEntriesForDateBar(searchParams),
-    analystRangeParams(searchParams),
+    preservedSearchParamEntriesForDateBar(sp),
+    analystRangeParams(sp),
   ]);
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { clause, params } = leadWhereSql(session.id, from, to);

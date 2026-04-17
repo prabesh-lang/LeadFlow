@@ -36,14 +36,15 @@ type LeadDashRow = {
 export default async function AnalystDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await getSession();
   if (!session) return null;
 
+  const sp = await searchParams;
   const [preservedEntries, { from, to }] = await Promise.all([
-    preservedSearchParamEntriesForDateBar(searchParams),
-    analystRangeParams(searchParams),
+    preservedSearchParamEntriesForDateBar(sp),
+    analystRangeParams(sp),
   ]);
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { clause, params } = leadWhereSql(session.id, from, to);
