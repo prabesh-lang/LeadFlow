@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import AnalystDateRangeBar from "@/components/analyst/analyst-date-range-bar";
 import { UnifiedPortalReportSections } from "@/components/reports/unified-portal-report-sections";
@@ -19,13 +20,13 @@ export default async function AnalystTeamLeadReportsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const sp = await searchParams;
+  const sp = (await searchParams) ?? {};
   const [session, preservedEntries, { from, to }] = await Promise.all([
     getSession(),
     preservedSearchParamEntriesForDateBar(sp),
     analystRangeParams(sp),
   ]);
-  if (!session) return null;
+  if (!session) redirect("/login");
 
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { vm, analystsList, teamCount } =

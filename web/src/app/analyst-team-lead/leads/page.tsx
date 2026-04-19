@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
 import {
@@ -111,9 +112,9 @@ export default async function AnalystTeamLeadLeadsPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await getSession();
-  if (!session) return null;
+  if (!session) redirect("/login");
 
-  const sp = await searchParams;
+  const sp = (await searchParams) ?? {};
   const { from, to, q } = await analystRangeParams(sp);
   const pageRaw = Number.parseInt(searchParamFirst(sp, "page") ?? "", 10);
   const perPageRaw = Number.parseInt(searchParamFirst(sp, "perPage") ?? "", 10);

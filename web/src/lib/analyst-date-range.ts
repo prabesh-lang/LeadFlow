@@ -201,7 +201,8 @@ export async function preservedSearchParamEntriesForDateBar(
     | Promise<Record<string, string | string[] | undefined>>
     | Record<string, string | string[] | undefined>,
 ): Promise<[string, string][]> {
-  const sp = await Promise.resolve(searchParams);
+  const resolved = await Promise.resolve(searchParams);
+  const sp = resolved ?? {};
   const skip = new Set(["from", "to", "page"]);
   const out: [string, string][] = [];
   for (const [key, raw] of Object.entries(sp)) {
@@ -217,9 +218,10 @@ export async function preservedSearchParamEntriesForDateBar(
 
 /** First value for a query key (Next.js may pass `string | string[]`). */
 export function searchParamFirst(
-  sp: Record<string, string | string[] | undefined>,
+  sp: Record<string, string | string[] | undefined> | null | undefined,
   key: string,
 ): string | undefined {
+  if (sp == null) return undefined;
   const v = sp[key];
   if (v === undefined) return undefined;
   return Array.isArray(v) ? v[0] : v;
@@ -231,7 +233,8 @@ export async function analystRangeParams(
     | Promise<Record<string, string | string[] | undefined>>
     | Record<string, string | string[] | undefined>,
 ): Promise<{ from: string | null; to: string | null; q: string | null }> {
-  const sp = await Promise.resolve(searchParams);
+  const resolved = await Promise.resolve(searchParams);
+  const sp = resolved ?? {};
   const fromRaw = normalizeYmdOrNull(searchParamFirst(sp, "from"));
   const toRaw = normalizeYmdOrNull(searchParamFirst(sp, "to"));
   const { from, to } = canonicalizePortalDatePair(fromRaw, toRaw);
