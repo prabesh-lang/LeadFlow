@@ -1,4 +1,7 @@
-import type { DashboardExportPayload } from "@/lib/dashboard-export-types";
+import {
+  type DashboardExportPayload,
+  toRscSerializableDashboardExport,
+} from "@/lib/dashboard-export-types";
 import { buildAnalystAnalyticsReportPayload } from "@/lib/analyst-analytics-payload";
 import {
   buildAnalystCityRows,
@@ -437,46 +440,48 @@ export function buildUnifiedDashboardViewModel(
   );
   const recent = leads.slice(0, 6);
 
-  const exportPayload = buildUnifiedExportPayload(
-    leads,
-    meta,
-    analytics,
-    {
-      total,
-      qualified,
-      notQ,
-      irrelevant,
-      qualRate,
-      closedWon,
-      closedLost,
-      inProgress: leads.filter(
-        (l) => l.salesStage === SalesStage.WITH_EXECUTIVE,
-      ).length,
-      assigned: leads.filter(
-        (l) => l.salesStage === SalesStage.WITH_TEAM_LEAD,
-      ).length,
-      routed,
-      withExec,
-      qualifiedPassed: qualifiedPassed.length,
-      qualifiedInternal: qualifiedInternal.length,
-      passedPct,
-      passedWithTl,
-      passedWithExec,
-      passedWon,
-      passedLost,
-    },
-    countryRows,
-    cityRows,
-    stageEntries,
-    qualInsightRows,
-    sourceEntries,
-    conversionByCountry,
-    conversionByWebsite,
-    conversionByProfile,
-    conversionBySource,
-    leadAnalystBreakdown,
-    salesExecOutcomes,
-    qualificationReasonRows,
+  const exportPayload = toRscSerializableDashboardExport(
+    buildUnifiedExportPayload(
+      leads,
+      meta,
+      analytics,
+      {
+        total,
+        qualified,
+        notQ,
+        irrelevant,
+        qualRate,
+        closedWon,
+        closedLost,
+        inProgress: leads.filter(
+          (l) => l.salesStage === SalesStage.WITH_EXECUTIVE,
+        ).length,
+        assigned: leads.filter(
+          (l) => l.salesStage === SalesStage.WITH_TEAM_LEAD,
+        ).length,
+        routed,
+        withExec,
+        qualifiedPassed: qualifiedPassed.length,
+        qualifiedInternal: qualifiedInternal.length,
+        passedPct,
+        passedWithTl,
+        passedWithExec,
+        passedWon,
+        passedLost,
+      },
+      countryRows,
+      cityRows,
+      stageEntries,
+      qualInsightRows,
+      sourceEntries,
+      conversionByCountry,
+      conversionByWebsite,
+      conversionByProfile,
+      conversionBySource,
+      leadAnalystBreakdown,
+      salesExecOutcomes,
+      qualificationReasonRows,
+    ),
   );
 
   const showQualifiedPassedBlock =
@@ -749,11 +754,14 @@ function buildUnifiedExportPayload(
     {
       title: "Qualification insight",
       headers: ["Segment", "Count", "%"],
-      rows: qualInsightRows.map((r) => [
-        r.label,
-        r.count,
-        r.pct.toFixed(1),
-      ]),
+      rows: qualInsightRows.map((r) => {
+        const pct = Number(r.pct);
+        return [
+          r.label,
+          r.count,
+          Number.isFinite(pct) ? pct.toFixed(1) : "—",
+        ];
+      }),
     },
     {
       title: "Lead snapshot",

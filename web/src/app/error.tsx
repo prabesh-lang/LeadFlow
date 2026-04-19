@@ -10,9 +10,14 @@ export default function GlobalError({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-lf-bg px-4 py-12 text-lf-text">
       {error.digest ? (
-        <p className="sr-only" suppressHydrationWarning>
-          {error.digest}
-        </p>
+        <>
+          <p className="sr-only" suppressHydrationWarning>
+            {error.digest}
+          </p>
+          <p className="max-w-md text-center font-mono text-xs text-lf-subtle">
+            Error ID: {error.digest}
+          </p>
+        </>
       ) : null}
       <h2 className="text-xl font-semibold">Something went wrong</h2>
       <p className="max-w-md text-center text-sm text-lf-muted">

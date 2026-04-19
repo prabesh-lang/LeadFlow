@@ -15,18 +15,22 @@ import {
 /** Same dynamic model as superadmin report — `searchParams` + date bar need per-request rendering. */
 export const dynamic = "force-dynamic";
 
+/** Postgres + `pg` require Node (not Edge). */
+export const runtime = "nodejs";
+
 export default async function AnalystTeamLeadReportsPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const sp = (await searchParams) ?? {};
-  const [session, preservedEntries, { from, to }] = await Promise.all([
-    getSession(),
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const [preservedEntries, { from, to }] = await Promise.all([
     preservedSearchParamEntriesForDateBar(sp),
     analystRangeParams(sp),
   ]);
-  if (!session) redirect("/login");
 
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { vm, analystsList, teamCount } =
