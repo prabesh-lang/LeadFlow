@@ -5,7 +5,6 @@ import { dbQuery } from "@/lib/db/pool";
 import {
   analystRangeParams,
   analystRangeSummaryLabel,
-  hrefWithDateRange,
   searchParamFirst,
 } from "@/lib/analyst-date-range";
 import { atlLeadSql } from "@/lib/atl-leads";
@@ -277,7 +276,7 @@ export default async function AnalystTeamLeadLeadsPage({
               : `Leads created ${rangeLabel} · filtered by creation date`}{" "}
             ·{" "}
             <Link
-              href={hrefWithDateRange("/analyst-team-lead/reports", from, to)}
+              href="/analyst-team-lead/reports"
               className="text-lf-link hover:underline"
             >
               Back to report
