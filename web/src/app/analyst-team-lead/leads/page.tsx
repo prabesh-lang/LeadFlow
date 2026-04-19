@@ -2,10 +2,11 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
 import { dbQuery } from "@/lib/db/pool";
 import {
+  analystRangeParams,
   analystRangeSummaryLabel,
+  hrefWithDateRange,
   searchParamFirst,
 } from "@/lib/analyst-date-range";
-import { normalizeClientSearchQuery } from "@/lib/lead-client-search";
 import { atlLeadSql } from "@/lib/atl-leads";
 import { fetchAtlRoutingTimelines } from "@/lib/atl-routing-timeline";
 import {
@@ -113,14 +114,14 @@ export default async function AnalystTeamLeadLeadsPage({
   if (!session) return null;
 
   const sp = await searchParams;
-  const q = normalizeClientSearchQuery(searchParamFirst(sp, "q"));
+  const { from, to, q } = await analystRangeParams(sp);
   const pageRaw = Number.parseInt(searchParamFirst(sp, "page") ?? "", 10);
   const perPageRaw = Number.parseInt(searchParamFirst(sp, "perPage") ?? "", 10);
   const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
   const perPage: 25 | 50 | 100 =
     perPageRaw === 50 || perPageRaw === 100 ? perPageRaw : 25;
   const offset = (page - 1) * perPage;
-  const rangeLabel = analystRangeSummaryLabel(null, null);
+  const rangeLabel = analystRangeSummaryLabel(from, to);
 
   const analysts = await dbQuery<{ id: string; name: string }>(
     `SELECT id, name FROM "User" WHERE "managerId" = $1 AND role = $2 ORDER BY name ASC`,
@@ -154,12 +155,12 @@ export default async function AnalystTeamLeadLeadsPage({
     source: sourceFilter,
   };
 
-  const { clause, params } = atlLeadSql(analystIds, null, null, listFilters);
+  const { clause, params } = atlLeadSql(analystIds, from, to, listFilters);
 
   const { clause: sourceScopeClause, params: sourceScopeParams } = atlLeadSql(
     analystIds,
-    null,
-    null,
+    from,
+    to,
   );
   const sourceOptionRows =
     analystIds.length === 0
@@ -255,6 +256,8 @@ export default async function AnalystTeamLeadLeadsPage({
   const paginationQuery = {
     q,
     ...(perPage !== 25 ? { perPage: String(perPage) } : {}),
+    ...(from ? { from } : {}),
+    ...(to ? { to } : {}),
     ...(statusFilter ? { status: statusFilter } : {}),
     ...(analystIdFilter ? { analystId: analystIdFilter } : {}),
     ...(sourceFilter ? { source: sourceFilter } : {}),
@@ -268,9 +271,12 @@ export default async function AnalystTeamLeadLeadsPage({
             All leads
           </h1>
           <p className="mt-1 text-sm text-lf-muted">
-            All-time leads created by your analysts ·{" "}
+            {rangeLabel === "All time"
+              ? "All-time leads created by your analysts"
+              : `Leads created ${rangeLabel} · filtered by creation date`}{" "}
+            ·{" "}
             <Link
-              href="/analyst-team-lead/reports"
+              href={hrefWithDateRange("/analyst-team-lead/reports", from, to)}
               className="text-lf-link hover:underline"
             >
               Back to report
@@ -296,11 +302,11 @@ export default async function AnalystTeamLeadLeadsPage({
       />
 
       <AtlAllLeadsTableClient
-        key={`${page}|${perPage}|${q ?? ""}|${statusFilter ?? ""}|${analystIdFilter ?? ""}|${sourceFilter ?? ""}`}
+        key={`${page}|${perPage}|${q ?? ""}|${from ?? ""}|${to ?? ""}|${statusFilter ?? ""}|${analystIdFilter ?? ""}|${sourceFilter ?? ""}`}
         leads={rowsWithTimeline}
         initialQ={q}
-        from={null}
-        to={null}
+        from={from}
+        to={to}
         analystIdsEmpty={analystIds.length === 0}
         mtlOptions={mtlOptions}
         execOptions={execOptions}

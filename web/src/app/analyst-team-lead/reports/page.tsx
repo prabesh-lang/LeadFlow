@@ -6,24 +6,29 @@ import { DashboardReportExport } from "@/components/dashboard-report-export";
 import { buildAtlTeamLeadDashboardViewModel } from "@/lib/atl-team-lead-dashboard-vm";
 import {
   analystRangeParams,
+  analystRangeSummaryLabel,
+  hrefWithDateRange,
   preservedSearchParamEntriesForDateBar,
 } from "@/lib/analyst-date-range";
+
+/** Same dynamic model as superadmin report — `searchParams` + date bar need per-request rendering. */
+export const dynamic = "force-dynamic";
 
 export default async function AnalystTeamLeadReportsPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const session = await getSession();
-  if (!session) return null;
-
   const sp = await searchParams;
-  const [preservedEntries, { from, to }] = await Promise.all([
+  const [session, preservedEntries, { from, to }] = await Promise.all([
+    getSession(),
     preservedSearchParamEntriesForDateBar(sp),
     analystRangeParams(sp),
   ]);
+  if (!session) return null;
 
-  const { vm, analystsList, teamCount, rangeLabel } =
+  const rangeLabel = analystRangeSummaryLabel(from, to);
+  const { vm, analystsList, teamCount } =
     await buildAtlTeamLeadDashboardViewModel(session, from, to);
 
   const countrySubtitle =
@@ -69,12 +74,24 @@ export default async function AnalystTeamLeadReportsPage({
         rangeSummary={rangeLabel}
       />
 
-      <UnifiedPortalReportSections
-        vm={vm}
-        countrySubtitle={countrySubtitle}
-        leadsHref="/analyst-team-lead/leads"
-        recentLeadsTitle="Recent team leads"
-      />
+      <div className="rounded-2xl border border-lf-border bg-lf-bg/90 p-6">
+        <h2 className="text-sm font-semibold text-lf-text-secondary">
+          Unified portal dashboard (same as Superadmin sections)
+        </h2>
+        <p className="mt-1 text-xs text-lf-subtle">
+          {rangeLabel === "All time"
+            ? "All-time data · matches the analyst / team lead / executive dashboard layout and export tables (scoped to your analysts)."
+            : `Leads created in ${rangeLabel} · export uses the same range.`}
+        </p>
+        <div className="mt-6 space-y-8">
+          <UnifiedPortalReportSections
+            vm={vm}
+            countrySubtitle={countrySubtitle}
+            leadsHref={hrefWithDateRange("/analyst-team-lead/leads", from, to)}
+            recentLeadsTitle="Recent team leads"
+          />
+        </div>
+      </div>
     </div>
   );
 }
