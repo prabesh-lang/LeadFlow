@@ -252,6 +252,14 @@ export default async function AnalystTeamLeadLeadsPage({
     statusFilter || analystIdFilter || sourceFilter,
   );
 
+  const paginationQuery = {
+    q,
+    ...(perPage !== 25 ? { perPage: String(perPage) } : {}),
+    ...(statusFilter ? { status: statusFilter } : {}),
+    ...(analystIdFilter ? { analystId: analystIdFilter } : {}),
+    ...(sourceFilter ? { source: sourceFilter } : {}),
+  };
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -281,13 +289,7 @@ export default async function AnalystTeamLeadLeadsPage({
 
       <PortalPaginationBar
         pathname="/analyst-team-lead/leads"
-        query={{
-          q,
-          ...(perPage !== 25 ? { perPage: String(perPage) } : {}),
-          ...(statusFilter ? { status: statusFilter } : {}),
-          ...(analystIdFilter ? { analystId: analystIdFilter } : {}),
-          ...(sourceFilter ? { source: sourceFilter } : {}),
-        }}
+        query={paginationQuery}
         page={page}
         perPage={perPage}
         totalCount={totalCount}
@@ -307,6 +309,14 @@ export default async function AnalystTeamLeadLeadsPage({
         rangeTotalCount={totalCount}
         exportRowCount={exportLeadRows.length}
         hasServerFilters={hasServerFilters}
+      />
+
+      <PortalPaginationBar
+        pathname="/analyst-team-lead/leads"
+        query={paginationQuery}
+        page={page}
+        perPage={perPage}
+        totalCount={totalCount}
       />
     </div>
   );
