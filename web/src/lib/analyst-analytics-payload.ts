@@ -10,16 +10,19 @@ type LeadForAnalytics = {
   source: string;
   qualificationStatus: string;
   salesStage: string;
-  leadScore: number | null;
+  /** Prefer number; pg may surface bigint for some numeric columns. */
+  leadScore: number | null | bigint;
   phone: string | null;
   country: string | null;
   city: string | null;
 };
 
 function scoreBucketLabel(score: number): string {
-  if (score <= 25) return "0–25";
-  if (score <= 50) return "26–50";
-  if (score <= 75) return "51–75";
+  const n = Number(score);
+  if (!Number.isFinite(n)) return "0–25";
+  if (n <= 25) return "0–25";
+  if (n <= 50) return "26–50";
+  if (n <= 75) return "51–75";
   return "76–100";
 }
 
@@ -55,7 +58,8 @@ export function buildAnalystAnalyticsReportPayload(
 
   const scores = leads
     .map((l) => l.leadScore)
-    .filter((s): s is number => s != null && !Number.isNaN(s));
+    .map((s) => (typeof s === "bigint" ? Number(s) : s))
+    .filter((s): s is number => typeof s === "number" && Number.isFinite(s));
   const avgLeadScore =
     scores.length > 0
       ? Math.round(
@@ -86,8 +90,11 @@ export function buildAnalystAnalyticsReportPayload(
 
   const bucketMap = new Map<string, number>();
   for (const l of leads) {
-    if (l.leadScore == null || Number.isNaN(l.leadScore)) continue;
-    const label = scoreBucketLabel(l.leadScore);
+    const raw = l.leadScore;
+    if (raw == null) continue;
+    const s = typeof raw === "bigint" ? Number(raw) : raw;
+    if (typeof s !== "number" || !Number.isFinite(s)) continue;
+    const label = scoreBucketLabel(s);
     bucketMap.set(label, (bucketMap.get(label) ?? 0) + 1);
   }
   const order = ["0–25", "26–50", "51–75", "76–100"];

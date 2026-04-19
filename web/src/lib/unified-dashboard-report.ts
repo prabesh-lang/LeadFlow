@@ -12,6 +12,7 @@ import {
 } from "@/lib/leads-by-country-qual";
 import {
   formatAnalystDate,
+  parseDbDate,
   pipelineNoteForLead,
   pipelinePillForLead,
   sourcePillText,
@@ -277,10 +278,32 @@ function leadForAnalytics(l: UnifiedLeadRow) {
   };
 }
 
+/** pg may return int8/numeric as bigint; mixing bigint with number throws in score buckets. */
+function coerceLeadScoreForRow(v: unknown): number | null {
+  if (v == null) return null;
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  if (typeof v === "bigint") return Number(v);
+  if (typeof v === "string") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function normalizeUnifiedLeadRow(l: UnifiedLeadRow): UnifiedLeadRow {
+  const createdAt = parseDbDate(l.createdAt) ?? new Date(0);
+  return {
+    ...l,
+    createdAt,
+    leadScore: coerceLeadScoreForRow(l.leadScore),
+  };
+}
+
 export function buildUnifiedDashboardViewModel(
-  leads: UnifiedLeadRow[],
+  inputLeads: UnifiedLeadRow[],
   meta: UnifiedPortalMeta,
 ): UnifiedDashboardViewModel {
+  const leads = inputLeads.map(normalizeUnifiedLeadRow);
   const total = leads.length;
   const qualified = leads.filter(
     (l) => l.qualificationStatus === QualificationStatus.QUALIFIED,
