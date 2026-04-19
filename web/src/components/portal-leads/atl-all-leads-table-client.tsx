@@ -66,6 +66,7 @@ export function AtlAllLeadsTableClient({
   exportLeads,
   rangeTotalCount,
   exportRowCount,
+  hasServerFilters = false,
 }: {
   leads: AtlLeadRow[];
   initialQ: string | null;
@@ -78,6 +79,8 @@ export function AtlAllLeadsTableClient({
   exportLeads: PortalAtlLeadExportRow[];
   rangeTotalCount: number;
   exportRowCount: number;
+  /** True when status / analyst / source filters are applied (server-side). */
+  hasServerFilters?: boolean;
 }) {
   const [query, setQuery] = useState(initialQ ?? "");
   useDebouncedLeadSearchUrl(query);
@@ -200,9 +203,11 @@ export function AtlAllLeadsTableClient({
                   >
                     {from || to
                       ? "No leads in this date range."
-                      : analystIdsEmpty
-                        ? "Add lead analysts under Members."
-                        : "No leads yet from your team."}
+                      : hasServerFilters
+                        ? "No leads match the selected filters (status, lead analyst, or source)."
+                        : analystIdsEmpty
+                          ? "Add lead analysts under Members."
+                          : "No leads yet from your team."}
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
@@ -212,12 +217,14 @@ export function AtlAllLeadsTableClient({
                     className="px-4 py-12 text-center text-lf-subtle"
                   >
                     {hasQuery
-                      ? "No leads match this name or phone in the current filters."
+                      ? "No leads match this name or phone with the current filters."
                       : from || to
                         ? "No leads in this date range."
-                        : analystIdsEmpty
-                          ? "Add lead analysts under Members."
-                          : "No leads yet from your team."}
+                        : hasServerFilters
+                          ? "No leads match the selected filters (status, lead analyst, or source)."
+                          : analystIdsEmpty
+                            ? "Add lead analysts under Members."
+                            : "No leads yet from your team."}
                   </td>
                 </tr>
               ) : (

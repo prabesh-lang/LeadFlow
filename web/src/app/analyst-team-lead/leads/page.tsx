@@ -13,7 +13,8 @@ import {
   type ExecOption,
   type MtlOption,
 } from "@/components/portal-leads/atl-all-leads-table-client";
-import { UserRole } from "@/lib/constants";
+import { AtlLeadsFiltersBar } from "@/components/portal-leads/atl-leads-filters-bar";
+import { QualificationStatus, UserRole } from "@/lib/constants";
 import { PortalPaginationBar } from "@/components/portal-pagination-bar";
 import { PORTAL_LEADS_EXPORT_ROW_CAP } from "@/lib/portal-leads-export-cap";
 import type { PortalAtlLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
@@ -121,13 +122,53 @@ export default async function AnalystTeamLeadLeadsPage({
   const offset = (page - 1) * perPage;
   const rangeLabel = analystRangeSummaryLabel(null, null);
 
-  const analysts = await dbQuery<{ id: string }>(
-    `SELECT id FROM "User" WHERE "managerId" = $1 AND role = $2`,
+  const analysts = await dbQuery<{ id: string; name: string }>(
+    `SELECT id, name FROM "User" WHERE "managerId" = $1 AND role = $2 ORDER BY name ASC`,
     [session.id, UserRole.LEAD_ANALYST],
   );
   const analystIds = analysts.map((a) => a.id);
 
-  const { clause, params } = atlLeadSql(analystIds, null, null);
+  const statusRaw = searchParamFirst(sp, "status")?.trim() ?? "";
+  const statusFilter =
+    statusRaw === QualificationStatus.QUALIFIED ||
+    statusRaw === QualificationStatus.NOT_QUALIFIED ||
+    statusRaw === QualificationStatus.IRRELEVANT
+      ? statusRaw
+      : null;
+
+  const analystIdCandidate = searchParamFirst(sp, "analystId")?.trim() ?? "";
+  const analystIdFilter =
+    analystIdCandidate && analystIds.includes(analystIdCandidate)
+      ? analystIdCandidate
+      : null;
+
+  const sourceCandidate = searchParamFirst(sp, "source")?.trim() ?? "";
+  const sourceFilter =
+    sourceCandidate.length > 0 && sourceCandidate.length <= 256
+      ? sourceCandidate
+      : null;
+
+  const listFilters = {
+    qualificationStatus: statusFilter,
+    createdById: analystIdFilter,
+    source: sourceFilter,
+  };
+
+  const { clause, params } = atlLeadSql(analystIds, null, null, listFilters);
+
+  const { clause: sourceScopeClause, params: sourceScopeParams } = atlLeadSql(
+    analystIds,
+    null,
+    null,
+  );
+  const sourceOptionRows =
+    analystIds.length === 0
+      ? []
+      : await dbQuery<{ source: string }>(
+          `SELECT DISTINCT l."source" AS source FROM "Lead" l WHERE ${sourceScopeClause} ORDER BY 1 ASC`,
+          sourceScopeParams,
+        );
+  const sourceOptions = sourceOptionRows.map((r) => r.source).filter(Boolean);
   const atlSelect = `SELECT l.*, cb.name AS cb_name, tm.name AS team_name, mtl.name AS mtl_name, se.name AS se_name
            FROM "Lead" l
            JOIN "User" cb ON cb.id = l."createdById"
@@ -207,6 +248,10 @@ export default async function AnalystTeamLeadLeadsPage({
   const rowsWithTimeline = mapAtlRowsWithTimeline(leadRows, pagedTimeline);
   const atlExportLeads = toAtlExportRows(exportLeadRows, exportTimeline);
 
+  const hasServerFilters = Boolean(
+    statusFilter || analystIdFilter || sourceFilter,
+  );
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -226,11 +271,22 @@ export default async function AnalystTeamLeadLeadsPage({
         </div>
       </header>
 
+      <AtlLeadsFiltersBar
+        status={statusFilter}
+        analystId={analystIdFilter}
+        source={sourceFilter}
+        analystOptions={analysts.map((a) => ({ id: a.id, name: a.name }))}
+        sourceOptions={sourceOptions}
+      />
+
       <PortalPaginationBar
         pathname="/analyst-team-lead/leads"
         query={{
           q,
           ...(perPage !== 25 ? { perPage: String(perPage) } : {}),
+          ...(statusFilter ? { status: statusFilter } : {}),
+          ...(analystIdFilter ? { analystId: analystIdFilter } : {}),
+          ...(sourceFilter ? { source: sourceFilter } : {}),
         }}
         page={page}
         perPage={perPage}
@@ -238,7 +294,7 @@ export default async function AnalystTeamLeadLeadsPage({
       />
 
       <AtlAllLeadsTableClient
-        key={`${page}|${perPage}|${q ?? ""}`}
+        key={`${page}|${perPage}|${q ?? ""}|${statusFilter ?? ""}|${analystIdFilter ?? ""}|${sourceFilter ?? ""}`}
         leads={rowsWithTimeline}
         initialQ={q}
         from={null}
@@ -250,6 +306,7 @@ export default async function AnalystTeamLeadLeadsPage({
         exportLeads={atlExportLeads}
         rangeTotalCount={totalCount}
         exportRowCount={exportLeadRows.length}
+        hasServerFilters={hasServerFilters}
       />
     </div>
   );
