@@ -154,7 +154,7 @@ export function UnifiedPortalReportSections({
     total > 0 ? ((closedWon / total) * 100).toFixed(1) : "—";
 
   return (
-    <>
+    <div className="flex flex-col gap-8">
       <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
         <StatCard
           slot="a"
@@ -617,6 +617,6 @@ export function UnifiedPortalReportSections({
           </table>
         </div>
       </Card>
-    </>
+    </div>
   );
 }
