@@ -89,7 +89,9 @@ export function MtlLeadsTableClient({
               <th className="min-w-[110px] px-4 py-3 font-semibold">Analyst</th>
               <th className="min-w-[72px] px-4 py-3 font-semibold">Score</th>
               <th className="min-w-[120px] px-4 py-3 font-semibold">Stage</th>
-              <th className="min-w-[200px] px-4 py-3 font-semibold">Analyst notes</th>
+              <th className="min-w-[11rem] max-w-[28rem] px-4 py-3 font-semibold">
+                Analyst notes
+              </th>
               <th className="min-w-[200px] px-4 py-3 font-semibold">Executive notes</th>
               <th className="min-w-[110px] px-4 py-3 font-semibold">Rep</th>
               <th className="min-w-[140px] px-4 py-3 font-semibold">Deadline</th>
@@ -155,7 +157,7 @@ export function MtlLeadsTableClient({
                         {lead.salesStage.replaceAll("_", " ")}
                       </span>
                     </td>
-                    <td className="px-4 py-3 align-top">
+                    <td className="max-w-[28rem] min-w-0 px-4 py-3 align-top">
                       <AnalystNotesReadonly notes={lead.notes} />
                     </td>
                     <td className="px-4 py-3 align-top">

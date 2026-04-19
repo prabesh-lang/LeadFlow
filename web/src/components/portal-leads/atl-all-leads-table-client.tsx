@@ -147,49 +147,49 @@ export function AtlAllLeadsTableClient({
         aria-label="Team leads table"
         tabIndex={0}
       >
-        <table className="w-max min-w-[1560px] border-collapse text-left text-sm">
+        <table className="w-max min-w-[1320px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-lf-border bg-lf-bg/80 text-[10px] font-semibold uppercase tracking-wider text-lf-subtle">
-                <th className="min-w-[140px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[120px] px-4 py-4 align-bottom font-medium leading-snug">
                   Name
                 </th>
-                <th className="min-w-[120px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[100px] px-4 py-4 align-bottom font-medium leading-snug">
                   Analyst
                 </th>
-                <th className="min-w-[120px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[104px] px-4 py-4 align-bottom font-medium leading-snug">
                   Phone
                 </th>
-                <th className="min-w-[180px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[152px] px-4 py-4 align-bottom font-medium leading-snug">
                   Email
                 </th>
-                <th className="min-w-[200px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[160px] px-4 py-4 align-bottom font-medium leading-snug">
                   Source
                 </th>
-                <th className="min-w-[220px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[11rem] max-w-[28rem] px-4 py-4 align-bottom font-medium leading-snug">
                   Analyst notes
                 </th>
-                <th className="min-w-[120px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-0 whitespace-nowrap px-4 py-4 align-bottom font-medium leading-snug">
                   Qualification
                 </th>
-                <th className="min-w-[72px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[64px] px-4 py-4 align-bottom font-medium leading-snug">
                   Score
                 </th>
-                <th className="min-w-[128px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[112px] px-4 py-4 align-bottom font-medium leading-snug">
                   Sales status
                 </th>
-                <th className="min-w-[200px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[168px] px-4 py-4 align-bottom font-medium leading-snug">
                   Executive notes
                 </th>
-                <th className="min-w-[120px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[104px] px-4 py-4 align-bottom font-medium leading-snug">
                   Added
                 </th>
-                <th className="min-w-[168px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[152px] px-4 py-4 align-bottom font-medium leading-snug">
                   Route TL
                 </th>
-                <th className="min-w-[200px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[168px] px-4 py-4 align-bottom font-medium leading-snug">
                   Route SE
                 </th>
-                <th className="min-w-[260px] px-4 py-4 align-bottom font-medium leading-snug">
+                <th className="min-w-[220px] px-4 py-4 align-bottom font-medium leading-snug">
                   Pass timeline / gap
                 </th>
               </tr>
@@ -284,10 +284,10 @@ export function AtlAllLeadsTableClient({
                       <td className="min-w-0 max-w-[260px] px-4 py-3 align-top">
                         <LeadSourcePill source={l.source} />
                       </td>
-                      <td className="min-w-0 px-4 py-3 align-top">
+                      <td className="min-w-0 max-w-[28rem] px-4 py-3 align-top">
                         <AnalystNotesReadonly notes={l.notes} />
                       </td>
-                      <td className="min-w-0 px-4 py-3 text-lf-text-secondary">
+                      <td className="min-w-0 whitespace-nowrap px-4 py-3 text-lf-text-secondary">
                         <span className="inline-block whitespace-nowrap rounded-full bg-lf-bg px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide">
                           {String(l.qualificationStatus ?? "").replaceAll("_", " ") || "—"}
                         </span>
@@ -357,7 +357,7 @@ export function AtlAllLeadsTableClient({
                         )}
                       </td>
                       <td className="px-4 py-3 align-top">
-                        <div className="min-w-[260px] space-y-1 text-xs text-lf-text-secondary">
+                        <div className="min-w-[220px] space-y-1 text-xs text-lf-text-secondary">
                           <p>
                             <span className="text-lf-subtle">Lead analyst: </span>
                             {fmtDateTime(l.createdAt)}

@@ -126,7 +126,7 @@ export function AnalystPipelineTableClient({
                       <td className="min-w-0 max-w-[260px] px-5 py-3 align-top">
                         <LeadSourcePill source={l.source} />
                       </td>
-                      <td className="px-5 py-3 align-top">
+                      <td className="max-w-[28rem] min-w-0 px-5 py-3 align-top">
                         {l.salesStage === SalesStage.CLOSED_LOST ? (
                           l.lostNotes?.trim() ? (
                             <ExecLostNotesReadonly notes={l.lostNotes} />

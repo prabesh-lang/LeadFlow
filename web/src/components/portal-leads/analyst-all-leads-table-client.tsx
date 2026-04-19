@@ -103,7 +103,9 @@ export function AnalystAllLeadsTableClient({
                 <th className="px-4 py-3 font-medium">Qualification</th>
                 <th className="px-4 py-3 font-medium">Score</th>
                 <th className="px-4 py-3 font-medium">Sales status</th>
-                <th className="px-4 py-3 font-medium">Your notes</th>
+                <th className="max-w-[28rem] min-w-[11rem] px-4 py-3 font-medium">
+                  Your notes
+                </th>
                 <th className="px-4 py-3 font-medium">Executive notes</th>
                 <th className="px-4 py-3 font-medium">Added</th>
               </tr>
@@ -168,7 +170,7 @@ export function AnalystAllLeadsTableClient({
                     <td className="px-4 py-3 text-lf-text-secondary">
                       {analystFacingSalesLabel(l.salesStage)}
                     </td>
-                    <td className="px-4 py-3 align-top">
+                    <td className="max-w-[28rem] min-w-0 px-4 py-3 align-top">
                       <AnalystNotesReadonly notes={l.notes} />
                     </td>
                     <td className="px-4 py-3 align-top">

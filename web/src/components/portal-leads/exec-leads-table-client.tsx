@@ -99,7 +99,9 @@ export function ExecLeadsTableClient({
               <th className="px-4 py-3 font-semibold">Score</th>
               <th className="px-4 py-3 font-semibold">Deadline</th>
               <th className="px-4 py-3 font-semibold">Stage</th>
-              <th className="px-4 py-3 font-semibold">Analyst notes</th>
+              <th className="max-w-[28rem] min-w-0 px-4 py-3 font-semibold">
+                Analyst notes
+              </th>
               <th className="px-4 py-3 font-semibold">Lost-deal notes</th>
               <th className="px-4 py-3 font-semibold">Update</th>
             </tr>
@@ -165,7 +167,7 @@ export function ExecLeadsTableClient({
                     <td className="px-4 py-3 text-lf-muted">
                       {lead.salesStage.replaceAll("_", " ")}
                     </td>
-                    <td className="px-4 py-3 align-top">
+                    <td className="max-w-[28rem] min-w-0 px-4 py-3 align-top">
                       <AnalystNotesReadonly notes={lead.notes} />
                     </td>
                     <td className="px-4 py-3 text-xs text-lf-text-secondary">
