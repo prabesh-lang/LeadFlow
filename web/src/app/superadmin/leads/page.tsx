@@ -114,11 +114,24 @@ export default async function SuperadminLeadsPage({
   const sp = await searchParams;
   const parsed = parseSuperadminLeadsSearchParams(sp);
   const where = buildSuperadminLeadsWhereSql(parsed);
+  const baseWhereForDupCount = buildSuperadminLeadsWhereSql({
+    ...parsed,
+    duplicatePhonesOnly: false,
+  });
   const page = Math.max(1, parsed.page);
   const perPage = parsed.perPage;
   const offset = (page - 1) * perPage;
 
-  const [teams, execs, analysts, counts, paged, exportPack, duplicateRows] =
+  const [
+    teams,
+    execs,
+    analysts,
+    counts,
+    paged,
+    exportPack,
+    duplicateRows,
+    duplicatePhoneLeadCountRows,
+  ] =
     await Promise.all([
     dbQuery<{ id: string; name: string }>(
       `SELECT id, name FROM "Team" ORDER BY name ASC`,
@@ -151,21 +164,13 @@ export default async function SuperadminLeadsPage({
         limit: PORTAL_LEADS_EXPORT_ROW_CAP,
         offset: 0,
       }),
-      dbQuery<{ lead_id: string; dup_kind: "email" | "phone"; dup_count: string }>(
+      dbQuery<{ lead_id: string; dup_count: string }>(
         `WITH filtered AS (
            SELECT
              id,
-             NULLIF(LOWER(BTRIM("leadEmail")), '') AS email_key,
              NULLIF(regexp_replace(COALESCE(phone, ''), '\\D', '', 'g'), '') AS phone_key
            FROM "Lead"
            WHERE ${where.clause}
-         ),
-         email_dups AS (
-           SELECT email_key, COUNT(*)::int AS c
-           FROM filtered
-           WHERE email_key IS NOT NULL
-           GROUP BY email_key
-           HAVING COUNT(*) > 1
          ),
          phone_dups AS (
            SELECT phone_key, COUNT(*)::int AS c
@@ -174,14 +179,30 @@ export default async function SuperadminLeadsPage({
            GROUP BY phone_key
            HAVING COUNT(*) > 1
          )
-         SELECT f.id AS lead_id, 'email'::text AS dup_kind, ed.c::text AS dup_count
-         FROM filtered f
-         JOIN email_dups ed ON ed.email_key = f.email_key
-         UNION ALL
-         SELECT f.id AS lead_id, 'phone'::text AS dup_kind, pd.c::text AS dup_count
+         SELECT f.id AS lead_id, pd.c::text AS dup_count
          FROM filtered f
          JOIN phone_dups pd ON pd.phone_key = f.phone_key`,
         where.params,
+      ),
+      dbQuery<{ c: string }>(
+        `WITH filtered AS (
+           SELECT
+             id,
+             NULLIF(regexp_replace(COALESCE(phone, ''), '\\D', '', 'g'), '') AS phone_key
+           FROM "Lead"
+           WHERE ${baseWhereForDupCount.clause}
+         ),
+         phone_dups AS (
+           SELECT phone_key
+           FROM filtered
+           WHERE phone_key IS NOT NULL
+           GROUP BY phone_key
+           HAVING COUNT(*) > 1
+         )
+         SELECT COUNT(*)::text AS c
+         FROM filtered f
+         JOIN phone_dups pd ON pd.phone_key = f.phone_key`,
+        baseWhereForDupCount.params,
       ),
     ]);
   const qualTotals = {
@@ -190,6 +211,7 @@ export default async function SuperadminLeadsPage({
     irrelevant: Number(counts[0]?.irrelevant ?? 0),
   };
   const totalCount = Number(counts[0]?.total ?? 0);
+  const duplicatePhoneLeadCount = Number(duplicatePhoneLeadCountRows[0]?.c ?? 0);
   const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
   const analystGroups = paged.analystGroups;
 
@@ -229,17 +251,12 @@ export default async function SuperadminLeadsPage({
 
   const duplicateMap = new Map<
     string,
-    { byEmail: boolean; byPhone: boolean; maxGroupSize: number }
+    { byPhone: boolean; maxGroupSize: number }
   >();
   for (const row of duplicateRows) {
-    const prev = duplicateMap.get(row.lead_id) ?? {
-      byEmail: false,
-      byPhone: false,
-      maxGroupSize: 0,
-    };
+    const prev = duplicateMap.get(row.lead_id) ?? { byPhone: false, maxGroupSize: 0 };
     duplicateMap.set(row.lead_id, {
-      byEmail: prev.byEmail || row.dup_kind === "email",
-      byPhone: prev.byPhone || row.dup_kind === "phone",
+      byPhone: true,
       maxGroupSize: Math.max(prev.maxGroupSize, Number(row.dup_count)),
     });
   }
@@ -281,10 +298,12 @@ export default async function SuperadminLeadsPage({
     })),
   }));
 
-  const filtersKey = `${parsed.from ?? ""}|${parsed.to ?? ""}|${parsed.status}|${parsed.analystId ?? ""}|${parsed.teamId ?? ""}|${parsed.execId ?? ""}|${parsed.perPage}|${parsed.page}`;
+  const filtersKey = `${parsed.from ?? ""}|${parsed.to ?? ""}|${parsed.q ?? ""}|${parsed.duplicatePhonesOnly ? "1" : "0"}|${parsed.status}|${parsed.analystId ?? ""}|${parsed.teamId ?? ""}|${parsed.execId ?? ""}|${parsed.perPage}|${parsed.page}`;
   const qp = new URLSearchParams();
   if (parsed.from) qp.set("from", parsed.from);
   if (parsed.to) qp.set("to", parsed.to);
+  if (parsed.q) qp.set("q", parsed.q);
+  if (parsed.duplicatePhonesOnly) qp.set("duplicatePhonesOnly", "1");
   if (parsed.status) qp.set("status", parsed.status);
   if (parsed.analystId) qp.set("analystId", parsed.analystId);
   if (parsed.teamId) qp.set("teamId", parsed.teamId);
@@ -315,7 +334,8 @@ export default async function SuperadminLeadsPage({
           Every lead grouped by the Lead Analyst who created it, with
           qualification status, current stage, and the recorded journey
           (handoff log). Filter by date range, lead status, lead analyst, team,
-          or sales executive.
+          sales executive, and search by name / phone / email. Duplicate badges
+          are based on phone number only.
         </p>
         <p className="mt-2 text-xs text-lf-subtle">{filterSummary}</p>
       </div>
@@ -326,6 +346,7 @@ export default async function SuperadminLeadsPage({
         analysts={analysts}
         teams={teams}
         execs={execs}
+        duplicatePhoneLeadCount={duplicatePhoneLeadCount}
       />
 
       <div className="grid gap-4 sm:grid-cols-3">

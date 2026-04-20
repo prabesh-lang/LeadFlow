@@ -12,6 +12,8 @@ export type SuperadminLeadsStatus =
 export type SuperadminLeadsParsed = {
   from: string | null;
   to: string | null;
+  q: string | null;
+  duplicatePhonesOnly: boolean;
   status: SuperadminLeadsStatus;
   analystId: string | null;
   teamId: string | null;
@@ -68,6 +70,10 @@ export function parseSuperadminLeadsSearchParams(
   return {
     from,
     to,
+    q: trimOrNull(first(sp.q))?.slice(0, 200) ?? null,
+    duplicatePhonesOnly:
+      first(sp.duplicatePhonesOnly) === "1" ||
+      first(sp.duplicatePhonesOnly)?.toLowerCase() === "true",
     status,
     analystId: trimOrNull(first(sp.analystId)),
     teamId: trimOrNull(first(sp.teamId)),
@@ -93,6 +99,30 @@ export function buildSuperadminLeadsWhereSql(
     );
     params.push(range.gte, range.lte);
     n += 2;
+  }
+
+  if (p.q) {
+    // Unified search across lead name, phone, and email.
+    parts.push(
+      `(COALESCE("leadName", '') ILIKE $${n} OR COALESCE(phone, '') ILIKE $${n} OR COALESCE("leadEmail", '') ILIKE $${n})`,
+    );
+    params.push(`%${p.q}%`);
+    n += 1;
+  }
+
+  if (p.duplicatePhonesOnly) {
+    parts.push(
+      `NULLIF(regexp_replace(COALESCE(phone, ''), '\\D', '', 'g'), '') IS NOT NULL`,
+    );
+    parts.push(
+      `EXISTS (
+         SELECT 1
+         FROM "Lead" l2
+         WHERE l2.id <> id
+           AND NULLIF(regexp_replace(COALESCE(l2.phone, ''), '\\D', '', 'g'), '') =
+               NULLIF(regexp_replace(COALESCE(phone, ''), '\\D', '', 'g'), '')
+       )`,
+    );
   }
 
   if (p.status !== "ALL") {
@@ -147,6 +177,10 @@ export function superadminLeadsFilterSummary(
 
   const statusText =
     p.status === "ALL" ? "Status: All" : `Status: ${p.status.replace(/_/g, " ")}`;
+  const searchText = p.q ? `Search: "${p.q}"` : "Search: All";
+  const dupText = p.duplicatePhonesOnly
+    ? "Duplicates: Phone only"
+    : "Duplicates: All leads";
   const analystText = p.analystId
     ? `Lead analyst: ${opts.analystLabel?.trim() || p.analystId}`
     : "Lead analyst: All";
@@ -157,5 +191,5 @@ export function superadminLeadsFilterSummary(
     ? `Sales executive: ${opts.execLabel?.trim() || p.execId}`
     : "Sales executive: All";
 
-  return `${rangeText} · ${statusText} · ${analystText} · ${teamText} · ${execText}`;
+  return `${rangeText} · ${searchText} · ${dupText} · ${statusText} · ${analystText} · ${teamText} · ${execText}`;
 }

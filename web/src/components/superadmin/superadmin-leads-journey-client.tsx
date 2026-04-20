@@ -47,7 +47,6 @@ type JourneyLead = {
   team: { name: string } | null;
   assignedSalesExec: { name: string; email: string } | null;
   duplicateMeta: {
-    byEmail: boolean;
     byPhone: boolean;
     maxGroupSize: number;
   } | null;
@@ -136,11 +135,7 @@ function fmtGap(fromIso: string | null, toIso: string | null) {
 
 function duplicateLabel(meta: JourneyLead["duplicateMeta"]) {
   if (!meta) return null;
-  if (meta.byEmail && meta.byPhone) {
-    return `Duplicate by email + phone (${meta.maxGroupSize})`;
-  }
-  if (meta.byEmail) return `Duplicate by email (${meta.maxGroupSize})`;
-  if (meta.byPhone) return `Duplicate by phone (${meta.maxGroupSize})`;
+  if (meta.byPhone) return `Duplicate phone (${meta.maxGroupSize})`;
   return null;
 }
 
@@ -213,7 +208,7 @@ export function SuperadminLeadsJourneyClient({
   return (
     <>
       <div className="space-y-8">
-        <div className="rounded-xl border border-lf-border bg-lf-surface/90 p-4">
+        <div className="rounded-2xl border border-lf-border bg-gradient-to-b from-lf-surface to-lf-bg p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <label className="inline-flex items-center gap-2 text-sm text-lf-text-secondary">
               <input
@@ -225,35 +220,40 @@ export function SuperadminLeadsJourneyClient({
                 }}
                 className="h-4 w-4 rounded border-lf-border"
               />
-              Select all leads on this page
+              Select all visible leads
             </label>
-            <form
-              action={bulkFormAction}
-              onSubmit={(e) => {
-                if (selectedCount === 0) {
-                  e.preventDefault();
-                  return;
-                }
-                const ok = window.confirm(
-                  `Delete ${selectedCount} selected lead(s) permanently? This cannot be undone.`,
-                );
-                if (!ok) e.preventDefault();
-              }}
-              className="flex items-center gap-2"
-            >
-              <input type="hidden" name="leadIdsCsv" value={selectedIdsCsv} />
-              <button
-                type="submit"
-                disabled={bulkPending || selectedCount === 0}
-                className="rounded-lg bg-lf-danger px-3 py-2 text-xs font-semibold text-white hover:bg-lf-danger/90 disabled:cursor-not-allowed disabled:opacity-60"
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-lg border border-lf-border bg-lf-bg/70 px-2.5 py-1 text-xs font-medium text-lf-text-secondary">
+                Selected: {selectedCount}
+              </span>
+              <form
+                action={bulkFormAction}
+                onSubmit={(e) => {
+                  if (selectedCount === 0) {
+                    e.preventDefault();
+                    return;
+                  }
+                  const ok = window.confirm(
+                    `Delete ${selectedCount} selected lead(s) permanently? This cannot be undone.`,
+                  );
+                  if (!ok) e.preventDefault();
+                }}
+                className="flex items-center gap-2"
               >
-                {bulkPending
-                  ? "Deleting..."
-                  : selectedCount > 0
-                    ? `Delete selected (${selectedCount})`
-                    : "Delete selected"}
-              </button>
-            </form>
+                <input type="hidden" name="leadIdsCsv" value={selectedIdsCsv} />
+                <button
+                  type="submit"
+                  disabled={bulkPending || selectedCount === 0}
+                  className="rounded-lg bg-lf-danger px-3 py-2 text-xs font-semibold text-white hover:bg-lf-danger/90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {bulkPending
+                    ? "Deleting..."
+                    : selectedCount > 0
+                      ? `Delete selected (${selectedCount})`
+                      : "Delete selected"}
+                </button>
+              </form>
+            </div>
           </div>
           {bulkState?.error ? (
             <p className="mt-2 text-xs text-lf-danger" role="alert">

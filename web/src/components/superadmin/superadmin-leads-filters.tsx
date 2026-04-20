@@ -20,15 +20,21 @@ export function SuperadminLeadsFiltersBar({
   analysts,
   teams,
   execs,
+  duplicatePhoneLeadCount,
 }: {
   initial: SuperadminLeadsParsed;
   analysts: AnalystOpt[];
   teams: TeamOpt[];
   execs: ExecOpt[];
+  duplicatePhoneLeadCount: number;
 }) {
   const pathname = usePathname();
   const [from, setFrom] = useState(initial.from ?? "");
   const [to, setTo] = useState(initial.to ?? "");
+  const [q, setQ] = useState(initial.q ?? "");
+  const [duplicatePhonesOnly, setDuplicatePhonesOnly] = useState(
+    initial.duplicatePhonesOnly,
+  );
   const [status, setStatus] = useState<SuperadminLeadsStatus>(initial.status);
   const [analystId, setAnalystId] = useState(initial.analystId ?? "");
   const [teamId, setTeamId] = useState(initial.teamId ?? "");
@@ -55,6 +61,9 @@ export function SuperadminLeadsFiltersBar({
     setOrDel("to", toN);
 
     p.set("status", status);
+    setOrDel("q", q.trim().slice(0, 200));
+    if (duplicatePhonesOnly) p.set("duplicatePhonesOnly", "1");
+    else p.delete("duplicatePhonesOnly");
     setOrDel("analystId", analystId.trim());
     setOrDel("teamId", teamId.trim());
     setOrDel("execId", execId.trim());
@@ -63,14 +72,16 @@ export function SuperadminLeadsFiltersBar({
     p.delete("dateBasis");
     p.delete("scope");
 
-    const q = p.toString();
-    window.location.assign(q ? `${pathname}?${q}` : pathname);
+    const qs = p.toString();
+    window.location.assign(qs ? `${pathname}?${qs}` : pathname);
   }, [
     analystId,
     execId,
     from,
     pathname,
     perPage,
+    q,
+    duplicatePhonesOnly,
     status,
     teamId,
     to,
@@ -107,7 +118,29 @@ export function SuperadminLeadsFiltersBar({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <label className="block text-xs font-medium text-lf-subtle sm:col-span-2 xl:col-span-2">
+          Search (name, phone, email)
+          <input
+            type="text"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Type a lead name, phone, or email…"
+            className="mt-1.5 block w-full min-h-10 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-sm text-lf-text outline-none ring-lf-brand/35 placeholder:text-lf-subtle focus:ring-2"
+          />
+        </label>
+        <label className="flex min-h-10 items-center gap-2 rounded-lg border border-lf-border bg-lf-bg px-3 py-2 text-xs font-medium text-lf-subtle">
+          <input
+            type="checkbox"
+            checked={duplicatePhonesOnly}
+            onChange={(e) => setDuplicatePhonesOnly(e.target.checked)}
+            className="h-4 w-4 rounded border-lf-border"
+          />
+          Show only duplicate phones
+          <span className="ml-auto rounded-full border border-lf-warning/35 bg-lf-warning/15 px-2 py-0.5 text-[10px] font-semibold text-lf-warning">
+            Duplicate phone leads: {duplicatePhoneLeadCount}
+          </span>
+        </label>
         <label className="block text-xs font-medium text-lf-subtle">
           From
           <input
