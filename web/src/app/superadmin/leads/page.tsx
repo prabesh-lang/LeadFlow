@@ -114,10 +114,6 @@ export default async function SuperadminLeadsPage({
   const sp = await searchParams;
   const parsed = parseSuperadminLeadsSearchParams(sp);
   const where = buildSuperadminLeadsWhereSql(parsed);
-  const baseWhereForDupCount = buildSuperadminLeadsWhereSql({
-    ...parsed,
-    duplicatePhonesOnly: false,
-  });
   const page = Math.max(1, parsed.page);
   const perPage = parsed.perPage;
   const offset = (page - 1) * perPage;
@@ -130,7 +126,6 @@ export default async function SuperadminLeadsPage({
     paged,
     exportPack,
     duplicateRows,
-    duplicatePhoneLeadCountRows,
   ] =
     await Promise.all([
     dbQuery<{ id: string; name: string }>(
@@ -184,26 +179,6 @@ export default async function SuperadminLeadsPage({
          JOIN phone_dups pd ON pd.phone_key = f.phone_key`,
         where.params,
       ),
-      dbQuery<{ c: string }>(
-        `WITH filtered AS (
-           SELECT
-             id,
-             NULLIF(regexp_replace(COALESCE(phone, ''), '\\D', '', 'g'), '') AS phone_key
-           FROM "Lead"
-           WHERE ${baseWhereForDupCount.clause}
-         ),
-         phone_dups AS (
-           SELECT phone_key
-           FROM filtered
-           WHERE phone_key IS NOT NULL
-           GROUP BY phone_key
-           HAVING COUNT(*) > 1
-         )
-         SELECT COUNT(*)::text AS c
-         FROM filtered f
-         JOIN phone_dups pd ON pd.phone_key = f.phone_key`,
-        baseWhereForDupCount.params,
-      ),
     ]);
   const qualTotals = {
     qualified: Number(counts[0]?.qualified ?? 0),
@@ -211,7 +186,6 @@ export default async function SuperadminLeadsPage({
     irrelevant: Number(counts[0]?.irrelevant ?? 0),
   };
   const totalCount = Number(counts[0]?.total ?? 0);
-  const duplicatePhoneLeadCount = Number(duplicatePhoneLeadCountRows[0]?.c ?? 0);
   const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
   const analystGroups = paged.analystGroups;
 
@@ -337,7 +311,6 @@ export default async function SuperadminLeadsPage({
           sales executive, and search by name / phone / email. Duplicate badges
           are based on phone number only.
         </p>
-        <p className="mt-2 text-xs text-lf-subtle">{filterSummary}</p>
       </div>
 
       <SuperadminLeadsFiltersBar
@@ -346,7 +319,6 @@ export default async function SuperadminLeadsPage({
         analysts={analysts}
         teams={teams}
         execs={execs}
-        duplicatePhoneLeadCount={duplicatePhoneLeadCount}
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
