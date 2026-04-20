@@ -8,6 +8,8 @@ import { SuperadminPasswordForm } from "@/components/superadmin/superadmin-passw
 import { UserRole } from "@/lib/constants";
 import { superadminRoleLabel } from "@/lib/superadmin-ui";
 
+const PROTECTED_SUPERADMIN_EMAIL = "superadmin@demo.local";
+
 type UserRow = {
   id: string;
   email: string;
@@ -31,7 +33,14 @@ export function SuperadminUsersTableClient({
     undefined,
   );
   const wasBulkPending = useRef(false);
-  const allUserIds = useMemo(() => users.map((u) => u.id), [users]);
+  const isNonDeletable = (u: UserRow) =>
+    u.role === UserRole.SUPERADMIN ||
+    u.email.trim().toLowerCase() === PROTECTED_SUPERADMIN_EMAIL;
+
+  const allUserIds = useMemo(
+    () => users.filter((u) => !isNonDeletable(u)).map((u) => u.id),
+    [users],
+  );
   const allUserSet = useMemo(() => new Set(allUserIds), [allUserIds]);
   const visibleSelectedIds = useMemo(() => {
     const next = new Set<string>();
@@ -127,20 +136,24 @@ export function SuperadminUsersTableClient({
             {users.map((u) => (
               <tr key={u.id} className="align-top">
                 <td className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    checked={visibleSelectedIds.has(u.id)}
-                    onChange={(e) => {
-                      setSelectedIds((prev) => {
-                        const next = new Set(prev);
-                        if (e.target.checked) next.add(u.id);
-                        else next.delete(u.id);
-                        return next;
-                      });
-                    }}
-                    className="h-4 w-4 rounded border-lf-border"
-                    aria-label={`Select ${u.email}`}
-                  />
+                  {isNonDeletable(u) ? (
+                    <span className="text-xs text-lf-subtle">—</span>
+                  ) : (
+                    <input
+                      type="checkbox"
+                      checked={visibleSelectedIds.has(u.id)}
+                      onChange={(e) => {
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (e.target.checked) next.add(u.id);
+                          else next.delete(u.id);
+                          return next;
+                        });
+                      }}
+                      className="h-4 w-4 rounded border-lf-border"
+                      aria-label={`Select ${u.email}`}
+                    />
+                  )}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs text-lf-text-secondary">
                   {u.email}
@@ -176,7 +189,7 @@ export function SuperadminUsersTableClient({
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  {u.role === UserRole.SUPERADMIN ? (
+                  {isNonDeletable(u) ? (
                     <span className="text-xs text-lf-subtle">—</span>
                   ) : (
                     <SuperadminDeleteForm userId={u.id} email={u.email} />

@@ -10,6 +10,8 @@ import {
 } from "@/lib/auth/supabase-admin";
 import { UserRole } from "@/lib/constants";
 
+const PROTECTED_SUPERADMIN_EMAIL = "superadmin@demo.local";
+
 async function requireSuperAdmin() {
   const session = await getSession();
   if (!session || session.role !== UserRole.SUPERADMIN) return null;
@@ -200,12 +202,16 @@ export async function superadminDeleteUser(formData: FormData) {
   const user = await dbQueryOne<{
     role: string;
     authUserId: string | null;
+    email: string;
   }>(
-    `SELECT role, "authUserId" FROM "User" WHERE id = $1`,
+    `SELECT role, "authUserId", email FROM "User" WHERE id = $1`,
     [userId],
   );
   if (!user || user.role === UserRole.SUPERADMIN) {
     return { error: "Cannot delete this account." };
+  }
+  if (user.email.trim().toLowerCase() === PROTECTED_SUPERADMIN_EMAIL) {
+    return { error: "This protected account cannot be deleted." };
   }
 
   const authId = user.authUserId;
@@ -340,8 +346,13 @@ export async function superadminDeleteUsersBulk(formData: FormData) {
     return { error: "You cannot delete your own account." };
   }
 
-  const users = await dbQuery<{ id: string; role: string; authUserId: string | null }>(
-    `SELECT id, role, "authUserId" FROM "User" WHERE id = ANY($1::text[])`,
+  const users = await dbQuery<{
+    id: string;
+    role: string;
+    authUserId: string | null;
+    email: string;
+  }>(
+    `SELECT id, role, "authUserId", email FROM "User" WHERE id = ANY($1::text[])`,
     [uniqueIds],
   );
   if (users.length !== uniqueIds.length) {
@@ -349,6 +360,13 @@ export async function superadminDeleteUsersBulk(formData: FormData) {
   }
   if (users.some((u) => u.role === UserRole.SUPERADMIN)) {
     return { error: "Superadmin accounts cannot be deleted in bulk." };
+  }
+  if (
+    users.some(
+      (u) => u.email.trim().toLowerCase() === PROTECTED_SUPERADMIN_EMAIL,
+    )
+  ) {
+    return { error: "This protected account cannot be deleted." };
   }
 
   try {
