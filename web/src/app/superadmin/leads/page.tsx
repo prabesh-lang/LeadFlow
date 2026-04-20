@@ -300,19 +300,6 @@ export default async function SuperadminLeadsPage({
 
   return (
     <div className="space-y-12">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-lf-text">
-          Leads
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-lf-muted">
-          Every lead grouped by the Lead Analyst who created it, with
-          qualification status, current stage, and the recorded journey
-          (handoff log). Filter by date range, lead status, lead analyst, team,
-          sales executive, and search by name / phone / email. Duplicate badges
-          are based on phone number only.
-        </p>
-      </div>
-
       <SuperadminLeadsFiltersBar
         key={filtersKey}
         initial={parsed}
