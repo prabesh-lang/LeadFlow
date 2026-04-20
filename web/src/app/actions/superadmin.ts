@@ -323,3 +323,60 @@ export async function superadminDeleteLeadsBulkFormAction(
   if (r && "ok" in r && r.ok) return { deletedCount: r.deletedCount };
   return undefined;
 }
+
+export async function superadminDeleteUsersBulk(formData: FormData) {
+  const session = await requireSuperAdmin();
+  if (!session) return { error: "Unauthorized." };
+
+  const raw = String(formData.get("userIdsCsv") ?? "");
+  const uniqueIds = [...new Set(raw.split(",").map((v) => v.trim()).filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return { error: "Select at least one user." };
+  }
+  if (uniqueIds.length > 200) {
+    return { error: "You can delete up to 200 users at a time." };
+  }
+  if (uniqueIds.includes(session.id)) {
+    return { error: "You cannot delete your own account." };
+  }
+
+  const users = await dbQuery<{ id: string; role: string; authUserId: string | null }>(
+    `SELECT id, role, "authUserId" FROM "User" WHERE id = ANY($1::text[])`,
+    [uniqueIds],
+  );
+  if (users.length !== uniqueIds.length) {
+    return { error: "Some selected users were not found. Refresh and try again." };
+  }
+  if (users.some((u) => u.role === UserRole.SUPERADMIN)) {
+    return { error: "Superadmin accounts cannot be deleted in bulk." };
+  }
+
+  try {
+    await dbQuery(`DELETE FROM "User" WHERE id = ANY($1::text[])`, [uniqueIds]);
+    for (const u of users) {
+      if (!u.authUserId) continue;
+      await authAdminDeleteUser(u.authUserId).catch(() => {
+        // Profile removed; auth user may remain and can be cleaned up manually.
+      });
+    }
+  } catch {
+    return {
+      error:
+        "Could not delete selected users (they may still have dependent records such as team members or leads).",
+    };
+  }
+
+  revalidatePath("/superadmin");
+  revalidatePath("/superadmin/add-user");
+  return { ok: true as const, deletedCount: uniqueIds.length };
+}
+
+export async function superadminDeleteUsersBulkFormAction(
+  _prev: { error?: string; deletedCount?: number } | undefined,
+  formData: FormData,
+): Promise<{ error?: string; deletedCount?: number } | undefined> {
+  const r = await superadminDeleteUsersBulk(formData);
+  if (r && "error" in r) return { error: r.error };
+  if (r && "ok" in r && r.ok) return { deletedCount: r.deletedCount };
+  return undefined;
+}
