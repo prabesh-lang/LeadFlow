@@ -33,6 +33,7 @@ export function SuperadminAppShell({
         session={session}
         avatarUrl={avatarUrl}
         teamName={teamName}
+        logoRight
         notifications={notifications}
         notificationUnreadCount={notificationUnreadCount}
         notificationLeadsHref="/superadmin/leads"
