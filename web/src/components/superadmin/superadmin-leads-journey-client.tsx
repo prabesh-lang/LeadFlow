@@ -1,8 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { superadminDeleteLeadFormAction } from "@/app/actions/superadmin";
+import {
+  superadminDeleteLeadFormAction,
+  superadminDeleteLeadsBulkFormAction,
+} from "@/app/actions/superadmin";
 import { LeadHandoffAction, QualificationStatus } from "@/lib/constants";
 import { analystFacingSalesLabel } from "@/lib/sales-stage-labels";
 import { LeadSourceDisplay, LeadSourcePill } from "@/components/lead-source-display";
@@ -22,13 +25,32 @@ type JourneyLog = {
 type JourneyLead = {
   id: string;
   leadName: string;
+  phone: string | null;
+  leadEmail: string | null;
+  country: string | null;
+  city: string | null;
   createdAt: string;
+  updatedAt: string;
   qualificationStatus: string;
   source: string;
+  sourceWebsiteName: string | null;
+  sourceMetaProfileName: string | null;
+  notes: string | null;
+  lostNotes: string | null;
+  leadScore: number | null;
   salesStage: string;
+  execAssignedAt: string | null;
+  execDeadlineAt: string | null;
+  closedAt: string | null;
+  internalReassignCount: number;
   assignedMainTeamLead: { name: string; email: string } | null;
   team: { name: string } | null;
   assignedSalesExec: { name: string; email: string } | null;
+  duplicateMeta: {
+    byEmail: boolean;
+    byPhone: boolean;
+    maxGroupSize: number;
+  } | null;
   handoffLogs: JourneyLog[];
 };
 
@@ -112,6 +134,16 @@ function fmtGap(fromIso: string | null, toIso: string | null) {
   return `${minutes}m`;
 }
 
+function duplicateLabel(meta: JourneyLead["duplicateMeta"]) {
+  if (!meta) return null;
+  if (meta.byEmail && meta.byPhone) {
+    return `Duplicate by email + phone (${meta.maxGroupSize})`;
+  }
+  if (meta.byEmail) return `Duplicate by email (${meta.maxGroupSize})`;
+  if (meta.byPhone) return `Duplicate by phone (${meta.maxGroupSize})`;
+  return null;
+}
+
 export function SuperadminLeadsJourneyClient({
   analystGroups,
 }: {
@@ -119,43 +151,130 @@ export function SuperadminLeadsJourneyClient({
 }) {
   const router = useRouter();
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
-  const [state, formAction, pending] = useActionState(
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [singleState, singleFormAction, singlePending] = useActionState(
     superadminDeleteLeadFormAction,
     undefined,
   );
-  const wasPending = useRef(false);
+  const [bulkState, bulkFormAction, bulkPending] = useActionState(
+    superadminDeleteLeadsBulkFormAction,
+    undefined,
+  );
+  const wasSinglePending = useRef(false);
+  const wasBulkPending = useRef(false);
+  const allLeadIds = useMemo(
+    () => analystGroups.flatMap((g) => g.leads.map((l) => l.id)),
+    [analystGroups],
+  );
+  const allLeadIdSet = useMemo(() => new Set(allLeadIds), [allLeadIds]);
+  const visibleSelectedIds = useMemo(() => {
+    const next = new Set<string>();
+    for (const id of selectedIds) {
+      if (allLeadIdSet.has(id)) next.add(id);
+    }
+    return next;
+  }, [allLeadIdSet, selectedIds]);
+  const selectedCount = visibleSelectedIds.size;
 
   const selected = findSelectedLead(analystGroups, selectedLeadId);
   const timeline = selected ? buildJourneyTimeline(selected) : null;
 
   const closeModal = () => {
-    if (pending) return;
+    if (singlePending) return;
     setSelectedLeadId(null);
   };
 
   useEffect(() => {
-    if (wasPending.current && !pending && !state?.error) {
+    if (wasSinglePending.current && !singlePending && !singleState?.error) {
       queueMicrotask(() => {
         setSelectedLeadId(null);
+        setSelectedIds(new Set());
         router.refresh();
       });
     }
-    wasPending.current = pending;
-  }, [pending, router, state]);
+    wasSinglePending.current = singlePending;
+  }, [router, singlePending, singleState]);
+
+  useEffect(() => {
+    if (wasBulkPending.current && !bulkPending && !bulkState?.error) {
+      queueMicrotask(() => {
+        setSelectedLeadId(null);
+        setSelectedIds(new Set());
+        router.refresh();
+      });
+    }
+    wasBulkPending.current = bulkPending;
+  }, [bulkPending, bulkState, router]);
 
   const openLead = (leadId: string) => setSelectedLeadId(leadId);
+  const isAllSelected = allLeadIds.length > 0 && selectedCount === allLeadIds.length;
+  const selectedIdsCsv = Array.from(visibleSelectedIds).join(",");
 
   return (
     <>
       <div className="space-y-8">
+        <div className="rounded-xl border border-lf-border bg-lf-surface/90 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <label className="inline-flex items-center gap-2 text-sm text-lf-text-secondary">
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={(e) => {
+                  if (e.target.checked) setSelectedIds(new Set(allLeadIds));
+                  else setSelectedIds(new Set());
+                }}
+                className="h-4 w-4 rounded border-lf-border"
+              />
+              Select all leads on this page
+            </label>
+            <form
+              action={bulkFormAction}
+              onSubmit={(e) => {
+                if (selectedCount === 0) {
+                  e.preventDefault();
+                  return;
+                }
+                const ok = window.confirm(
+                  `Delete ${selectedCount} selected lead(s) permanently? This cannot be undone.`,
+                );
+                if (!ok) e.preventDefault();
+              }}
+              className="flex items-center gap-2"
+            >
+              <input type="hidden" name="leadIdsCsv" value={selectedIdsCsv} />
+              <button
+                type="submit"
+                disabled={bulkPending || selectedCount === 0}
+                className="rounded-lg bg-lf-danger px-3 py-2 text-xs font-semibold text-white hover:bg-lf-danger/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {bulkPending
+                  ? "Deleting..."
+                  : selectedCount > 0
+                    ? `Delete selected (${selectedCount})`
+                    : "Delete selected"}
+              </button>
+            </form>
+          </div>
+          {bulkState?.error ? (
+            <p className="mt-2 text-xs text-lf-danger" role="alert">
+              {bulkState.error}
+            </p>
+          ) : null}
+        </div>
+
         {analystGroups.map(({ analyst, leads }) => (
           <section key={analyst.id} className="space-y-4">
             <div className="overflow-x-auto rounded-xl border border-lf-border bg-lf-surface/90 shadow-sm">
-              <table className="min-w-[980px] w-full table-fixed divide-y divide-lf-border text-sm">
+              <table className="min-w-[1260px] w-full table-fixed divide-y divide-lf-border text-sm">
                 <thead className="bg-lf-bg/70 text-left text-xs uppercase tracking-wide text-lf-subtle">
                   <tr>
+                    <th className="w-[44px] px-4 py-3 font-semibold">
+                      <span className="sr-only">Select</span>
+                    </th>
                     <th className="w-[240px] px-4 py-3 font-semibold">Lead</th>
+                    <th className="w-[210px] px-4 py-3 font-semibold">Contact</th>
                     <th className="w-[240px] px-4 py-3 font-semibold">Source</th>
+                    <th className="w-[170px] px-4 py-3 font-semibold">Duplicate check</th>
                     <th className="w-[120px] px-4 py-3 font-semibold">Status</th>
                     <th className="w-[150px] px-4 py-3 font-semibold">Stage</th>
                     <th className="w-[130px] px-4 py-3 font-semibold">Team</th>
@@ -178,6 +297,23 @@ export function SuperadminLeadsJourneyClient({
                       className="cursor-pointer align-top text-lf-text-secondary transition odd:bg-lf-bg/[0.16] hover:bg-lf-bg/[0.28] focus:outline-none focus:ring-2 focus:ring-lf-brand/30"
                     >
                       <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={visibleSelectedIds.has(lead.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            setSelectedIds((prev) => {
+                              const next = new Set(prev);
+                              if (e.target.checked) next.add(lead.id);
+                              else next.delete(lead.id);
+                              return next;
+                            });
+                          }}
+                          className="h-4 w-4 rounded border-lf-border"
+                          aria-label={`Select ${lead.leadName || "lead"}`}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
                         <p className="font-semibold text-lf-text">
                           {lead.leadName || "Unnamed lead"}
                         </p>
@@ -185,8 +321,24 @@ export function SuperadminLeadsJourneyClient({
                           Created {fmtDateTime(lead.createdAt)}
                         </p>
                       </td>
+                      <td className="px-4 py-3 text-xs text-lf-text-secondary">
+                        <p>{lead.phone || "—"}</p>
+                        <p className="mt-1 truncate">{lead.leadEmail || "—"}</p>
+                        <p className="mt-1 text-lf-subtle">
+                          {lead.city || "—"}, {lead.country || "—"}
+                        </p>
+                      </td>
                       <td className="px-4 py-3">
                         <LeadSourcePill source={lead.source} />
+                      </td>
+                      <td className="px-4 py-3">
+                        {duplicateLabel(lead.duplicateMeta) ? (
+                          <span className="inline-flex rounded-full bg-lf-warning/15 px-2.5 py-1 text-[11px] font-semibold text-lf-warning">
+                            {duplicateLabel(lead.duplicateMeta)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-lf-subtle">No duplicate match</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span
@@ -272,13 +424,38 @@ export function SuperadminLeadsJourneyClient({
             </div>
 
             <dl className="mb-6 grid gap-x-6 gap-y-2 text-sm text-lf-muted sm:grid-cols-[10rem_1fr]">
+              <dt>Lead analyst</dt>
+              <dd className="text-lf-text-secondary">
+                {selected.analyst.name} ({selected.analyst.email})
+              </dd>
+              <dt>Phone</dt>
+              <dd className="text-lf-text-secondary">
+                {selected.lead.phone || "—"}
+              </dd>
+              <dt>Email</dt>
+              <dd className="text-lf-text-secondary">
+                {selected.lead.leadEmail || "—"}
+              </dd>
+              <dt>Country / City</dt>
+              <dd className="text-lf-text-secondary">
+                {selected.lead.country || "—"} / {selected.lead.city || "—"}
+              </dd>
               <dt>Source</dt>
               <dd className="text-lf-text-secondary">
                 <LeadSourceDisplay source={selected.lead.source} />
               </dd>
+              <dt>Source metadata</dt>
+              <dd className="text-lf-text-secondary">
+                Website: {selected.lead.sourceWebsiteName || "—"}; Meta profile:{" "}
+                {selected.lead.sourceMetaProfileName || "—"}
+              </dd>
               <dt>Stage</dt>
               <dd className="text-lf-text-secondary">
                 {analystFacingSalesLabel(selected.lead.salesStage)}
+              </dd>
+              <dt>Lead score</dt>
+              <dd className="text-lf-text-secondary">
+                {selected.lead.leadScore ?? "—"}
               </dd>
               <dt>Main team lead</dt>
               <dd className="text-lf-text-secondary">
@@ -291,6 +468,35 @@ export function SuperadminLeadsJourneyClient({
               <dt>Sales executive</dt>
               <dd className="text-lf-text-secondary">
                 {selected.lead.assignedSalesExec?.name ?? "—"}
+              </dd>
+              <dt>Exec assigned / deadline</dt>
+              <dd className="text-lf-text-secondary">
+                {fmtDateTime(selected.lead.execAssignedAt)} /{" "}
+                {fmtDateTime(selected.lead.execDeadlineAt)}
+              </dd>
+              <dt>Closed at</dt>
+              <dd className="text-lf-text-secondary">
+                {fmtDateTime(selected.lead.closedAt)}
+              </dd>
+              <dt>Reassign count</dt>
+              <dd className="text-lf-text-secondary">
+                {selected.lead.internalReassignCount}
+              </dd>
+              <dt>Updated at</dt>
+              <dd className="text-lf-text-secondary">
+                {fmtDateTime(selected.lead.updatedAt)}
+              </dd>
+              <dt>Duplicate check</dt>
+              <dd className="text-lf-text-secondary">
+                {duplicateLabel(selected.lead.duplicateMeta) ?? "No duplicate match"}
+              </dd>
+              <dt>Analyst notes</dt>
+              <dd className="text-lf-text-secondary whitespace-pre-wrap">
+                {selected.lead.notes || "—"}
+              </dd>
+              <dt>Executive notes</dt>
+              <dd className="text-lf-text-secondary whitespace-pre-wrap">
+                {selected.lead.lostNotes || "—"}
               </dd>
             </dl>
 
@@ -393,7 +599,7 @@ export function SuperadminLeadsJourneyClient({
                 Close
               </button>
               <form
-                action={formAction}
+                action={singleFormAction}
                 onSubmit={(e) => {
                   const ok = window.confirm(
                     "Delete this lead permanently? This cannot be undone.",
@@ -404,14 +610,14 @@ export function SuperadminLeadsJourneyClient({
                 <input type="hidden" name="leadId" value={selected.lead.id} />
                 <button
                   type="submit"
-                  disabled={pending}
+                  disabled={singlePending}
                   className="rounded-lg bg-lf-danger px-4 py-2 text-sm font-semibold text-white hover:bg-lf-danger/90 disabled:opacity-60"
                 >
-                  {pending ? "Deleting..." : "Delete lead"}
+                  {singlePending ? "Deleting..." : "Delete lead"}
                 </button>
-                {state?.error ? (
+                {singleState?.error ? (
                   <p className="mt-2 text-xs text-lf-danger" role="alert">
-                    {state.error}
+                    {singleState.error}
                   </p>
                 ) : null}
               </form>

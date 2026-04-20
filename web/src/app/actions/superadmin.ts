@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { dbQuery, dbQueryOne, newId } from "@/lib/db/pool";
+import { dbQuery, dbQueryOne, newId, withTransaction } from "@/lib/db/pool";
 import { getSession } from "@/lib/auth/session";
 import {
   authAdminCreateUser,
@@ -272,5 +272,54 @@ export async function superadminDeleteLeadFormAction(
 ): Promise<{ error?: string } | undefined> {
   const r = await superadminDeleteLead(formData);
   if (r && "error" in r) return { error: r.error };
+  return undefined;
+}
+
+export async function superadminDeleteLeadsBulk(formData: FormData) {
+  const session = await requireSuperAdmin();
+  if (!session) return { error: "Unauthorized." };
+
+  const raw = String(formData.get("leadIdsCsv") ?? "");
+  const uniqueIds = [...new Set(raw.split(",").map((v) => v.trim()).filter(Boolean))];
+  if (uniqueIds.length === 0) {
+    return { error: "Select at least one lead." };
+  }
+  if (uniqueIds.length > 500) {
+    return { error: "You can delete up to 500 leads at a time." };
+  }
+
+  try {
+    await withTransaction(async (client) => {
+      await client.query(
+        `DELETE FROM "Notification" WHERE "leadId" = ANY($1::text[])`,
+        [uniqueIds],
+      );
+      await client.query(
+        `DELETE FROM "LeadHandoffLog" WHERE "leadId" = ANY($1::text[])`,
+        [uniqueIds],
+      );
+      await client.query(`DELETE FROM "Lead" WHERE id = ANY($1::text[])`, [
+        uniqueIds,
+      ]);
+    });
+  } catch {
+    return {
+      error:
+        "Could not delete selected leads due to dependent records. Please try again.",
+    };
+  }
+
+  revalidatePath("/superadmin");
+  revalidatePath("/superadmin/leads");
+  return { ok: true as const, deletedCount: uniqueIds.length };
+}
+
+export async function superadminDeleteLeadsBulkFormAction(
+  _prev: { error?: string; deletedCount?: number } | undefined,
+  formData: FormData,
+): Promise<{ error?: string; deletedCount?: number } | undefined> {
+  const r = await superadminDeleteLeadsBulk(formData);
+  if (r && "error" in r) return { error: r.error };
+  if (r && "ok" in r && r.ok) return { deletedCount: r.deletedCount };
   return undefined;
 }

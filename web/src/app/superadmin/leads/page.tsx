@@ -118,7 +118,8 @@ export default async function SuperadminLeadsPage({
   const perPage = parsed.perPage;
   const offset = (page - 1) * perPage;
 
-  const [teams, execs, analysts, counts, paged, exportPack] = await Promise.all([
+  const [teams, execs, analysts, counts, paged, exportPack, duplicateRows] =
+    await Promise.all([
     dbQuery<{ id: string; name: string }>(
       `SELECT id, name FROM "Team" ORDER BY name ASC`,
     ),
@@ -146,11 +147,43 @@ export default async function SuperadminLeadsPage({
       where.params,
     ),
     getSuperadminLeadsWithJourney(where, { limit: perPage, offset }),
-    getSuperadminLeadsWithJourney(where, {
-      limit: PORTAL_LEADS_EXPORT_ROW_CAP,
-      offset: 0,
-    }),
-  ]);
+      getSuperadminLeadsWithJourney(where, {
+        limit: PORTAL_LEADS_EXPORT_ROW_CAP,
+        offset: 0,
+      }),
+      dbQuery<{ lead_id: string; dup_kind: "email" | "phone"; dup_count: string }>(
+        `WITH filtered AS (
+           SELECT
+             id,
+             NULLIF(LOWER(BTRIM("leadEmail")), '') AS email_key,
+             NULLIF(regexp_replace(COALESCE(phone, ''), '\\D', '', 'g'), '') AS phone_key
+           FROM "Lead"
+           WHERE ${where.clause}
+         ),
+         email_dups AS (
+           SELECT email_key, COUNT(*)::int AS c
+           FROM filtered
+           WHERE email_key IS NOT NULL
+           GROUP BY email_key
+           HAVING COUNT(*) > 1
+         ),
+         phone_dups AS (
+           SELECT phone_key, COUNT(*)::int AS c
+           FROM filtered
+           WHERE phone_key IS NOT NULL
+           GROUP BY phone_key
+           HAVING COUNT(*) > 1
+         )
+         SELECT f.id AS lead_id, 'email'::text AS dup_kind, ed.c::text AS dup_count
+         FROM filtered f
+         JOIN email_dups ed ON ed.email_key = f.email_key
+         UNION ALL
+         SELECT f.id AS lead_id, 'phone'::text AS dup_kind, pd.c::text AS dup_count
+         FROM filtered f
+         JOIN phone_dups pd ON pd.phone_key = f.phone_key`,
+        where.params,
+      ),
+    ]);
   const qualTotals = {
     qualified: Number(counts[0]?.qualified ?? 0),
     notQualified: Number(counts[0]?.notQualified ?? 0),
@@ -194,18 +227,50 @@ export default async function SuperadminLeadsPage({
     },
   );
 
+  const duplicateMap = new Map<
+    string,
+    { byEmail: boolean; byPhone: boolean; maxGroupSize: number }
+  >();
+  for (const row of duplicateRows) {
+    const prev = duplicateMap.get(row.lead_id) ?? {
+      byEmail: false,
+      byPhone: false,
+      maxGroupSize: 0,
+    };
+    duplicateMap.set(row.lead_id, {
+      byEmail: prev.byEmail || row.dup_kind === "email",
+      byPhone: prev.byPhone || row.dup_kind === "phone",
+      maxGroupSize: Math.max(prev.maxGroupSize, Number(row.dup_count)),
+    });
+  }
+
   const analystGroupsClient = analystGroups.map((group) => ({
     analyst: group.analyst,
     leads: group.leads.map((lead) => ({
       id: lead.id,
       leadName: lead.leadName,
+      phone: lead.phone,
+      leadEmail: lead.leadEmail,
+      country: lead.country,
+      city: lead.city,
       createdAt: lead.createdAt.toISOString(),
+      updatedAt: lead.updatedAt.toISOString(),
       qualificationStatus: lead.qualificationStatus,
       source: lead.source,
+      sourceWebsiteName: lead.sourceWebsiteName,
+      sourceMetaProfileName: lead.sourceMetaProfileName,
+      notes: lead.notes,
+      lostNotes: lead.lostNotes,
+      leadScore: lead.leadScore,
       salesStage: lead.salesStage,
+      execAssignedAt: lead.execAssignedAt?.toISOString() ?? null,
+      execDeadlineAt: lead.execDeadlineAt?.toISOString() ?? null,
+      closedAt: lead.closedAt?.toISOString() ?? null,
+      internalReassignCount: lead.internalReassignCount,
       assignedMainTeamLead: lead.assignedMainTeamLead,
       team: lead.team,
       assignedSalesExec: lead.assignedSalesExec,
+      duplicateMeta: duplicateMap.get(lead.id) ?? null,
       handoffLogs: lead.handoffLogs.map((h) => ({
         id: h.id,
         createdAt: h.createdAt.toISOString(),
