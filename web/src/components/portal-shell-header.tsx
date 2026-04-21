@@ -47,6 +47,7 @@ export function PortalShellHeader({
   const brandLink = (
     <Link
       href={homeHref}
+      prefetch={true}
       className="flex min-w-0 items-center gap-2 text-sm font-semibold text-lf-text"
     >
       <LogoMark className="h-9 w-9 shrink-0" />

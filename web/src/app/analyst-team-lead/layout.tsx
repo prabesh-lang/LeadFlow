@@ -6,6 +6,7 @@ import { UserRole } from "@/lib/constants";
 import { redirectIfMustResetPassword } from "@/lib/auth-redirects";
 import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
 import { dbQueryOne } from "@/lib/db/pool";
+import { timedServerBlock } from "@/lib/server/log";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -23,13 +24,17 @@ export default async function AnalystTeamLeadLayout({
   }
   await redirectIfMustResetPassword();
 
-  const [user, notif] = await Promise.all([
-    dbQueryOne<{ image: string | null; analystTeamName: string | null }>(
-      `SELECT image, "analystTeamName" FROM "User" WHERE id = $1`,
-      [session.id],
-    ),
-    getPortalNotificationsForUser(session.id),
-  ]);
+  const [user, notif] = await timedServerBlock(
+    "route:/analyst-team-lead layout:data",
+    () =>
+      Promise.all([
+        dbQueryOne<{ image: string | null; analystTeamName: string | null }>(
+          `SELECT image, "analystTeamName" FROM "User" WHERE id = $1`,
+          [session.id],
+        ),
+        getPortalNotificationsForUser(session.id),
+      ]),
+  );
 
   const teamName =
     user?.analystTeamName?.trim() || "Analyst team lead";

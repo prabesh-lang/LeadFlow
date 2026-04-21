@@ -9,6 +9,7 @@ import {
 } from "@/lib/analyst-date-range";
 import { AnalystPipelineTableClient } from "@/components/portal-leads/analyst-pipeline-table-client";
 import { QualificationStatus, SalesStage } from "@/lib/constants";
+import { timedServerBlock } from "@/lib/server/log";
 
 export default async function AnalystPipelinePage({
   searchParams,
@@ -26,20 +27,19 @@ export default async function AnalystPipelinePage({
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { clause, params } = leadWhereSql(session.id, from, to);
 
-  const leads = await dbQuery<{
-    qualificationStatus: string;
-    salesStage: string;
-    id: string;
-    leadName: string;
-    phone: string | null;
-    source: string;
-    notes: string | null;
-    lostNotes: string | null;
-    leadScore: number | null;
-    createdAt: Date;
-  }>(
-    `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC`,
-    params,
+  const leads = await timedServerBlock("route:/analyst/pipeline page:queries", () =>
+    dbQuery<{
+      qualificationStatus: string;
+      salesStage: string;
+      id: string;
+      leadName: string;
+      phone: string | null;
+      source: string;
+      notes: string | null;
+      lostNotes: string | null;
+      leadScore: number | null;
+      createdAt: Date;
+    }>(`SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC`, params),
   );
 
   const qualified = leads.filter(

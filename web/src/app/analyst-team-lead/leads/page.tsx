@@ -19,6 +19,7 @@ import { QualificationStatus, UserRole } from "@/lib/constants";
 import { PortalPaginationBar } from "@/components/portal-pagination-bar";
 import { PORTAL_LEADS_EXPORT_ROW_CAP } from "@/lib/portal-leads-export-cap";
 import type { PortalAtlLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
+import { timedServerBlock } from "@/lib/server/log";
 
 type AtlJoinedRow = {
   id: string;
@@ -179,37 +180,49 @@ export default async function AnalystTeamLeadLeadsPage({
            WHERE ${clause}
            ORDER BY l."createdAt" DESC`;
 
-  const [countRows, leadRows, exportLeadRows] = await (analystIds.length === 0
-    ? Promise.resolve([[] as { c: string }[], [] as AtlJoinedRow[], [] as AtlJoinedRow[]])
-    : Promise.all([
-        dbQuery<{ c: string }>(
-          `SELECT COUNT(*)::text AS c FROM "Lead" l WHERE ${clause}`,
-          params,
-        ),
-        dbQuery<AtlJoinedRow>(
-          `${atlSelect}
-           LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-          [...params, perPage, offset],
-        ),
-        dbQuery<AtlJoinedRow>(
-          `${atlSelect}
-           LIMIT $${params.length + 1}`,
-          [...params, PORTAL_LEADS_EXPORT_ROW_CAP],
-        ),
-      ]));
+  const [countRows, leadRows, exportLeadRows] = await timedServerBlock(
+    "route:/analyst-team-lead/leads page:list",
+    () =>
+      analystIds.length === 0
+        ? Promise.resolve([
+            [] as { c: string }[],
+            [] as AtlJoinedRow[],
+            [] as AtlJoinedRow[],
+          ])
+        : Promise.all([
+            dbQuery<{ c: string }>(
+              `SELECT COUNT(*)::text AS c FROM "Lead" l WHERE ${clause}`,
+              params,
+            ),
+            dbQuery<AtlJoinedRow>(
+              `${atlSelect}
+               LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+              [...params, perPage, offset],
+            ),
+            dbQuery<AtlJoinedRow>(
+              `${atlSelect}
+               LIMIT $${params.length + 1}`,
+              [...params, PORTAL_LEADS_EXPORT_ROW_CAP],
+            ),
+          ]),
+  );
   const totalCount = Number(countRows[0]?.c ?? 0);
 
-  const mtlRows = await dbQuery<{
-    id: string;
-    name: string;
-    team_id: string;
-    team_name: string;
-  }>(
-    `SELECT u.id, u.name, t.id AS team_id, t.name AS team_name
-     FROM "User" u
-     INNER JOIN "Team" t ON t."mainTeamLeadId" = u.id
-     WHERE u.role = $1`,
-    [UserRole.MAIN_TEAM_LEAD],
+  const mtlRows = await timedServerBlock(
+    "route:/analyst-team-lead/leads page:mtl-options",
+    () =>
+      dbQuery<{
+        id: string;
+        name: string;
+        team_id: string;
+        team_name: string;
+      }>(
+        `SELECT u.id, u.name, t.id AS team_id, t.name AS team_name
+         FROM "User" u
+         INNER JOIN "Team" t ON t."mainTeamLeadId" = u.id
+         WHERE u.role = $1`,
+        [UserRole.MAIN_TEAM_LEAD],
+      ),
   );
   const mtlOptions: MtlOption[] = mtlRows.map((u) => ({
     id: u.id,
@@ -218,17 +231,21 @@ export default async function AnalystTeamLeadLeadsPage({
     teamName: u.team_name,
   }));
 
-  const execRows = await dbQuery<{
-    id: string;
-    name: string;
-    email: string;
-    team_id: string | null;
-  }>(
-    `SELECT id, name, email, "teamId" AS team_id
-     FROM "User"
-     WHERE role = $1
-     ORDER BY name ASC`,
-    [UserRole.SALES_EXECUTIVE],
+  const execRows = await timedServerBlock(
+    "route:/analyst-team-lead/leads page:exec-options",
+    () =>
+      dbQuery<{
+        id: string;
+        name: string;
+        email: string;
+        team_id: string | null;
+      }>(
+        `SELECT id, name, email, "teamId" AS team_id
+         FROM "User"
+         WHERE role = $1
+         ORDER BY name ASC`,
+        [UserRole.SALES_EXECUTIVE],
+      ),
   );
   const execOptions: ExecOption[] = execRows
     .filter((u): u is { id: string; name: string; email: string; team_id: string } =>
@@ -241,10 +258,14 @@ export default async function AnalystTeamLeadLeadsPage({
       teamId: u.team_id,
     }));
 
-  const [pagedTimeline, exportTimeline] = await Promise.all([
-    fetchAtlRoutingTimelines(leadRows.map((l) => l.id)),
-    fetchAtlRoutingTimelines(exportLeadRows.map((l) => l.id)),
-  ]);
+  const [pagedTimeline, exportTimeline] = await timedServerBlock(
+    "route:/analyst-team-lead/leads page:timelines",
+    () =>
+      Promise.all([
+        fetchAtlRoutingTimelines(leadRows.map((l) => l.id)),
+        fetchAtlRoutingTimelines(exportLeadRows.map((l) => l.id)),
+      ]),
+  );
 
   const rowsWithTimeline = mapAtlRowsWithTimeline(leadRows, pagedTimeline);
   const atlExportLeads = toAtlExportRows(exportLeadRows, exportTimeline);

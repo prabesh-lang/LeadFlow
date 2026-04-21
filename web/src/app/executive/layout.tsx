@@ -6,6 +6,7 @@ import { UserRole } from "@/lib/constants";
 import { redirectIfMustResetPassword } from "@/lib/auth-redirects";
 import { getPortalNotificationsForUser } from "@/lib/portal-notifications";
 import { dbQueryOne } from "@/lib/db/pool";
+import { timedServerBlock } from "@/lib/server/log";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -23,21 +24,20 @@ export default async function ExecutiveLayout({
   }
   await redirectIfMustResetPassword();
 
-  const [user, team, notif] = await Promise.all([
-    dbQueryOne<{ image: string | null }>(
-      `SELECT image FROM "User" WHERE id = $1`,
-      [session.id],
-    ),
-    session.teamId
-      ? dbQueryOne<{ name: string }>(
-          `SELECT name FROM "Team" WHERE id = $1`,
-          [session.teamId],
-        )
-      : Promise.resolve(null),
-    getPortalNotificationsForUser(session.id),
-  ]);
+  const [user, notif] = await timedServerBlock("route:/executive layout:data", () =>
+    Promise.all([
+      dbQueryOne<{ image: string | null; teamName: string | null }>(
+        `SELECT u.image, t.name AS "teamName"
+         FROM "User" u
+         LEFT JOIN "Team" t ON t.id = u."teamId"
+         WHERE u.id = $1`,
+        [session.id],
+      ),
+      getPortalNotificationsForUser(session.id),
+    ]),
+  );
 
-  const teamName = team?.name?.trim() || "Sales team";
+  const teamName = user?.teamName?.trim() || "Sales team";
 
   return (
     <div className={inter.className}>

@@ -14,6 +14,7 @@ import { PortalLeadsExportBar } from "@/components/portal-leads-export-bar";
 import { flattenSuperadminJourneyGroupsForExport } from "@/lib/superadmin-leads-export-map";
 import { buildSuperadminLeadsExportPayload } from "@/lib/portal-all-leads-export-payloads";
 import { PORTAL_LEADS_EXPORT_ROW_CAP } from "@/lib/portal-leads-export-cap";
+import { timedServerBlock } from "@/lib/server/log";
 
 export const metadata: Metadata = {
   title: "Leads · Superadmin",
@@ -118,68 +119,62 @@ export default async function SuperadminLeadsPage({
   const perPage = parsed.perPage;
   const offset = (page - 1) * perPage;
 
-  const [
-    teams,
-    execs,
-    analysts,
-    counts,
-    paged,
-    exportPack,
-    duplicateRows,
-  ] =
-    await Promise.all([
-    dbQuery<{ id: string; name: string }>(
-      `SELECT id, name FROM "Team" ORDER BY name ASC`,
-    ),
-    dbQuery<{ id: string; name: string; email: string }>(
-      `SELECT id, name, email FROM "User" WHERE role = $1 ORDER BY name ASC`,
-      [UserRole.SALES_EXECUTIVE],
-    ),
-    dbQuery<{ id: string; name: string; email: string }>(
-      `SELECT id, name, email FROM "User" WHERE role = $1 ORDER BY name ASC`,
-      [UserRole.LEAD_ANALYST],
-    ),
-    dbQuery<{
-      total: string;
-      qualified: string;
-      notQualified: string;
-      irrelevant: string;
-    }>(
-      `SELECT
-         COUNT(*)::text AS total,
-         COUNT(*) FILTER (WHERE "qualificationStatus" = 'QUALIFIED')::text AS qualified,
-         COUNT(*) FILTER (WHERE "qualificationStatus" = 'NOT_QUALIFIED')::text AS "notQualified",
-         COUNT(*) FILTER (WHERE "qualificationStatus" = 'IRRELEVANT')::text AS irrelevant
-       FROM "Lead"
-       WHERE ${where.clause}`,
-      where.params,
-    ),
-    getSuperadminLeadsWithJourney(where, { limit: perPage, offset }),
-      getSuperadminLeadsWithJourney(where, {
-        limit: PORTAL_LEADS_EXPORT_ROW_CAP,
-        offset: 0,
-      }),
-      dbQuery<{ lead_id: string; dup_count: string }>(
-        `WITH filtered AS (
-           SELECT
-             id,
-             NULLIF(regexp_replace(COALESCE(phone, ''), '\\D', '', 'g'), '') AS phone_key
+  const [teams, execs, analysts, counts, paged, exportPack, duplicateRows] =
+    await timedServerBlock("route:/superadmin/leads page:queries", () =>
+      Promise.all([
+        dbQuery<{ id: string; name: string }>(
+          `SELECT id, name FROM "Team" ORDER BY name ASC`,
+        ),
+        dbQuery<{ id: string; name: string; email: string }>(
+          `SELECT id, name, email FROM "User" WHERE role = $1 ORDER BY name ASC`,
+          [UserRole.SALES_EXECUTIVE],
+        ),
+        dbQuery<{ id: string; name: string; email: string }>(
+          `SELECT id, name, email FROM "User" WHERE role = $1 ORDER BY name ASC`,
+          [UserRole.LEAD_ANALYST],
+        ),
+        dbQuery<{
+          total: string;
+          qualified: string;
+          notQualified: string;
+          irrelevant: string;
+        }>(
+          `SELECT
+             COUNT(*)::text AS total,
+             COUNT(*) FILTER (WHERE "qualificationStatus" = 'QUALIFIED')::text AS qualified,
+             COUNT(*) FILTER (WHERE "qualificationStatus" = 'NOT_QUALIFIED')::text AS "notQualified",
+             COUNT(*) FILTER (WHERE "qualificationStatus" = 'IRRELEVANT')::text AS irrelevant
            FROM "Lead"
-           WHERE ${where.clause}
-         ),
-         phone_dups AS (
-           SELECT phone_key, COUNT(*)::int AS c
-           FROM filtered
-           WHERE phone_key IS NOT NULL
-           GROUP BY phone_key
-           HAVING COUNT(*) > 1
-         )
-         SELECT f.id AS lead_id, pd.c::text AS dup_count
-         FROM filtered f
-         JOIN phone_dups pd ON pd.phone_key = f.phone_key`,
-        where.params,
-      ),
-    ]);
+           WHERE ${where.clause}`,
+          where.params,
+        ),
+        getSuperadminLeadsWithJourney(where, { limit: perPage, offset }),
+        getSuperadminLeadsWithJourney(where, {
+          limit: PORTAL_LEADS_EXPORT_ROW_CAP,
+          offset: 0,
+        }),
+        dbQuery<{ lead_id: string; dup_count: string }>(
+          `WITH filtered AS (
+             SELECT
+               id,
+               NULLIF(regexp_replace(COALESCE(phone, ''), '\\D', '', 'g'), '') AS phone_key
+             FROM "Lead"
+             WHERE ${where.clause}
+           ),
+           phone_dups AS (
+             SELECT phone_key, COUNT(*)::int AS c
+             FROM filtered
+             WHERE phone_key IS NOT NULL
+             GROUP BY phone_key
+             HAVING COUNT(*) > 1
+           )
+           SELECT f.id AS lead_id, pd.c::text AS dup_count
+           FROM filtered f
+           JOIN phone_dups pd ON pd.phone_key = f.phone_key`,
+          where.params,
+        ),
+      ]),
+    );
   const qualTotals = {
     qualified: Number(counts[0]?.qualified ?? 0),
     notQualified: Number(counts[0]?.notQualified ?? 0),

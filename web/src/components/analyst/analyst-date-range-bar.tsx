@@ -1,6 +1,7 @@
 "use client";
 
 import { type FormEvent, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   buildPortalDateRangeApplyHref,
   buildPortalDateRangeClearHref,
@@ -24,8 +25,8 @@ export type AnalystDateRangeBarProps = {
 /**
  * Date range filter for portal dashboards and lead lists.
  *
- * Apply/Clear use `window.location.assign` with {@link buildPortalDateRangeApplyHref}
- * so navigation matches superadmin and always sends a full document request with
+ * Apply/Clear use app-router navigation with {@link buildPortalDateRangeApplyHref}
+ * to avoid full document reloads while preserving query behavior:
  * `?from=` / `?to=` (either or both) / `page=1` plus preserved params.
  *
  * At least one valid date is required. Single-date ranges align with
@@ -38,6 +39,7 @@ export default function AnalystDateRangeBar({
   preservedEntries,
   rangeSummary,
 }: AnalystDateRangeBarProps) {
+  const router = useRouter();
   const [applyError, setApplyError] = useState<string | null>(null);
   const fromInputRef = useRef<HTMLInputElement>(null);
   const toInputRef = useRef<HTMLInputElement>(null);
@@ -63,14 +65,14 @@ export default function AnalystDateRangeBar({
     }
 
     setApplyError(null);
-    window.location.assign(
+    router.push(
       buildPortalDateRangeApplyHref(pathname, fromSafe, toSafe, preservedEntries),
     );
   }
 
   function onClear() {
     setApplyError(null);
-    window.location.assign(buildPortalDateRangeClearHref(pathname, preservedEntries));
+    router.push(buildPortalDateRangeClearHref(pathname, preservedEntries));
   }
 
   return (

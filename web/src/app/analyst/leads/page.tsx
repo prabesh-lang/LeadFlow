@@ -14,6 +14,7 @@ import { PORTAL_LEADS_EXPORT_ROW_CAP } from "@/lib/portal-leads-export-cap";
 import type { PortalAnalystLeadExportRow } from "@/lib/portal-all-leads-export-payloads";
 import { AnalystAllLeadsTableClient } from "@/components/portal-leads/analyst-all-leads-table-client";
 import { PortalPaginationBar } from "@/components/portal-pagination-bar";
+import { timedServerBlock } from "@/lib/server/log";
 
 export default async function AnalystAllLeadsPage({
   searchParams,
@@ -37,44 +38,48 @@ export default async function AnalystAllLeadsPage({
   const rangeLabel = analystRangeSummaryLabel(from, to);
   const { clause, params } = leadWhereSql(session.id, from, to);
 
-  const [countRows, leads, exportLeads] = await Promise.all([
-    dbQuery<{ c: string }>(
-      `SELECT COUNT(*)::text AS c FROM "Lead" WHERE ${clause}`,
-      params,
-    ),
-    dbQuery<{
-      id: string;
-      leadName: string;
-      phone: string | null;
-      leadEmail: string | null;
-      source: string;
-      notes: string | null;
-      lostNotes: string | null;
-      qualificationStatus: string;
-      leadScore: number | null;
-      salesStage: string;
-      createdAt: Date;
-    }>(
-      `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      [...params, perPage, offset],
-    ),
-    dbQuery<{
-      id: string;
-      leadName: string;
-      phone: string | null;
-      leadEmail: string | null;
-      source: string;
-      notes: string | null;
-      lostNotes: string | null;
-      qualificationStatus: string;
-      leadScore: number | null;
-      salesStage: string;
-      createdAt: Date;
-    }>(
-      `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC LIMIT $${params.length + 1}`,
-      [...params, PORTAL_LEADS_EXPORT_ROW_CAP],
-    ),
-  ]);
+  const [countRows, leads, exportLeads] = await timedServerBlock(
+    "route:/analyst/leads page:queries",
+    () =>
+      Promise.all([
+        dbQuery<{ c: string }>(
+          `SELECT COUNT(*)::text AS c FROM "Lead" WHERE ${clause}`,
+          params,
+        ),
+        dbQuery<{
+          id: string;
+          leadName: string;
+          phone: string | null;
+          leadEmail: string | null;
+          source: string;
+          notes: string | null;
+          lostNotes: string | null;
+          qualificationStatus: string;
+          leadScore: number | null;
+          salesStage: string;
+          createdAt: Date;
+        }>(
+          `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+          [...params, perPage, offset],
+        ),
+        dbQuery<{
+          id: string;
+          leadName: string;
+          phone: string | null;
+          leadEmail: string | null;
+          source: string;
+          notes: string | null;
+          lostNotes: string | null;
+          qualificationStatus: string;
+          leadScore: number | null;
+          salesStage: string;
+          createdAt: Date;
+        }>(
+          `SELECT * FROM "Lead" WHERE ${clause} ORDER BY "createdAt" DESC LIMIT $${params.length + 1}`,
+          [...params, PORTAL_LEADS_EXPORT_ROW_CAP],
+        ),
+      ]),
+  );
   const totalCount = Number(countRows[0]?.c ?? 0);
 
   const rows = leads.map((l) => ({

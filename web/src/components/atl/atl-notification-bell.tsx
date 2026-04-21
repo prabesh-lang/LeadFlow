@@ -143,6 +143,7 @@ export function PortalNotificationBell({
                 >
                   <Link
                     href={leadsHref}
+                    prefetch={true}
                     className="block px-4 py-3 text-left transition hover:bg-lf-bg/50"
                     onClick={() => {
                       if (!n.read) void onMarkRead(n.id);

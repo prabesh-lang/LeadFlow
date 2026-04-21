@@ -44,6 +44,7 @@ export function AtlAppShell({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={true}
                 className={`block rounded-lg px-3 py-2 text-lf-muted hover:bg-lf-bg/50 hover:text-lf-text ${navFocusRing()}`}
               >
                 {item.label}
