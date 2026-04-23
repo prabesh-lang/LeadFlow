@@ -12,9 +12,15 @@ export function filterLeadsByNameOrPhone<
     const name = (l.leadName || "").toLowerCase();
     const phoneStr = (l.phone || "").toLowerCase();
     if (name.includes(qLower) || phoneStr.includes(qLower)) return true;
+
     if (qDigits.length >= 2 && l.phone) {
       const phoneDigits = l.phone.replace(/\D/g, "");
       if (phoneDigits.includes(qDigits)) return true;
+
+      // Match local phone searches against stored international phone formats.
+      if (qDigits.startsWith("0") && phoneDigits.endsWith(qDigits.slice(1))) {
+        return true;
+      }
     }
     return false;
   });
