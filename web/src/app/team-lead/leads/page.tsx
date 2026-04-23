@@ -160,7 +160,7 @@ export default async function TeamLeadLeadsPage({
       />
 
       <MtlLeadsTableClient
-        key={`${page}|${perPage}|${q ?? ""}`}
+        key={`${page}|${perPage}`}
         leads={rows}
         initialQ={q}
         execs={execOptions}

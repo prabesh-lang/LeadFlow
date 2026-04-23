@@ -323,7 +323,7 @@ export default async function AnalystTeamLeadLeadsPage({
       />
 
       <AtlAllLeadsTableClient
-        key={`${page}|${perPage}|${q ?? ""}|${from ?? ""}|${to ?? ""}|${statusFilter ?? ""}|${analystIdFilter ?? ""}|${sourceFilter ?? ""}`}
+        key={`${page}|${perPage}|${from ?? ""}|${to ?? ""}|${statusFilter ?? ""}|${analystIdFilter ?? ""}|${sourceFilter ?? ""}`}
         leads={rowsWithTimeline}
         initialQ={q}
         from={from}
